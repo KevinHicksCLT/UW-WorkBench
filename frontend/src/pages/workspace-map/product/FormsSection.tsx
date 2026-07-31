@@ -1,37 +1,19 @@
-// The forms-first section of the Products grid: one row per core form
-// (aggregating its whole family while collapsed), expandable to indented child
-// rows — state variations, coverage endorsements, product exceptions — all
+// The forms register of the Products grid — forms down the side, products
+// across the top, broken into the three rationalization layers (core national
+// / state-required / product-specific). Expanding a form reveals what it
+// CONTAINS — coverages, coverage parts, endorsements, clauses — every row
 // rendered through the shared HeatGridRow so cells/counts/progress look
 // identical to the model-component rows below.
 
-import { MATCH_META } from './spine';
 import {
+  CONTENT_KIND_ORDER,
+  CONTENT_META,
   FORM_LAYER_META,
-  type CoreFormRow,
+  type FormRow,
   type FormRowData,
-  type FormsHierarchy,
+  type FormsModel,
 } from './formsModel';
-import { HeatGridRow, type Density } from './gridRow';
-
-function countsLine(row: FormRowData) {
-  return (
-    <span
-      style={{
-        display: 'block',
-        fontSize: 11,
-        fontWeight: 600,
-        marginTop: 1,
-        fontVariantNumeric: 'tabular-nums',
-      }}
-    >
-      <span style={{ color: MATCH_META.COMMON.fg }}>{row.common} common</span>
-      <span style={{ color: '#9ca3af' }}> · </span>
-      <span style={{ color: MATCH_META.PARTIAL.fg }}>{row.similar} similar</span>
-      <span style={{ color: '#9ca3af' }}> · </span>
-      <span style={{ color: MATCH_META.UNIQUE.fg }}>{row.unique} unique</span>
-    </span>
-  );
-}
+import { HeatGridRow, SectionBand, type Density } from './gridRow';
 
 function noteOf(row: FormRowData): string | null {
   for (const r of row.reviewRows) if (r.decision?.comment) return r.decision.comment;
@@ -39,7 +21,7 @@ function noteOf(row: FormRowData): string | null {
 }
 
 export default function FormsSection({
-  hierarchy,
+  model,
   grid,
   density,
   notesOpen,
@@ -47,36 +29,46 @@ export default function FormsSection({
   onToggle,
   onOpenDrill,
 }: {
-  hierarchy: FormsHierarchy;
+  model: FormsModel;
   grid: string;
   density: Density;
   notesOpen: boolean;
-  /** Expanded core-form keys. */
+  /** Expanded form keys. */
   open: Record<string, boolean>;
-  onToggle: (coreKey: string) => void;
+  onToggle: (formKey: string) => void;
   /** Open the review list drilled to a forms row (key from formsModel). */
   onOpenDrill: (rowKey: string) => void;
 }) {
   return (
     <>
-      {hierarchy.cores.map((core) => (
-        <CoreRows
-          key={core.key}
-          core={core}
-          grid={grid}
-          density={density}
-          notesOpen={notesOpen}
-          expanded={Boolean(open[core.key])}
-          onToggle={() => onToggle(core.key)}
-          onOpenDrill={onOpenDrill}
-        />
-      ))}
+      {model.sections.map((section) =>
+        section.rows.length === 0 ? null : (
+          <div key={section.layer} style={{ display: 'contents' }}>
+            <SectionBand
+              label={`${FORM_LAYER_META[section.layer].label} (${section.rows.length})`}
+              detail={FORM_LAYER_META[section.layer].hint}
+            />
+            {section.rows.map((row) => (
+              <FormRows
+                key={row.key}
+                row={row}
+                grid={grid}
+                density={density}
+                notesOpen={notesOpen}
+                expanded={Boolean(open[row.key])}
+                onToggle={() => onToggle(row.key)}
+                onOpenDrill={onOpenDrill}
+              />
+            ))}
+          </div>
+        ),
+      )}
     </>
   );
 }
 
-function CoreRows({
-  core,
+function FormRows({
+  row,
   grid,
   density,
   notesOpen,
@@ -84,7 +76,7 @@ function CoreRows({
   onToggle,
   onOpenDrill,
 }: {
-  core: CoreFormRow;
+  row: FormRow;
   grid: string;
   density: Density;
   notesOpen: boolean;
@@ -92,29 +84,33 @@ function CoreRows({
   onToggle: () => void;
   onOpenDrill: (rowKey: string) => void;
 }) {
-  const expandable = core.children.length > 0;
-  const variationCount = core.children.reduce((n, g) => n + g.rows.length, 0);
+  const expandable = row.contents.length > 0;
   return (
     <>
       <HeatGridRow
-        rowKey={core.key}
+        rowKey={row.key}
         grid={grid}
         density={density}
-        cells={core.cells}
-        total={core.total}
-        pending={core.need - core.decided}
-        pct={core.pct}
-        rag={core.rag}
-        note={noteOf(core)}
+        cells={row.cells}
+        total={row.total}
+        pending={row.need - row.decided}
+        pct={row.pct}
+        rag={row.rag}
+        note={noteOf(row)}
         notesOpen={notesOpen}
-        onOpen={() => onOpenDrill(core.key)}
+        onOpen={() => onOpenDrill(row.key)}
         left={
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
             <button
               type="button"
-              aria-label={expanded ? 'collapse the form family' : 'expand the form family'}
+              aria-label={expanded ? 'collapse the form contents' : 'show what this form contains'}
               disabled={!expandable}
               onClick={onToggle}
+              title={
+                expandable
+                  ? 'show the coverages, coverage parts, endorsements and clauses this form contains'
+                  : undefined
+              }
               style={{
                 font: 'inherit',
                 border: 'none',
@@ -131,8 +127,8 @@ function CoreRows({
             </button>
             <button
               type="button"
-              onClick={() => onOpenDrill(core.key)}
-              title="open this form family's review list"
+              onClick={() => onOpenDrill(row.key)}
+              title="open this form's review list (the form + everything it contains)"
               style={{
                 font: 'inherit',
                 display: 'flex',
@@ -152,127 +148,130 @@ function CoreRows({
                   style={{
                     display: 'block',
                     fontSize: 13,
-                    fontWeight: 600,
+                    fontWeight: row.isBase ? 700 : 600,
                     color: '#171717',
                     lineHeight: 1.25,
                   }}
                 >
-                  {core.label}
+                  {row.label}
                 </span>
-                <span
-                  style={{
-                    display: 'block',
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    color: '#525252',
-                    marginTop: 1,
-                  }}
-                >
-                  {core.lobName} · core form
-                  {variationCount > 0
-                    ? ` · ${variationCount} variation${variationCount === 1 ? '' : 's'}`
-                    : ''}
-                </span>
-                {countsLine(core)}
+                {row.sub && (
+                  <span
+                    style={{
+                      display: 'block',
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: '#525252',
+                      marginTop: 1,
+                    }}
+                  >
+                    {row.sub}
+                  </span>
+                )}
               </span>
             </button>
           </div>
         }
       />
       {expanded &&
-        core.children.map((group) => (
-          <div key={`${core.key}:${group.kind}`} style={{ display: 'contents' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'baseline',
-                gap: 8,
-                padding: '4px 12px 3px 40px',
-                background: '#fafafa',
-                borderBottom: '1px solid #f1f3f5',
-                minWidth: '100%',
-              }}
-            >
-              <span
+        CONTENT_KIND_ORDER.map((kind) => {
+          const group = row.contents.find((g) => g.kind === kind);
+          return (
+            <div key={`${row.key}:${kind}`} style={{ display: 'contents' }}>
+              {/* All four content categories always show while expanded, so
+                  an empty one reads "none recorded" instead of vanishing. */}
+              <div
                 style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '0.07em',
-                  textTransform: 'uppercase',
-                  color: '#374151',
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: 8,
+                  padding: '4px 12px 3px 40px',
+                  background: '#fafafa',
+                  borderBottom: '1px solid #f1f3f5',
+                  minWidth: '100%',
                 }}
               >
-                {FORM_LAYER_META[group.kind].label} ({group.rows.length})
-              </span>
-              <span style={{ fontSize: 10.5, color: '#525252' }}>
-                {FORM_LAYER_META[group.kind].hint}
-              </span>
-            </div>
-            {group.rows.map((row) => (
-              <HeatGridRow
-                key={row.key}
-                rowKey={row.key}
-                grid={grid}
-                density={density}
-                cells={row.cells}
-                total={row.total}
-                pending={row.need - row.decided}
-                pct={row.pct}
-                rag={row.rag}
-                note={noteOf(row)}
-                notesOpen={notesOpen}
-                onOpen={() => onOpenDrill(row.key)}
-                background="#fcfcfd"
-                left={
-                  <button
-                    type="button"
-                    onClick={() => onOpenDrill(row.key)}
-                    title="open this form's review list"
-                    style={{
-                      font: 'inherit',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 12px 8px 40px',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      minWidth: 0,
-                    }}
-                  >
-                    <span style={{ minWidth: 0 }}>
-                      <span
-                        style={{
-                          display: 'block',
-                          fontSize: 12.5,
-                          fontWeight: 600,
-                          color: '#171717',
-                          lineHeight: 1.25,
-                        }}
-                      >
-                        {row.label}
-                      </span>
-                      {row.sub && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase',
+                    color: '#374151',
+                  }}
+                >
+                  {CONTENT_META[kind].label} ({group?.rows.length ?? 0})
+                </span>
+                <span style={{ fontSize: 10.5, color: '#525252' }}>
+                  {group ? CONTENT_META[kind].hint : 'none recorded'}
+                </span>
+              </div>
+              {group?.rows.map((content) => (
+                <HeatGridRow
+                  key={`${row.key}>${content.key}`}
+                  rowKey={`${row.key}>${content.key}`}
+                  grid={grid}
+                  density={density}
+                  cells={content.cells}
+                  total={content.total}
+                  pending={content.need - content.decided}
+                  pct={content.pct}
+                  rag={content.rag}
+                  note={noteOf(content)}
+                  notesOpen={notesOpen}
+                  onOpen={() => onOpenDrill(content.key)}
+                  background="#fcfcfd"
+                  left={
+                    <button
+                      type="button"
+                      onClick={() => onOpenDrill(content.key)}
+                      title="open this item's review list"
+                      style={{
+                        font: 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '8px 12px 8px 40px',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        minWidth: 0,
+                      }}
+                    >
+                      <span style={{ minWidth: 0 }}>
                         <span
                           style={{
                             display: 'block',
-                            fontSize: 10.5,
+                            fontSize: 12.5,
                             fontWeight: 600,
-                            color: '#525252',
-                            marginTop: 1,
+                            color: '#171717',
+                            lineHeight: 1.25,
                           }}
                         >
-                          {row.sub}
+                          {content.label}
                         </span>
-                      )}
-                    </span>
-                  </button>
-                }
-              />
-            ))}
-          </div>
-        ))}
+                        {content.sub && (
+                          <span
+                            style={{
+                              display: 'block',
+                              fontSize: 10.5,
+                              fontWeight: 600,
+                              color: '#525252',
+                              marginTop: 1,
+                            }}
+                          >
+                            {content.sub}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  }
+                />
+              ))}
+            </div>
+          );
+        })}
     </>
   );
 }

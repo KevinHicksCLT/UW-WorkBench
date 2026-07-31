@@ -255,7 +255,6 @@ export default function ProductReviewList({
   stats,
   onBack,
   onDecide,
-  onScrollDepth,
   labelOf,
   abbr,
   onToggleAbbr,
@@ -274,12 +273,6 @@ export default function ProductReviewList({
     status: ProductDecisionStatus | null,
     comment?: string,
   ) => Promise<void>;
-  /** Fires when the table scrolls away from (or back to) the top — the
-   *  surrounding chrome hides itself to give the table the height. */
-  /** Raw scrollTop + scrollable overflow of the list's scroll surface — the
-   *  parent owns the direction/hysteresis logic so both heatmap surfaces
-   *  behave identically. */
-  onScrollDepth?: (scrollTop: number, overflow?: number) => void;
   /** Column label (full or abbreviated) — full name always on hover. */
   labelOf?: (v: VersionColumn) => string;
   abbr?: boolean;
@@ -468,15 +461,7 @@ export default function ProductReviewList({
       {/* One scroll surface for header + rows: the angled header sticks to the
           top while the table takes every remaining pixel, and horizontal
           scrolling keeps header and body in lockstep. */}
-      <div
-        style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-        onScroll={(e) =>
-          onScrollDepth?.(
-            e.currentTarget.scrollTop,
-            e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
-          )
-        }
-      >
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
         <div style={{ minWidth: '100%', width: 'max-content' }}>
           <div
             style={{

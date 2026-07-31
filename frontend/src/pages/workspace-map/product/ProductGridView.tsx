@@ -1,9 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
 import { abbrevVersion, buildHeatmap, type HeatRow } from './gridModel';
-import { buildFormsHierarchy, FORMS_COMPONENT } from './formsModel';
+import { buildFormsModel, ROLLED_UP_COMPONENTS } from './formsModel';
 import FormsSection from './FormsSection';
 import { HeatGridRow, SectionBand } from './gridRow';
 import {
@@ -86,7 +86,6 @@ export default function ProductGridView({
   lobs,
   decisions,
   onDecide,
-  onImmersive,
 }: {
   lobs: LobOption[];
   /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
@@ -99,18 +98,22 @@ export default function ProductGridView({
     status: ProductDecisionStatus | null,
     comment?: string,
   ) => Promise<void>;
-  /** Mirrors table scroll depth so the board can hide ITS chrome too. */
-  onImmersive?: (deep: boolean) => void;
 }) {
   const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
-  // Forms-first split: the Forms component row decomposes into the core-form
-  // hierarchy; every other component renders as a plain row below it.
-  const formsRow = useMemo(
-    () => heat.rows.find((r) => r.component === FORMS_COMPONENT) ?? null,
-    [heat],
+  // Forms-first split: the Forms component becomes the three-layer forms
+  // register; the components that roll up under forms (Coverages, Terms)
+  // surface inside the form drill-downs; everything else stays a plain
+  // component row below.
+  const model = useMemo(() => buildFormsModel(heat), [heat]);
+  const otherRows = useMemo(
+    () =>
+      model
+        ? heat.rows.filter(
+            (r) => r.component !== 'Forms' && !ROLLED_UP_COMPONENTS.includes(r.component),
+          )
+        : heat.rows,
+    [heat, model],
   );
-  const hierarchy = useMemo(() => (formsRow ? buildFormsHierarchy(formsRow) : null), [formsRow]);
-  const otherRows = useMemo(() => heat.rows.filter((r) => r.component !== FORMS_COMPONENT), [heat]);
   // Expanded core-form families persist per session.
   const [formsOpen, setFormsOpen] = useViewState<Record<string, boolean>>(
     'workspace.product.formsOpen',
@@ -133,45 +136,19 @@ export default function ProductGridView({
   const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', true);
   const labelOf = (v: (typeof heat.columns)[number]) =>
     abbr ? abbrevVersion(v) : `${v.productName} · ${v.name}`;
-  // Table scrolled away from the top → every chrome row hides (restored the
-  // moment the user scrolls back up).
-  const [immersive, setImmersive] = useState(false);
-  const setDepth = (deep: boolean) => {
-    setImmersive((cur) => {
-      if (cur !== deep) onImmersive?.(deep);
-      return deep;
-    });
-  };
-  // Direction-based with hysteresis: hide only after a real downward scroll,
-  // reappear after ~24px of deliberate upward scroll (or near the top). A bare
-  // position threshold jitters because hiding the chrome itself reflows the
-  // scroller and can swallow the show/hide transitions.
-  const scrollMem = useRef({ y: 0, up: 0 });
-  const handleScrollDepth = (y: number, overflow = Infinity) => {
-    const m = scrollMem.current;
-    const dy = y - m.y;
-    m.y = y;
-    // Only a real downward move resets the upward accumulator — zero-delta
-    // events (layout reflow, scroll anchoring) must not break a slow up-drag.
-    if (dy < 0) m.up -= dy;
-    else if (dy > 0) m.up = 0;
-    if (y < 8 || m.up > 24) setDepth(false);
-    // Hide the chrome only when there is substantially more to scroll than
-    // the chrome itself is tall. On short windows with a small overflow,
-    // hiding the chrome makes the content FIT, the browser clamps scrollTop
-    // back to 0, the chrome pops back — an oscillation that reads as "the
-    // page won't scroll". The guard keeps the chrome put in that regime.
-    else if (dy > 0 && y > 60 && overflow > 240) setDepth(true);
-  };
+  // NOTE: the former scroll-driven "immersive" chrome auto-hide is gone on
+  // purpose — hiding the lens bar / filters / stats while scrolling reflowed
+  // the scroller and read as glitchy, jumpy, or "stuck" chrome. The chrome
+  // now stays put and only the table scrolls.
 
   const drillRow =
     drill && drill !== '__all__' && !drill.startsWith(FORMS_DRILL)
       ? (heat.rows.find((r) => r.component === drill) ?? null)
       : null;
-  // A forms drill resolves against the hierarchy (core or child row).
+  // A forms drill resolves against the register (form or content row).
   const formsDrillRow =
-    drill?.startsWith(FORMS_DRILL) && hierarchy
-      ? (hierarchy.byKey.get(drill.slice(FORMS_DRILL.length)) ?? null)
+    drill?.startsWith(FORMS_DRILL) && model
+      ? (model.byKey.get(drill.slice(FORMS_DRILL.length)) ?? null)
       : null;
   const allReviewRows = useMemo(() => heat.rows.flatMap((r) => r.reviewRows), [heat]);
 
@@ -196,7 +173,6 @@ export default function ProductGridView({
 
   const openDrill = (component: string, filter: ReviewFilter) => {
     setDrillFilter(filter);
-    setDepth(false);
     setDrill(component);
   };
 
@@ -234,7 +210,7 @@ export default function ProductGridView({
       {label}
     </button>
   );
-  const statsBand = immersive ? null : (
+  const statsBand = (
     <div
       style={{
         display: 'flex',
@@ -314,9 +290,8 @@ export default function ProductGridView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
-          while a review list is open (the list carries the stats band) and
-          once the table scrolls (back at the top it returns). */}
-      {immersive || drill ? null : (
+          while a review list is open (the list carries the stats band). */}
+      {drill ? null : (
         <div
           style={{
             display: 'flex',
@@ -377,14 +352,10 @@ export default function ProductGridView({
           rows={drillRow?.reviewRows ?? formsDrillRow?.reviewRows ?? allReviewRows}
           defaultFilter={drillFilter}
           stats={statsBand}
-          onBack={() => {
-            setDepth(false);
-            setDrill(null);
-          }}
+          onBack={() => setDrill(null)}
           onDecide={(row, status, comment) =>
             onDecide(row.lobId, row.group.component, row.group.key, status, comment)
           }
-          onScrollDepth={handleScrollDepth}
           labelOf={labelOf}
           abbr={abbr}
           onToggleAbbr={() => setAbbr((a) => !a)}
@@ -392,15 +363,7 @@ export default function ProductGridView({
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
-          <div
-            style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-            onScroll={(e) =>
-              handleScrollDepth(
-                e.currentTarget.scrollTop,
-                e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
-              )
-            }
-          >
+          <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
                 style={{
@@ -553,17 +516,19 @@ export default function ProductGridView({
                 </button>
               </div>
 
-              {/* FORMS-FIRST: the form hierarchy leads the table; every other
-                  model component stays a plain row in its own section below. */}
-              {hierarchy && (
+              {/* FORMS-FIRST: the forms register leads the table (core
+                  national / state-required / product-specific sections);
+                  Coverages and Terms roll up inside the form drill-downs, and
+                  every remaining component stays a plain row below. */}
+              {model && (
                 <SectionBand
                   label="Forms"
-                  detail={`${hierarchy.counts.cores} core forms · ${hierarchy.counts.state} state variations · ${hierarchy.counts.coverage} coverage endorsements · ${hierarchy.counts.program} program forms · ${hierarchy.counts.product} product exceptions`}
+                  detail={`${model.counts.core} core national · ${model.counts.state} state-required · ${model.counts.product} product-specific — expand a form for its coverages, coverage parts, endorsements and clauses`}
                 />
               )}
-              {hierarchy && (
+              {model && (
                 <FormsSection
-                  hierarchy={hierarchy}
+                  model={model}
                   grid={grid}
                   density={density}
                   notesOpen={notesOpen}
@@ -572,10 +537,10 @@ export default function ProductGridView({
                   onOpenDrill={(rowKey) => openDrill(`${FORMS_DRILL}${rowKey}`, 'all')}
                 />
               )}
-              {hierarchy && (
+              {model && (
                 <SectionBand
-                  label="Other model components"
-                  detail="kept separate from the forms hierarchy"
+                  label="Everything else"
+                  detail="model components that do not roll up under forms"
                 />
               )}
               {otherRows.map((row: HeatRow) => (

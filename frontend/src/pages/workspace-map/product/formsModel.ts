@@ -1,42 +1,63 @@
-// Forms-first derivation for the Products grid (Form rationalization design):
-// the heatmap's "Forms" component row decomposes into the three-layer form
-// hierarchy — core (countrywide/base) forms with their state variations,
-// coverage-linked endorsements and product exceptions rolled up BENEATH them —
-// while every other model component stays a plain component row. Rows keep the
-// exact HeatCounts / HeatCell / ReviewRow shapes the grid and the review list
-// already render, so no cell, RAG or decision code changes. Derivation is
+// Forms-first derivation for the Products grid (Form rationalization design).
+// FORMS are the main piece: the heat map lists every form down the side
+// (products across the top), broken into the three rationalization layers —
+// CORE NATIONAL FORMS · STATE-REQUIRED VARIATIONS · PRODUCT-SPECIFIC
+// VARIATIONS — so "what can become a national form vs what truly stays
+// state-specific" reads straight off the section a form sits in and its cell
+// colors. Drilling into a form reveals what the form CONTAINS — coverages,
+// coverage parts, endorsements, clauses — sourced from the components that
+// roll up under forms (Coverages, Terms) and the attach-with wiring on the
+// form elements themselves. Rows keep the exact HeatCounts / HeatCell /
+// ReviewRow shapes the grid and review list already render. Classification is
 // name/livesIn-based on the real spine elements today; richer form metadata
-// can replace `classifyForm` later without touching the layout.
+// can replace it later without touching the layout.
 
 import { pctOf, ragOf } from './gridModel';
-import type { HeatCell, HeatCounts, HeatRow, Rag, ReviewRow } from './gridModel';
+import type { HeatCell, HeatCounts, Heatmap, HeatRow, Rag, ReviewRow } from './gridModel';
 import type { ComponentElement } from './spine';
 
-/** The heatmap component name the forms hierarchy is built from. */
+/** The heatmap component the forms register is built from. */
 export const FORMS_COMPONENT = 'Forms';
 
-export type FormLayerKind = 'state' | 'coverage' | 'program' | 'product';
+/** Components whose elements roll up INSIDE a form's drill-down (they leave
+ *  the "everything else" section below the forms register). */
+export const ROLLED_UP_COMPONENTS = ['Coverages', 'Terms'];
 
-export const FORM_LAYER_META: Record<FormLayerKind, { label: string; hint: string }> = {
+// ── The three rationalization layers ────────────────────────────────────────
+
+export type FormLayer = 'core' | 'state' | 'product';
+
+export const FORM_LAYER_ORDER: FormLayer[] = ['core', 'state', 'product'];
+
+export const FORM_LAYER_META: Record<FormLayer, { label: string; hint: string }> = {
+  core: {
+    label: 'Core national forms',
+    hint: 'countrywide forms — the reusable enterprise base',
+  },
   state: {
-    label: 'State variations',
-    hint: 'state-mandated amendatory forms — candidates for multistate consolidation',
-  },
-  coverage: {
-    label: 'Coverage endorsements',
-    hint: 'forms that attach with a coverage — they roll up beneath the core form',
-  },
-  program: {
-    label: 'Program forms',
-    hint: 'other base forms attached alongside the core form',
+    label: 'State-required variations',
+    hint: 'state-mandated forms — decide what absorbs into the core vs truly stays state-specific',
   },
   product: {
-    label: 'Product exceptions',
+    label: 'Product-specific variations',
     hint: 'forms carried by only one or two products',
   },
 };
 
-/** One renderable forms row — same counting/cell shapes as a HeatRow. */
+// ── What rolls up beneath a form ────────────────────────────────────────────
+
+export type ContentKind = 'coverage' | 'covpart' | 'endorsement' | 'clause';
+
+export const CONTENT_KIND_ORDER: ContentKind[] = ['coverage', 'covpart', 'endorsement', 'clause'];
+
+export const CONTENT_META: Record<ContentKind, { label: string; hint: string }> = {
+  coverage: { label: 'Coverages', hint: 'coverages the form grants or modifies' },
+  covpart: { label: 'Coverage parts', hint: 'coverage sub-parts and options' },
+  endorsement: { label: 'Endorsements', hint: 'endorsement forms that attach to this form' },
+  clause: { label: 'Clauses', hint: 'policy terms and clauses the form carries' },
+};
+
+/** One renderable row — same counting/cell shapes as a HeatRow. */
 export interface FormRowData extends HeatCounts {
   /** Drill id, stable across renders (prefixed `forms:` in the URL). */
   key: string;
@@ -49,23 +70,28 @@ export interface FormRowData extends HeatCounts {
   reviewRows: ReviewRow[];
 }
 
-export interface FormChildGroup {
-  kind: FormLayerKind;
+export interface FormContentGroup {
+  kind: ContentKind;
   rows: FormRowData[];
 }
 
-export interface CoreFormRow extends FormRowData {
+/** One form in the register: its OWN presence row (the heat-map semantics —
+ *  which products carry this form) plus what it contains for the drill. */
+export interface FormRow extends FormRowData {
+  lobId: string;
   lobName: string;
-  /** The roll-up beneath the core form, in state → coverage → product order. */
-  children: FormChildGroup[];
+  layer: FormLayer;
+  state: string | null;
+  /** The LOB's base policy form — the containment anchor. */
+  isBase: boolean;
+  contents: FormContentGroup[];
 }
 
-export interface FormsHierarchy {
-  cores: CoreFormRow[];
-  /** Every row (cores + children) keyed for drill resolution. */
+export interface FormsModel {
+  sections: { layer: FormLayer; rows: FormRow[] }[];
+  /** Drill resolution: key → aggregated row (form + its contents). */
   byKey: Map<string, FormRowData>;
-  totals: HeatCounts & { pct: number };
-  counts: { cores: number; state: number; coverage: number; program: number; product: number };
+  counts: Record<FormLayer, number>;
 }
 
 // ── Classification ──────────────────────────────────────────────────────────
@@ -125,22 +151,23 @@ const STATE_NAMES: Record<string, string> = {
 };
 
 export interface FormClass {
-  layer: 'core' | FormLayerKind;
-  /** State code for state variations. */
+  layer: FormLayer;
   state: string | null;
-  /** Coverage token for coverage-linked endorsements. */
+  /** Coverage token from an "attach with X coverage" rule. */
   coverage: string | null;
 }
 
-/** Classify one form element group by its name + representative livesIn.
- *  Name/livesIn heuristics on purpose — the naming-convention rule from the
- *  design doc (state token → state variation; none → countrywide). */
+/** Classify one form element group by its name + representative livesIn —
+ *  the design doc's naming-convention rule: a state token marks a
+ *  state-required variation; none marks a countrywide form; a form carried by
+ *  only 1–2 products is a product-specific variation. */
 export function classifyForm(
   name: string,
   rep: ComponentElement | null,
   unique: boolean,
 ): FormClass {
   const livesIn = rep?.livesIn ?? '';
+  const coverage = /attach with ([a-z0-9_/-]+) coverage/i.exec(livesIn)?.[1]?.toUpperCase() ?? null;
   const stateToken = /STATE=([A-Z]{2})/.exec(livesIn)?.[1] ?? null;
   let state = stateToken && STATE_NAMES[stateToken] ? stateToken : null;
   if (!state) {
@@ -151,14 +178,12 @@ export function classifyForm(
       }
     }
   }
-  if (state) return { layer: 'state', state, coverage: null };
-  const coverage = /attach with ([a-z0-9_/-]+) coverage/i.exec(livesIn)?.[1] ?? null;
-  if (coverage) return { layer: 'coverage', state: null, coverage: coverage.toUpperCase() };
-  if (unique) return { layer: 'product', state: null, coverage: null };
-  return { layer: 'core', state: null, coverage: null };
+  if (state) return { layer: 'state', state, coverage };
+  if (unique) return { layer: 'product', state: null, coverage };
+  return { layer: 'core', state: null, coverage };
 }
 
-// ── Hierarchy build ─────────────────────────────────────────────────────────
+// ── Row building ────────────────────────────────────────────────────────────
 
 const EMPTY: HeatCounts = {
   total: 0,
@@ -180,8 +205,12 @@ function addCounts(into: HeatCounts, from: HeatCounts): void {
   into.unique += from.unique;
 }
 
-/** Counts + per-column cells for ONE element group (one form). */
-function rowFor(r: ReviewRow, formsRow: HeatRow, sub: string | null): FormRowData {
+function rowKeyOf(r: ReviewRow): string {
+  return `${r.lobId}:${r.group.key}`;
+}
+
+/** Counts + per-column presence cells for ONE element group. */
+function rowFor(r: ReviewRow, template: HeatCell[], sub: string | null): FormRowData {
   const mix: 'common' | 'similar' | 'unique' =
     r.group.status === 'PARTIAL' ? 'similar' : r.group.status === 'UNIQUE' ? 'unique' : 'common';
   const counts: HeatCounts = { ...EMPTY };
@@ -193,14 +222,9 @@ function rowFor(r: ReviewRow, formsRow: HeatRow, sub: string | null): FormRowDat
   } else {
     counts.auto = 1;
   }
-  const cells: HeatCell[] = formsRow.cells.map((c, i) => {
+  const cells: HeatCell[] = template.map((c, i) => {
     const present = r.presence[i];
-    const cell: HeatCell = {
-      na: !present,
-      versionId: c.versionId,
-      lobId: c.lobId,
-      ...EMPTY,
-    };
+    const cell: HeatCell = { na: !present, versionId: c.versionId, lobId: c.lobId, ...EMPTY };
     if (present) {
       cell.total = 1;
       cell[mix] = 1;
@@ -214,7 +238,7 @@ function rowFor(r: ReviewRow, formsRow: HeatRow, sub: string | null): FormRowDat
     return cell;
   });
   return {
-    key: `${r.lobId}:${r.group.key}`,
+    key: rowKeyOf(r),
     label: r.group.name,
     sub,
     ...counts,
@@ -225,141 +249,163 @@ function rowFor(r: ReviewRow, formsRow: HeatRow, sub: string | null): FormRowDat
   };
 }
 
-/** Merge child cells into the core row's cells (roll-up numbers). */
-function mergeCells(into: HeatCell[], from: HeatCell[]): void {
-  from.forEach((c, i) => {
-    const target = into[i];
-    if (!target) return;
-    if (!c.na) target.na = false;
-    addCounts(target, c);
-  });
+/** The LOB's base policy form: widest-carried core form; a name that reads
+ *  like a base policy/wording wins ties. */
+function baseScore(r: ReviewRow): number {
+  return r.group.presentIn * 10 + (/policy|coverage form|wording|slip/i.test(r.group.name) ? 5 : 0);
 }
 
-const KIND_ORDER: FormLayerKind[] = ['state', 'coverage', 'program', 'product'];
-
-/** Anchor score: the LOB's core form is its widest-carried base form; a name
- *  that reads like a base policy form wins ties. */
-function anchorScore(r: ReviewRow): number {
-  return r.group.presentIn * 10 + (/policy|coverage form/i.test(r.group.name) ? 5 : 0);
+/** Aggregate a form + its contents into the drill payload (review list scope
+ *  + stats band numbers). */
+function aggregate(form: FormRowData, contents: FormContentGroup[]): FormRowData {
+  const agg: FormRowData = {
+    ...form,
+    cells: form.cells.map((c) => ({ ...c })),
+    reviewRows: [...form.reviewRows],
+  };
+  const seen = new Set(agg.reviewRows.map(rowKeyOf));
+  for (const g of contents)
+    for (const row of g.rows)
+      for (const r of row.reviewRows) {
+        const k = rowKeyOf(r);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        agg.reviewRows.push(r);
+        addCounts(agg, row);
+      }
+  agg.rag = ragOf(agg);
+  agg.pct = pctOf(agg);
+  return agg;
 }
+
+// ── Model build ─────────────────────────────────────────────────────────────
 
 /**
- * Decompose the heatmap's Forms row into the forms-first hierarchy: one core
- * row per LOB base-form family (aggregating its whole family — collapsed it
- * reads like today's component row), children grouped state → coverage →
- * product beneath it.
+ * Build the forms register from the heatmap: every Forms element group becomes
+ * a row in one of the three layer sections; each row's drill-down carries the
+ * form's contents (coverages / coverage parts / endorsements / clauses),
+ * derived from the rolled-up components and the attach-with wiring.
  */
-export function buildFormsHierarchy(formsRow: HeatRow): FormsHierarchy {
-  interface LobBucket {
-    lobId: string;
-    lobName: string;
-    coreRows: ReviewRow[];
-    children: Record<FormLayerKind, { row: ReviewRow; sub: string }[]>;
-  }
-  const lobs = new Map<string, LobBucket>();
+export function buildFormsModel(heat: Heatmap): FormsModel | null {
+  const formsRow = heat.rows.find((r) => r.component === FORMS_COMPONENT);
+  if (!formsRow) return null;
+  const template = formsRow.cells;
+  const byComponent = new Map<string, HeatRow>(heat.rows.map((r) => [r.component, r]));
+  const coveragesRow = byComponent.get('Coverages') ?? null;
+  const termsRow = byComponent.get('Terms') ?? null;
 
-  for (const r of formsRow.reviewRows) {
-    let bucket = lobs.get(r.lobId);
-    if (!bucket) {
-      bucket = {
-        lobId: r.lobId,
-        lobName: r.lobName,
-        coreRows: [],
-        children: { state: [], coverage: [], program: [], product: [] },
-      };
-      lobs.set(r.lobId, bucket);
-    }
+  interface Classified {
+    r: ReviewRow;
+    cls: FormClass;
+  }
+  const classified: Classified[] = formsRow.reviewRows.map((r) => {
     const rep = Object.values(r.group.perVersion).find((el) => el != null) ?? null;
-    const cls = classifyForm(r.group.name, rep, r.group.status === 'UNIQUE');
-    if (cls.layer === 'core') bucket.coreRows.push(r);
-    else
-      bucket.children[cls.layer].push({
-        row: r,
-        sub:
-          cls.layer === 'state'
-            ? `State variation — ${STATE_NAMES[cls.state ?? ''] ?? cls.state}`
-            : cls.layer === 'coverage'
-              ? `Attaches with ${cls.coverage} coverage`
-              : `Product exception — in ${r.group.presentIn} product${r.group.presentIn === 1 ? '' : 's'}`,
-      });
+    return { r, cls: classifyForm(r.group.name, rep, r.group.status === 'UNIQUE') };
+  });
+
+  // One base (containment anchor) per LOB, from its core-layer forms.
+  const baseByLob = new Map<string, string>(); // lobId → group key
+  for (const { r, cls } of classified) {
+    if (cls.layer !== 'core') continue;
+    const cur = baseByLob.get(r.lobId);
+    const curRow = classified.find((c) => c.r.lobId === r.lobId && c.r.group.key === cur);
+    if (!cur || (curRow && baseScore(r) > baseScore(curRow.r))) baseByLob.set(r.lobId, r.group.key);
   }
 
-  const cores: CoreFormRow[] = [];
   const byKey = new Map<string, FormRowData>();
-  const counts = { cores: 0, state: 0, coverage: 0, program: 0, product: 0 };
+  const sections: FormsModel['sections'] = FORM_LAYER_ORDER.map((layer) => ({ layer, rows: [] }));
+  const counts: Record<FormLayer, number> = { core: 0, state: 0, product: 0 };
 
-  for (const bucket of lobs.values()) {
-    // The family anchor: the LOB's widest-carried base form (ONE core row per
-    // LOB — every other base form rolls up beneath it as a "program form", so
-    // a 15-form commercial program reads as one family, not 15 rows). A LOB
-    // whose forms are all variations still gets a synthetic anchor so nothing
-    // is dropped.
-    bucket.coreRows.sort((a, b) => anchorScore(b) - anchorScore(a));
-    const [anchor, ...programForms] = bucket.coreRows;
-    for (const r of programForms)
-      bucket.children.program.push({ row: r, sub: 'Program form — attaches with the core form' });
-    const anchorRow: FormRowData = anchor
-      ? rowFor(anchor, formsRow, null)
-      : {
-          key: `${bucket.lobId}:__synthetic-core__`,
-          label: `${bucket.lobName} program forms`,
-          sub: null,
-          ...EMPTY,
-          rag: 'green',
-          pct: 100,
-          cells: formsRow.cells.map((c) => ({
-            na: true,
-            versionId: c.versionId,
-            lobId: c.lobId,
-            ...EMPTY,
-          })),
-          reviewRows: [],
-        };
+  for (const { r, cls } of classified) {
+    const isBase = baseByLob.get(r.lobId) === r.group.key;
+    const sub =
+      cls.layer === 'state'
+        ? `State variation — ${STATE_NAMES[cls.state ?? ''] ?? cls.state} · ${r.lobName}`
+        : cls.layer === 'product'
+          ? `Product-specific — in ${r.group.presentIn} product${r.group.presentIn === 1 ? '' : 's'} · ${r.lobName}`
+          : `${isBase ? 'Core policy form' : cls.coverage ? `Attaches with ${cls.coverage} coverage` : 'Countrywide form'} · ${r.lobName}`;
+    const own = rowFor(r, template, sub);
 
-    const children: FormChildGroup[] = [];
-    for (const kind of KIND_ORDER) {
-      const rows = bucket.children[kind].map(({ row, sub }) => rowFor(row, formsRow, sub));
-      if (rows.length === 0) continue;
-      rows.sort((a, b) => a.label.localeCompare(b.label));
-      children.push({ kind, rows });
-      counts[kind] += rows.length;
-      for (const row of rows) byKey.set(row.key, row);
-    }
-    // Core row aggregates its whole family so the collapsed row reads like a
-    // component row (roll-up), and its review drill covers the family.
-    const core: CoreFormRow = {
-      ...anchorRow,
-      lobName: bucket.lobName,
-      children,
-      cells: anchorRow.cells.map((c) => ({ ...c })),
-      reviewRows: [...anchorRow.reviewRows],
+    // What the form CONTAINS.
+    const contents: FormContentGroup[] = [];
+    const push = (kind: ContentKind, rows: FormRowData[]) => {
+      if (rows.length)
+        contents.push({ kind, rows: rows.sort((a, b) => a.label.localeCompare(b.label)) });
     };
-    for (const g of children)
-      for (const row of g.rows) {
-        addCounts(core, row);
-        mergeCells(core.cells, row.cells);
-        core.reviewRows.push(...row.reviewRows);
-      }
-    core.rag = ragOf(core);
-    core.pct = pctOf(core);
-    byKey.set(core.key, core);
-    cores.push(core);
-    counts.cores += 1;
+    if (isBase) {
+      // The base policy form contains the LOB's coverages, clauses and the
+      // endorsement/variation forms that attach to it.
+      push(
+        'coverage',
+        (coveragesRow?.reviewRows ?? [])
+          .filter((c) => c.lobId === r.lobId)
+          .map((c) => rowFor(c, template, 'Coverage')),
+      );
+      push(
+        'clause',
+        (termsRow?.reviewRows ?? [])
+          .filter((c) => c.lobId === r.lobId)
+          .map((c) => rowFor(c, template, 'Clause')),
+      );
+      push(
+        'endorsement',
+        classified
+          .filter((c) => c.r.lobId === r.lobId && c.r.group.key !== r.group.key)
+          .map((c) =>
+            rowFor(
+              c.r,
+              template,
+              c.cls.layer === 'state'
+                ? `State endorsement — ${STATE_NAMES[c.cls.state ?? ''] ?? c.cls.state}`
+                : c.cls.coverage
+                  ? `Attaches with ${c.cls.coverage} coverage`
+                  : 'Endorsement',
+            ),
+          ),
+      );
+    } else if (cls.coverage) {
+      // A coverage-attach endorsement contains the coverage(s) it wires in.
+      const token = cls.coverage;
+      push(
+        'coverage',
+        (coveragesRow?.reviewRows ?? [])
+          .filter(
+            (c) =>
+              c.lobId === r.lobId &&
+              (c.group.name.toUpperCase().includes(token) ||
+                Object.values(c.group.perVersion).some((el) =>
+                  el?.livesIn?.toUpperCase().includes(token),
+                )),
+          )
+          .map((c) => rowFor(c, template, 'Coverage')),
+      );
+    }
+
+    const formRow: FormRow = {
+      ...own,
+      lobId: r.lobId,
+      lobName: r.lobName,
+      layer: cls.layer,
+      state: cls.state,
+      isBase,
+      contents,
+    };
+    sections[FORM_LAYER_ORDER.indexOf(cls.layer)].rows.push(formRow);
+    counts[cls.layer] += 1;
+    // Drill payload = the form + everything it contains.
+    byKey.set(own.key, aggregate(own, contents));
+    for (const g of contents)
+      for (const row of g.rows) if (!byKey.has(row.key)) byKey.set(row.key, row);
   }
 
-  cores.sort((a, b) => a.lobName.localeCompare(b.lobName) || a.label.localeCompare(b.label));
+  for (const s of sections)
+    s.rows.sort(
+      (a, b) =>
+        Number(b.isBase) - Number(a.isBase) ||
+        a.lobName.localeCompare(b.lobName) ||
+        (a.state ?? '').localeCompare(b.state ?? '') ||
+        a.label.localeCompare(b.label),
+    );
 
-  // byKey holds cores (aggregated) AND children — summing them double-counts.
-  // The heatmap Forms row's own totals are exact; reuse them.
-  const exact: HeatCounts = {
-    total: formsRow.total,
-    auto: formsRow.auto,
-    need: formsRow.need,
-    decided: formsRow.decided,
-    common: formsRow.common,
-    similar: formsRow.similar,
-    unique: formsRow.unique,
-  };
-
-  return { cores, byKey, totals: { ...exact, pct: pctOf(exact) }, counts };
+  return { sections, byKey, counts };
 }

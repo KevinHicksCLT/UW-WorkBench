@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildHeatmap } from '../../../src/pages/workspace-map/product/gridModel';
 import {
-  buildFormsHierarchy,
+  buildFormsModel,
   classifyForm,
   FORMS_COMPONENT,
 } from '../../../src/pages/workspace-map/product/formsModel';
@@ -12,9 +12,10 @@ import type {
   VersionColumn,
 } from '../../../src/pages/workspace-map/product/spine';
 
-// The forms-first derivation: form element groups classify into core / state
-// variation / coverage endorsement / product exception, and the hierarchy's
-// counts, cells and roll-ups stay consistent with the heatmap's Forms row.
+// The forms register derivation: forms classify into the three
+// rationalization layers (core national / state-required / product-specific)
+// and each form's drill carries its contents (coverages, endorsements,
+// clauses) from the rolled-up components.
 
 let nodeSeq = 0;
 const node = (name: string, elements: ComponentElement[]): SpineNode => {
@@ -36,7 +37,7 @@ const version = (
   id: string,
   name: string,
   lob: { id: string; name: string; segment: string },
-  forms: ComponentElement[],
+  comps: Record<string, ComponentElement[]>,
 ): VersionColumn => ({
   id,
   name,
@@ -45,21 +46,30 @@ const version = (
   lobId: lob.id,
   lobName: lob.name,
   segmentName: lob.segment,
-  components: new Map([[FORMS_COMPONENT, { node: node(FORMS_COMPONENT, forms), elements: forms }]]),
+  components: new Map(
+    Object.entries(comps).map(([comp, elements]) => [
+      comp,
+      { node: node(comp, elements), elements },
+    ]),
+  ),
 });
 
-const f = (element: string, livesIn: string | null): ComponentElement => ({
+const el = (element: string, livesIn: string | null): ComponentElement => ({
   element,
   description: null,
   livesIn,
   format: null,
 });
 
-const BASE = f('PP 00 01 — Personal Auto Policy', 'ISO forms library; form-attach PP0001 ALL');
-const CA = f('Amendment of Policy Provisions — California', 'form-attach STATE=CA mandatory');
-const OH = f('Amendment of Policy Provisions — Ohio', 'form-attach STATE=OH mandatory');
-const TOW = f('PP 03 03 — Towing and Labor Costs', 'attach with TOWING coverage');
-const UBI = f('Telematics program endorsement', 'PAS rating module');
+const BASE = el('PP 00 01 — Personal Auto Policy', 'ISO forms library; form-attach PP0001 ALL');
+const CA = el('Amendment of Policy Provisions — California', 'form-attach STATE=CA mandatory');
+const OH = el('Amendment of Policy Provisions — Ohio', 'form-attach STATE=OH mandatory');
+const TOW = el('PP 03 03 — Towing and Labor Costs', 'attach with TOWING coverage');
+const UBI = el('Telematics program endorsement', 'PAS rating module');
+
+const COV_LIAB = el('Bodily injury liability', 'PAS coverage code BI');
+const COV_TOW = el('Towing and roadside', 'PAS coverage code TOWING');
+const CLAUSE = el('Cancellation and nonrenewal terms', 'policy jacket');
 
 const lobDef = { id: 'lob1', name: 'Motor', segment: 'Personal Lines' };
 const lob: LobOption = {
@@ -67,74 +77,89 @@ const lob: LobOption = {
   name: lobDef.name,
   segmentName: lobDef.segment,
   versions: [
-    version('v1', 'v9 — US-CA', lobDef, [BASE, CA, TOW]),
-    version('v2', 'v8 — US-OH', lobDef, [BASE, OH, TOW]),
-    version('v3', 'v7 — US-TX', lobDef, [BASE, TOW, UBI]),
+    version('v1', 'v9 — US-CA', lobDef, {
+      [FORMS_COMPONENT]: [BASE, CA, TOW],
+      Coverages: [COV_LIAB, COV_TOW],
+      Terms: [CLAUSE],
+    }),
+    version('v2', 'v8 — US-OH', lobDef, {
+      [FORMS_COMPONENT]: [BASE, OH, TOW],
+      Coverages: [COV_LIAB, COV_TOW],
+      Terms: [CLAUSE],
+    }),
+    version('v3', 'v7 — US-TX', lobDef, {
+      [FORMS_COMPONENT]: [BASE, TOW, UBI],
+      Coverages: [COV_LIAB, COV_TOW],
+      Terms: [CLAUSE],
+    }),
   ],
 };
 
 describe('classifyForm', () => {
   it('reads the STATE= token from livesIn', () => {
-    expect(classifyForm('Some amendment', CA, false)).toEqual({
-      layer: 'state',
-      state: 'CA',
-      coverage: null,
-    });
+    expect(classifyForm('Some amendment', CA, false).layer).toBe('state');
+    expect(classifyForm('Some amendment', CA, false).state).toBe('CA');
   });
   it('falls back to a state name in the form title', () => {
-    expect(classifyForm('UM endorsement — California', f('x', null), false).state).toBe('CA');
+    expect(classifyForm('UM endorsement — California', el('x', null), false).state).toBe('CA');
   });
-  it('classifies coverage-attach forms as coverage endorsements', () => {
-    expect(classifyForm(TOW.element, TOW, false)).toEqual({
-      layer: 'coverage',
-      state: null,
-      coverage: 'TOWING',
-    });
+  it('keeps countrywide coverage-attach forms in the core layer with the token', () => {
+    const cls = classifyForm(TOW.element, TOW, false);
+    expect(cls.layer).toBe('core');
+    expect(cls.coverage).toBe('TOWING');
   });
-  it('classifies unique stateless forms as product exceptions and the rest as core', () => {
+  it('classifies unique stateless forms as product-specific', () => {
     expect(classifyForm(UBI.element, UBI, true).layer).toBe('product');
     expect(classifyForm(BASE.element, BASE, false).layer).toBe('core');
   });
 });
 
-describe('buildFormsHierarchy', () => {
+describe('buildFormsModel', () => {
   const heat = buildHeatmap([lob], new Map());
-  const formsRow = heat.rows.find((r) => r.component === FORMS_COMPONENT);
-  if (!formsRow) throw new Error('Forms row missing from the heatmap fixture');
-  const hierarchy = buildFormsHierarchy(formsRow);
+  const model = buildFormsModel(heat);
+  if (!model) throw new Error('Forms row missing from the heatmap fixture');
+  const sectionOf = (layer: string) => model.sections.find((s) => s.layer === layer);
 
-  it('anchors the family on the base form and rolls the variations up beneath it', () => {
-    expect(hierarchy.cores).toHaveLength(1);
-    const core = hierarchy.cores[0];
-    expect(core.label).toContain('Personal Auto Policy');
-    const kinds = core.children.map((g) => g.kind);
-    expect(kinds).toEqual(['state', 'coverage', 'product']);
-    expect(core.children.find((g) => g.kind === 'state')?.rows).toHaveLength(2);
-    expect(core.children.find((g) => g.kind === 'coverage')?.rows[0].sub).toContain('TOWING');
+  it('breaks the register into the three rationalization layers', () => {
+    expect(model.counts).toEqual({ core: 2, state: 2, product: 1 });
+    expect(sectionOf('core')?.rows.map((r) => r.label)).toContain(BASE.element);
+    expect(
+      sectionOf('state')
+        ?.rows.map((r) => r.state)
+        .sort(),
+    ).toEqual(['CA', 'OH']);
+    expect(sectionOf('product')?.rows[0].label).toBe(UBI.element);
   });
 
-  it('aggregates the collapsed core row over the whole family', () => {
-    const core = hierarchy.cores[0];
-    // base + CA + OH + towing + telematics = every group in the Forms row.
-    expect(core.total).toBe(formsRow.total);
-    expect(core.reviewRows).toHaveLength(formsRow.reviewRows.length);
-    // Every version carries some family form → no NA cell on the core row.
-    expect(core.cells.every((c) => !c.na)).toBe(true);
+  it('marks the widest-carried base policy form and lists it first', () => {
+    const core = sectionOf('core');
+    expect(core?.rows[0].isBase).toBe(true);
+    expect(core?.rows[0].label).toBe(BASE.element);
   });
 
-  it('gives child rows single-group cells aligned to the columns', () => {
-    const ca = hierarchy.cores[0].children
-      .find((g) => g.kind === 'state')
-      ?.rows.find((r) => r.sub?.includes('California'));
-    expect(ca).toBeDefined();
+  it('rolls coverages, clauses and endorsements up beneath the base form', () => {
+    const base = sectionOf('core')?.rows[0];
+    const kinds = Object.fromEntries(
+      (base?.contents ?? []).map((g) => [g.kind, g.rows.map((r) => r.label)]),
+    );
+    expect(kinds.coverage).toEqual(expect.arrayContaining([COV_LIAB.element, COV_TOW.element]));
+    expect(kinds.clause).toEqual([CLAUSE.element]);
+    // Every other form of the LOB attaches to the base as an endorsement.
+    expect(kinds.endorsement).toHaveLength(4);
+  });
+
+  it('gives a coverage-attach endorsement its matched coverage as contents', () => {
+    const tow = sectionOf('core')?.rows.find((r) => r.label === TOW.element);
+    expect(tow?.contents.find((g) => g.kind === 'coverage')?.rows[0].label).toBe(COV_TOW.element);
+  });
+
+  it('keeps the heat-map row as the form OWN presence, and the drill aggregated', () => {
+    const ca = sectionOf('state')?.rows.find((r) => r.state === 'CA');
     expect(ca?.total).toBe(1);
-    // CA amendment lives only in the CA version column.
     expect(ca?.cells.map((c) => c.na)).toEqual([false, true, true]);
-  });
-
-  it('exposes every row for drill resolution and exact section totals', () => {
-    expect(hierarchy.byKey.get(hierarchy.cores[0].key)).toBeDefined();
-    expect(hierarchy.totals.total).toBe(formsRow.total);
-    expect(hierarchy.counts).toEqual({ cores: 1, state: 2, coverage: 1, program: 0, product: 1 });
+    // Drill payload for the base = the form + coverages + clauses + endorsements.
+    const base = sectionOf('core')?.rows[0];
+    const drill = model.byKey.get(base?.key ?? '');
+    expect(drill?.reviewRows.length).toBe(1 + 2 + 1 + 4);
   });
 });

@@ -84,8 +84,6 @@ export default function ProductBoard({
 
   const versions = useMemo(() => scopeVersions(pool, filters), [pool, filters]);
   const scopedLobs = useMemo(() => scopeLobs(lobs, filters), [lobs, filters]);
-  // Table scrolled → the board's own chrome rows hide too.
-  const [immersive, setImmersive] = useState(false);
   const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
   const comparison = useMemo(() => buildComparison(versions), [versions]);
   // The scope's home LOB: the first scoped version's line. Decisions and the
@@ -410,10 +408,8 @@ export default function ProductBoard({
           minHeight: 300,
         }}
       >
-        {/* Scrolled into the table, every chrome row hides — scroll back to
-            the top and it all returns. */}
-        {!immersive && lensBar}
-        {!immersive && filterRow}
+        {lensBar}
+        {filterRow}
         <div
           style={{
             border: '1px solid #eaeaea',
@@ -427,12 +423,7 @@ export default function ProductBoard({
             flexDirection: 'column',
           }}
         >
-          <ProductGridView
-            lobs={scopedLobs}
-            decisions={decisionMap}
-            onDecide={decide}
-            onImmersive={setImmersive}
-          />
+          <ProductGridView lobs={scopedLobs} decisions={decisionMap} onDecide={decide} />
         </div>
         <ImpactPanel gate={gate} />
       </div>
