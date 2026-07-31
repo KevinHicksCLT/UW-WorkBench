@@ -228,11 +228,11 @@ export function abbrevVersion(v: VersionColumn): string {
   return ver ? `${initials}·${ver}` : initials;
 }
 
-function pctOf(c: HeatCounts): number {
+export function pctOf(c: HeatCounts): number {
   return c.need === 0 ? 100 : Math.round((c.decided / c.need) * 100);
 }
 
-function ragOf(c: HeatCounts): Rag {
+export function ragOf(c: HeatCounts): Rag {
   if (c.need === 0 || c.decided >= c.need) return 'green';
   return c.decided > 0 ? 'amber' : 'red';
 }

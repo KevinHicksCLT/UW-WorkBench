@@ -6,7 +6,9 @@
 **Date:** 2026-07-31
 **Sources:** Form Rationalization design doc (Kelly), Transformation Bridge live app (`transform-platform.vercel.app`), meeting notes 7/28 & 7/30
 
-> **Scope note:** FR-8.1 (Mock Forms Ingestion & Naming-Convention Parsing) is **deferred to a later phase** and is intentionally excluded from this build. Until then the module runs on an in-app mock dataset that conforms to the shared data model in §3, so the ingestion path can be added later without UI change.
+> **Scope note:** FR-8.1 (Mock Forms Ingestion & Naming-Convention Parsing) is **deferred to a later phase** and is intentionally excluded from this build.
+>
+> **Implementation note (2026-07-31):** Forms Rationalization ships as a **forms-first rework of the Products workspace grid**, not a separate tab. The initial Products grid table leads with the form hierarchy — one row per core form, expandable inline to its rolled-up state variations, coverage endorsements and product exceptions — while the other model components (Coverages, Pricing, Rating, Underwriting Rules, Filings, Terms, Lifecycle Behavior) stay in their own separate section below, unchanged. Table chrome (angled product headers, traffic-light cells, stats band, drill-down review list, Retain/Standardize/Retire decisions, back-button-safe `?pmDrill` navigation) is reused verbatim. Derivation lives in `frontend/src/pages/workspace-map/product/formsModel.ts`; classification is naming-convention-based per §3 (state token → state variation) so richer form metadata can replace it without layout change. The remaining epics (state overlay, clusters, decision dashboard) will land as later passes over the same table.
 
 ---
 

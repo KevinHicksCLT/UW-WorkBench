@@ -9,7 +9,6 @@ import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
-import FormsBoard from './forms/FormsBoard';
 import VsStreamBoard from './spine/VsStreamBoard';
 import RoleCompareBoard from './spine/RoleCompareBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
@@ -114,7 +113,7 @@ function TraceBreadcrumb({
 }
 
 function lensFromDomain(d?: string): WorkspaceLens {
-  if (d === 'value-streams' || d === 'roles' || d === 'products' || d === 'forms') return d;
+  if (d === 'value-streams' || d === 'roles' || d === 'products') return d;
   if (d === 'product-models') return 'products'; // e2e / legacy deep-link alias
   return 'applications';
 }
@@ -136,9 +135,6 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
   if (window.self !== window.top)
     return <EmptyState message="The Workspace board doesn't render inside screen previews." />;
   if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
-  // Forms Rationalization module — renders entirely from its mock data model
-  // (spec: documents/product-model-workspace/forms-rationalization-spec.md).
-  if (lens === 'forms') return <FormsBoard lens={lens} onLens={setLens} />;
   // Spine lenses compare the REAL operating-model graph: N value streams or
   // N roles horizontally, with consolidation computed on the fly.
   if (lens === 'value-streams')
