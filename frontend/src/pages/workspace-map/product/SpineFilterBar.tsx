@@ -307,14 +307,15 @@ export default function SpineFilterBar({
   lobs,
   filters,
   onChange,
-  scopeCount,
-  totalCount,
+  search,
+  onSearch,
 }: {
   lobs: LobOption[];
   filters: SpineFilters;
   onChange: (f: SpineFilters) => void;
-  scopeCount: number;
-  totalCount: number;
+  /** Free-text search over the board's forms/coverages (right end of the bar). */
+  search: string;
+  onSearch: (s: string) => void;
 }) {
   const openState = useState<string | null>(null);
   const all = lobs.flatMap((l) => l.versions);
@@ -446,9 +447,22 @@ export default function SpineFilterBar({
         openKey="products"
         openState={openState}
       />
-      <span style={{ fontSize: 11.5, color: '#525252', marginLeft: 2 }}>
-        {scopeCount} of {totalCount} products in scope
-      </span>
+      <input
+        type="search"
+        aria-label="Search the board"
+        placeholder="Search…"
+        value={search}
+        onChange={(e) => onSearch(e.target.value)}
+        style={{
+          font: 'inherit',
+          fontSize: 12,
+          border: '1px solid #d4d4d4',
+          borderRadius: 8,
+          padding: '4px 10px',
+          width: 190,
+          marginLeft: 2,
+        }}
+      />
     </div>
   );
 }

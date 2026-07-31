@@ -32,8 +32,6 @@ const STATUS_LABEL: Record<ProductDecisionStatus, string> = {
   RETIRED: 'Retire — dropped from the target model',
 };
 
-type SortKey = 'status' | 'name' | 'line';
-
 function rowText(r: ReviewRow): string {
   const el = Object.values(r.group.perVersion).find(Boolean);
   return `${r.group.name} ${el?.description ?? ''} ${r.lobName}`.toLowerCase();
@@ -248,12 +246,11 @@ function ElementDetailModal({
 }
 
 export default function ProductReviewList({
-  title,
   columns,
   rows,
   defaultFilter,
-  stats,
-  onBack,
+  completePct,
+  search = '',
   onDecide,
   labelOf,
   abbr,
@@ -261,14 +258,13 @@ export default function ProductReviewList({
   groupOf,
   groupOrder,
 }: {
-  title: string;
-  /** Organized stats band rendered directly under the toolbar. */
-  stats?: React.ReactNode;
   columns: VersionColumn[];
   rows: ReviewRow[];
   defaultFilter: ReviewFilter;
-  /** Breadcrumb root ("Products") — also reachable via browser back. */
-  onBack: () => void;
+  /** Scope completion % — rendered inline with the filter chips. */
+  completePct?: number;
+  /** Search text from the spine filter bar (the list has no own input). */
+  search?: string;
   /** status null = withdraw the decision (undo). */
   onDecide: (
     row: ReviewRow,
@@ -286,8 +282,6 @@ export default function ProductReviewList({
   groupOrder?: string[];
 }) {
   const [filter, setFilter] = useState<ReviewFilter>(defaultFilter);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortKey>('status');
   const [detail, setDetail] = useState<ReviewRow | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -322,15 +316,13 @@ export default function ProductReviewList({
       const i = groupOrder?.indexOf(g) ?? -1;
       return i >= 0 ? i : (groupOrder?.length ?? 0);
     };
+    // Fixed order: bands first, needs-decision first inside each, then name.
     return [...filtered].sort((a, b) => {
       const g = groupRank(a) - groupRank(b);
       if (g !== 0) return g;
-      if (sort === 'status') return rank(a) - rank(b) || a.group.name.localeCompare(b.group.name);
-      if (sort === 'line')
-        return a.lobName.localeCompare(b.lobName) || a.group.name.localeCompare(b.group.name);
-      return a.group.name.localeCompare(b.group.name);
+      return rank(a) - rank(b) || a.group.name.localeCompare(b.group.name);
     });
-  }, [rows, filter, search, sort, groupOf, groupOrder]);
+  }, [rows, filter, search, groupOf, groupOrder]);
 
   const rowKey = (r: ReviewRow) => `${r.lobId}:${r.group.key}`;
 
@@ -358,7 +350,8 @@ export default function ProductReviewList({
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      {/* Toolbar — breadcrumb + list controls. */}
+      {/* Toolbar — the status filter chips + inline completion %. Navigation
+          out of the drill is the browser back button / header Back. */}
       <div
         style={{
           display: 'flex',
@@ -371,61 +364,6 @@ export default function ProductReviewList({
           background: '#fff',
         }}
       >
-        <nav
-          aria-label="Breadcrumb"
-          style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}
-        >
-          <button
-            type="button"
-            onClick={onBack}
-            style={{
-              font: 'inherit',
-              fontSize: 12.5,
-              fontWeight: 500,
-              color: '#0070AD',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-            }}
-          >
-            Products
-          </button>
-          <span style={{ color: '#a3a3a3', fontSize: 11 }}>›</span>
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#171717' }}>{title}</span>
-        </nav>
-        <div style={{ flex: 1 }} />
-        <input
-          type="search"
-          placeholder="Search coverages…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            font: 'inherit',
-            fontSize: 12,
-            border: '1px solid #d4d4d4',
-            borderRadius: 8,
-            padding: '5px 10px',
-            width: 190,
-          }}
-        />
-        <select
-          aria-label="Sort"
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortKey)}
-          style={{
-            font: 'inherit',
-            fontSize: 12,
-            border: '1px solid #d4d4d4',
-            borderRadius: 8,
-            padding: '5px 8px',
-            background: '#fff',
-          }}
-        >
-          <option value="status">Sort: needs decision first</option>
-          <option value="name">Sort: coverage name</option>
-          <option value="line">Sort: product line</option>
-        </select>
         <div
           style={{
             display: 'flex',
@@ -470,10 +408,34 @@ export default function ProductReviewList({
             );
           })}
         </div>
+        {completePct !== undefined && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+            <div
+              style={{
+                width: 140,
+                flexShrink: 0,
+                height: 6,
+                background: '#e5e7eb',
+                borderRadius: 9,
+                overflow: 'hidden',
+              }}
+            >
+              <span
+                style={{
+                  display: 'block',
+                  height: 6,
+                  width: `${completePct}%`,
+                  background:
+                    completePct >= 100 ? '#16a34a' : completePct > 0 ? '#f59e0b' : '#dc2626',
+                }}
+              />
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#262626', whiteSpace: 'nowrap' }}>
+              {completePct}% complete
+            </span>
+          </div>
+        )}
       </div>
-
-      {/* Organized stats band — scope numbers directly under the toolbar. */}
-      {stats}
 
       {/* One scroll surface for header + rows: the angled header sticks to the
           top while the table takes every remaining pixel, and horizontal

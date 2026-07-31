@@ -69,6 +69,9 @@ export default function ProductBoard({
   );
   // Older sessions persisted a single-version shape — normalize on read.
   const filters = useMemo(() => normalizeFilters(rawFilters), [rawFilters]);
+  // Free-text search lives in the spine filter bar; the grid and the drill
+  // review list both honor it.
+  const [search, setSearch] = useViewState<string>('workspace.product.search', '');
   const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
     'workspace.product.matchFilter',
     null,
@@ -337,8 +340,8 @@ export default function ProductBoard({
         lobs={lobs}
         filters={filters}
         onChange={setFilters}
-        scopeCount={versions.length}
-        totalCount={pool.length}
+        search={search}
+        onSearch={setSearch}
       />
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
         <span style={{ fontSize: 11, color: '#525252' }}>View</span>
@@ -423,7 +426,12 @@ export default function ProductBoard({
             flexDirection: 'column',
           }}
         >
-          <ProductGridView lobs={scopedLobs} decisions={decisionMap} onDecide={decide} />
+          <ProductGridView
+            lobs={scopedLobs}
+            decisions={decisionMap}
+            onDecide={decide}
+            search={search}
+          />
         </div>
         <ImpactPanel gate={gate} />
       </div>

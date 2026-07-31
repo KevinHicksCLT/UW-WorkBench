@@ -86,6 +86,7 @@ export default function ProductGridView({
   lobs,
   decisions,
   onDecide,
+  search = '',
 }: {
   lobs: LobOption[];
   /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
@@ -98,22 +99,42 @@ export default function ProductGridView({
     status: ProductDecisionStatus | null,
     comment?: string,
   ) => Promise<void>;
+  /** Free-text search from the spine filter bar — narrows the register rows
+   *  and the drill review list. */
+  search?: string;
 }) {
   const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
   // Forms-first split: the Forms component becomes the three-layer forms
   // register; the components that roll up under forms (Coverages, Terms)
   // surface inside the form drill-downs; everything else stays a plain
   // component row below.
-  const model = useMemo(() => buildFormsModel(heat), [heat]);
-  const otherRows = useMemo(
-    () =>
-      model
-        ? heat.rows.filter(
-            (r) => r.component !== 'Forms' && !ROLLED_UP_COMPONENTS.includes(r.component),
-          )
-        : heat.rows,
-    [heat, model],
-  );
+  const fullModel = useMemo(() => buildFormsModel(heat), [heat]);
+  // The filter-bar search narrows the register (form label/sub match) and the
+  // components below (name match); the drill list filters its own rows.
+  const q = search.trim().toLowerCase();
+  const model = useMemo(() => {
+    if (!fullModel || !q) return fullModel;
+    return {
+      ...fullModel,
+      sections: fullModel.sections.map((s) => ({
+        ...s,
+        rows: s.rows.filter(
+          (r) =>
+            r.label.toLowerCase().includes(q) ||
+            (r.sub ?? '').toLowerCase().includes(q) ||
+            r.lobName.toLowerCase().includes(q),
+        ),
+      })),
+    };
+  }, [fullModel, q]);
+  const otherRows = useMemo(() => {
+    const rows = model
+      ? heat.rows.filter(
+          (r) => r.component !== 'Forms' && !ROLLED_UP_COMPONENTS.includes(r.component),
+        )
+      : heat.rows;
+    return q ? rows.filter((r) => r.component.toLowerCase().includes(q)) : rows;
+  }, [heat, model, q]);
   // Expanded core-form families persist per session.
   const [formsOpen, setFormsOpen] = useViewState<Record<string, boolean>>(
     'workspace.product.formsOpen',
@@ -136,19 +157,27 @@ export default function ProductGridView({
   const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', true);
   const labelOf = (v: (typeof heat.columns)[number]) =>
     abbr ? abbrevVersion(v) : `${v.productName} · ${v.name}`;
-  // NOTE: the former scroll-driven "immersive" chrome auto-hide is gone on
-  // purpose — hiding the lens bar / filters / stats while scrolling reflowed
-  // the scroller and read as glitchy, jumpy, or "stuck" chrome. The chrome
-  // now stays put and only the table scrolls.
+  // Only the DASHBOARD TILES hide on scroll-down (per review feedback) — the
+  // lens bar / filters stay put (the old full-chrome auto-hide read as
+  // glitchy). Guards against the hide/clamp/show oscillation: tiles only hide
+  // when there is substantially more overflow than the tiles are tall, and
+  // they return the moment the table is back at the top.
+  const [tilesHidden, setTilesHidden] = useState(false);
+  const onGridScroll = (el: HTMLElement) => {
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (el.scrollTop < 8) setTilesHidden(false);
+    else if (el.scrollTop > 60 && overflow > 240) setTilesHidden(true);
+  };
 
   const drillRow =
     drill && drill !== '__all__' && !drill.startsWith(FORMS_DRILL)
       ? (heat.rows.find((r) => r.component === drill) ?? null)
       : null;
-  // A forms drill resolves against the register (form or content row).
+  // A forms drill resolves against the FULL register (an open drill must not
+  // vanish when the search narrows the visible rows).
   const formsDrillRow =
-    drill?.startsWith(FORMS_DRILL) && model
-      ? (model.byKey.get(drill.slice(FORMS_DRILL.length)) ?? null)
+    drill?.startsWith(FORMS_DRILL) && fullModel
+      ? (fullModel.byKey.get(drill.slice(FORMS_DRILL.length)) ?? null)
       : null;
   const allReviewRows = useMemo(() => heat.rows.flatMap((r) => r.reviewRows), [heat]);
 
@@ -176,122 +205,16 @@ export default function ProductGridView({
     setDrill(component);
   };
 
-  // Stats for the open drill — the DRILLED component's own numbers when one
-  // is open, the whole scope's when reviewing everything. Rendered by the
-  // review list directly under its toolbar as one organized band.
-  const scope = drillRow ?? formsDrillRow ?? heat.totals;
+  // Completion % for the open drill — inline in the review list toolbar (the
+  // old stats band is gone; the list's own filter chips carry the counts).
   const scopePct = drillRow?.pct ?? formsDrillRow?.pct ?? heat.totals.pct;
-  const scopePending = scope.need - scope.decided;
-  const statPill = (
-    label: string,
-    fg: string,
-    bg: string,
-    border: string,
-    f: ReviewFilter,
-  ): JSX.Element => (
-    <button
-      key={label}
-      type="button"
-      onClick={() => openDrill(drill ?? '__all__', f)}
-      title="filter the list"
-      style={{
-        font: 'inherit',
-        fontSize: 11.5,
-        fontWeight: 700,
-        color: fg,
-        background: bg,
-        border: `1px solid ${border}`,
-        borderRadius: 999,
-        padding: '2px 10px',
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {label}
-    </button>
-  );
-  const statsBand = (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '7px 14px',
-        borderBottom: '1px solid #eaeaea',
-        background: '#fafafa',
-        flexShrink: 0,
-        flexWrap: 'wrap',
-      }}
-    >
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
-        {colCount} products
-      </span>
-      <span style={{ color: '#9ca3af' }}>·</span>
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
-        {scope.total} coverages
-      </span>
-      <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
-      {statPill(
-        `${scope.common} common`,
-        MATCH_META.COMMON.fg,
-        MATCH_META.COMMON.bg,
-        MATCH_META.COMMON.border,
-        'auto',
-      )}
-      {statPill(
-        `${scope.similar} similar`,
-        MATCH_META.PARTIAL.fg,
-        MATCH_META.PARTIAL.bg,
-        MATCH_META.PARTIAL.border,
-        'similar',
-      )}
-      {statPill(
-        `${scope.unique} unique`,
-        MATCH_META.UNIQUE.fg,
-        MATCH_META.UNIQUE.bg,
-        MATCH_META.UNIQUE.border,
-        'unique',
-      )}
-      <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
-      {statPill(
-        `${scopePending} to decide`,
-        scopePending > 0 ? '#92400e' : '#166534',
-        scopePending > 0 ? '#fef3c7' : '#dcfce7',
-        scopePending > 0 ? '#fcd34d' : '#86efac',
-        'pending',
-      )}
-      {statPill(`${scope.decided} decided`, '#3730a3', '#eef2ff', '#d6dcff', 'decided')}
-      <div style={{ flex: 1 }} />
-      <div
-        style={{
-          width: 140,
-          flexShrink: 0,
-          height: 6,
-          background: '#e5e7eb',
-          borderRadius: 9,
-          overflow: 'hidden',
-        }}
-      >
-        <span
-          style={{
-            display: 'block',
-            height: 6,
-            width: `${scopePct}%`,
-            background: scopePct >= 100 ? '#16a34a' : scopePct > 0 ? '#f59e0b' : '#dc2626',
-          }}
-        />
-      </div>
-      <span style={{ fontSize: 12, fontWeight: 600, color: '#262626', whiteSpace: 'nowrap' }}>
-        {scopePct}% complete
-      </span>
-    </div>
-  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
-          while a review list is open (the list carries the stats band). */}
-      {drill ? null : (
+          while a review list is open, and while the table is scrolled down
+          (it returns at the top). */}
+      {drill || tilesHidden ? null : (
         <div
           style={{
             display: 'flex',
@@ -347,12 +270,11 @@ export default function ProductGridView({
         <ProductReviewList
           // Keyed by drill + filter so a stats-pill click re-arms the filter.
           key={`${drill}|${drillFilter}`}
-          title={drillRow?.component ?? formsDrillRow?.label ?? 'Everything in scope'}
           columns={heat.columns}
           rows={drillRow?.reviewRows ?? formsDrillRow?.reviewRows ?? allReviewRows}
           defaultFilter={drillFilter}
-          stats={statsBand}
-          onBack={() => setDrill(null)}
+          completePct={scopePct}
+          search={search}
           onDecide={(row, status, comment) =>
             onDecide(row.lobId, row.group.component, row.group.key, status, comment)
           }
@@ -367,7 +289,10 @@ export default function ProductGridView({
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
-          <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+          <div
+            style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
+            onScroll={(e) => onGridScroll(e.currentTarget)}
+          >
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
                 style={{
