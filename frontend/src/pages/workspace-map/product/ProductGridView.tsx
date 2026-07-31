@@ -1,31 +1,34 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { LoadingState, ErrorMessage } from '../../../components/ui';
+import { useApi } from '../../../lib/useApi';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
-import { abbrevVersion, buildHeatmap, type HeatRow } from './gridModel';
-import { buildFormsModel, DRILL_GROUP_ORDER, ROLLED_UP_COMPONENTS } from './formsModel';
+import {
+  columnLabel,
+  denseCells,
+  type BoardColumn,
+  type BoardPayload,
+  type ReviewPayload,
+} from './boardApi';
 import FormsSection from './FormsSection';
 import { HeatGridRow, SectionBand } from './gridRow';
-import {
-  MATCH_META,
-  type LobOption,
-  type ProductDecision,
-  type ProductDecisionStatus,
-} from './spine';
+import { MATCH_META, type ProductDecisionStatus } from './spine';
 
 // The Products workspace GRID — the progress board, FORMS-FIRST (Form
-// rationalization design):
+// rationalization design), rendered from the SERVER-DERIVED board payload:
 //   (1) an executive dashboard pinned on top: total coverages, items needing a
 //       decision, decided, % complete — each stat drills into the filtered
 //       review list;
 //   (2) the transposed heatmap below in two sections sharing one grid:
-//       FORMS first — one row per core form, expandable to its rolled-up
-//       state variations / coverage endorsements / product exceptions
-//       (product/formsModel.ts) — then the OTHER MODEL COMPONENTS exactly as
-//       before. PRODUCTS stay the angled column headers throughout;
-//   (3) any click — form row, component row, cell or dashboard stat — lands
-//       on the drill-down review list. The drill lives in the URL
-//       (?pmDrill=…), so the browser back button pops it like any navigation.
+//       FORMS first — the three-layer register (state-required variations
+//       aggregate to one row per LOB at scale) — then the other model
+//       components. Columns are versions while the scope is small and FOLD to
+//       one per product past 48 versions (the server picks; `members` carries
+//       the fold count);
+//   (3) any click lands on the drill-down review list, fetched LAZILY from
+//       /product-spine/review — one drill's rows, capped server-side. The
+//       drill lives in the URL (?pmDrill=…) so the browser back button pops it.
 
 const DRILL_PARAM = 'pmDrill';
 /** Forms drills are namespaced so they can't collide with component names. */
@@ -82,15 +85,25 @@ function StatTile({
   );
 }
 
+/** Small debounce so the review drill doesn't refetch per keystroke. */
+function useDebounced(value: string, ms: number): string {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+}
+
 export default function ProductGridView({
-  lobs,
-  decisions,
+  board,
+  scopeQS,
   onDecide,
   search = '',
 }: {
-  lobs: LobOption[];
-  /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
-  decisions: Map<string, ProductDecision>;
+  board: BoardPayload;
+  /** The scope + nonce query string — review drills refetch on the same key. */
+  scopeQS: string;
   /** status null = withdraw the decision (undo). */
   onDecide: (
     lobId: string,
@@ -103,14 +116,11 @@ export default function ProductGridView({
    *  and the drill review list. */
   search?: string;
 }) {
-  const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
-  // Forms-first split: the Forms component becomes the three-layer forms
-  // register; the components that roll up under forms (Coverages, Terms)
-  // surface inside the form drill-downs; everything else stays a plain
-  // component row below.
-  const fullModel = useMemo(() => buildFormsModel(heat), [heat]);
+  const heat = board.heat;
+  const columns = board.columns;
+  const fullModel = board.forms;
   // The filter-bar search narrows the register (form label/sub match) and the
-  // components below (name match); the drill list filters its own rows.
+  // components below (name match); the drill list filters server-side.
   const q = search.trim().toLowerCase();
   const model = useMemo(() => {
     if (!fullModel || !q) return fullModel;
@@ -128,18 +138,9 @@ export default function ProductGridView({
     };
   }, [fullModel, q]);
   const otherRows = useMemo(() => {
-    const rows = model
-      ? heat.rows.filter(
-          (r) => r.component !== 'Forms' && !ROLLED_UP_COMPONENTS.includes(r.component),
-        )
-      : heat.rows;
+    const rows = model ? heat.rows.filter((r) => !board.rolledUp.includes(r.component)) : heat.rows;
     return q ? rows.filter((r) => r.component.toLowerCase().includes(q)) : rows;
-  }, [heat, model, q]);
-  // Expanded core-form families persist per session.
-  const [formsOpen, setFormsOpen] = useViewState<Record<string, boolean>>(
-    'workspace.product.formsOpen',
-    {},
-  );
+  }, [heat, model, q, board.rolledUp]);
   // The drill is URL state: pushing it creates a history entry, so the
   // browser back button (and the header Back) pops out of the list.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -155,13 +156,25 @@ export default function ProductGridView({
   const [notesOpen, setNotesOpen] = useState(false);
   // Collapse product names to initials — the full name pops on hover (title).
   const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', true);
-  const labelOf = (v: (typeof heat.columns)[number]) =>
-    abbr ? abbrevVersion(v) : `${v.productName} · ${v.name}`;
+  const labelOf = (v: BoardColumn) => columnLabel(v, abbr);
+
+  // LAZY drill fetch — one drill's review rows, search filtered server-side.
+  const debouncedQ = useDebounced(search.trim(), 250);
+  const reviewUrl = drill
+    ? `/product-spine/review?${scopeQS}&drill=${encodeURIComponent(drill)}${
+        debouncedQ ? `&q=${encodeURIComponent(debouncedQ)}` : ''
+      }`
+    : null;
+  const {
+    data: review,
+    loading: reviewLoading,
+    error: reviewError,
+  } = useApi<ReviewPayload>(reviewUrl);
+
   // Only the DASHBOARD TILES hide on scroll-down (per review feedback) — the
-  // lens bar / filters stay put (the old full-chrome auto-hide read as
-  // glitchy). Guards against the hide/clamp/show oscillation: tiles only hide
-  // when there is substantially more overflow than the tiles are tall, and
-  // they return the moment the table is back at the top.
+  // lens bar / filters stay put. Guards against the hide/clamp/show
+  // oscillation: tiles only hide when there is substantially more overflow
+  // than the tiles are tall, and they return at the top.
   const [tilesHidden, setTilesHidden] = useState(false);
   const onGridScroll = (el: HTMLElement) => {
     const overflow = el.scrollHeight - el.clientHeight;
@@ -169,20 +182,8 @@ export default function ProductGridView({
     else if (el.scrollTop > 60 && overflow > 240) setTilesHidden(true);
   };
 
-  const drillRow =
-    drill && drill !== '__all__' && !drill.startsWith(FORMS_DRILL)
-      ? (heat.rows.find((r) => r.component === drill) ?? null)
-      : null;
-  // A forms drill resolves against the FULL register (an open drill must not
-  // vanish when the search narrows the visible rows).
-  const formsDrillRow =
-    drill?.startsWith(FORMS_DRILL) && fullModel
-      ? (fullModel.byKey.get(drill.slice(FORMS_DRILL.length)) ?? null)
-      : null;
-  const allReviewRows = useMemo(() => heat.rows.flatMap((r) => r.reviewRows), [heat]);
-
   const pending = heat.totals.need - heat.totals.decided;
-  const colCount = heat.columns.length;
+  const colCount = columns.length;
   const pctOfTotal = (n: number) =>
     heat.totals.total === 0 ? 0 : Math.round((n / heat.totals.total) * 100);
   // Density steps: slightly richer cells while the scope is small, bare counts
@@ -195,7 +196,7 @@ export default function ProductGridView({
   const grid = `250px repeat(${colCount}, ${colW}px) 22px 76px 84px 128px ${notesW}px`;
   // The header is exactly tall enough for the LONGEST angled label — every
   // label fully visible, nothing spilling out of the header band.
-  const maxLabelChars = heat.columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
+  const maxLabelChars = columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
   // 6.6px/char is deliberately generous for the 11px label font — labels must
   // never ellipsize unless the 400px hard cap is hit.
   const headerH = Math.min(400, Math.max(96, Math.round(maxLabelChars * 6.6 * 0.79) + 34));
@@ -204,10 +205,6 @@ export default function ProductGridView({
     setDrillFilter(filter);
     setDrill(component);
   };
-
-  // Completion % for the open drill — inline in the review list toolbar (the
-  // old stats band is gone; the list's own filter chips carry the counts).
-  const scopePct = drillRow?.pct ?? formsDrillRow?.pct ?? heat.totals.pct;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
@@ -226,7 +223,15 @@ export default function ProductGridView({
             flexWrap: 'wrap',
           }}
         >
-          <StatTile label="products in scope" value={String(colCount)} tone="#171717" />
+          <StatTile
+            label={
+              board.columnMode === 'product'
+                ? `products in scope (${board.scopedVersions} versions)`
+                : 'versions in scope'
+            }
+            value={String(colCount)}
+            tone="#171717"
+          />
           <StatTile
             label={`coverages across ${heat.rows.length} sections`}
             value={String(heat.totals.total)}
@@ -267,25 +272,48 @@ export default function ProductGridView({
       )}
 
       {drill ? (
-        <ProductReviewList
-          // Keyed by drill + filter so a stats-pill click re-arms the filter.
-          key={`${drill}|${drillFilter}`}
-          columns={heat.columns}
-          rows={drillRow?.reviewRows ?? formsDrillRow?.reviewRows ?? allReviewRows}
-          defaultFilter={drillFilter}
-          completePct={scopePct}
-          search={search}
-          onDecide={(row, status, comment) =>
-            onDecide(row.lobId, row.group.component, row.group.key, status, comment)
-          }
-          labelOf={labelOf}
-          abbr={abbr}
-          onToggleAbbr={() => setAbbr((a) => !a)}
-          // Forms drills band the list by what the form contains (anything
-          // beyond coverages groups like the register sections).
-          groupOf={formsDrillRow?.groupOf}
-          groupOrder={DRILL_GROUP_ORDER}
-        />
+        reviewError ? (
+          <ErrorMessage>{reviewError}</ErrorMessage>
+        ) : !review ? (
+          <LoadingState message={reviewLoading ? 'Loading the review list…' : 'Preparing…'} />
+        ) : (
+          <>
+            {review.truncated > 0 && (
+              <div
+                style={{
+                  padding: '6px 14px',
+                  background: '#fffbeb',
+                  borderBottom: '1px solid #fde68a',
+                  fontSize: 11.5,
+                  color: '#92400e',
+                  flexShrink: 0,
+                }}
+              >
+                Showing the first {review.rows.length.toLocaleString()} of{' '}
+                {review.total.toLocaleString()} rows — narrow the scope or search to see the rest.
+              </div>
+            )}
+            <ProductReviewList
+              // Keyed by drill + filter so a stats-pill click re-arms the filter.
+              key={`${drill}|${drillFilter}`}
+              columns={review.columns}
+              rows={review.rows}
+              defaultFilter={drillFilter}
+              completePct={review.pct}
+              search={search}
+              onDecide={(row, status, comment) =>
+                onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+              }
+              labelOf={labelOf}
+              abbr={abbr}
+              onToggleAbbr={() => setAbbr((a) => !a)}
+              // Forms drills band the list by what the form contains (anything
+              // beyond coverages groups like the register sections).
+              groupOf={review.groupOf}
+              groupOrder={review.groupOrder}
+            />
+          </>
+        )
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
@@ -346,10 +374,14 @@ export default function ProductGridView({
                     {abbr ? '⌄' : '⌃'}
                   </button>
                 </div>
-                {heat.columns.map((v) => (
+                {columns.map((v) => (
                   <div
                     key={v.id}
-                    title={`${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`}
+                    title={
+                      v.members > 1
+                        ? `${v.segmentName} › ${v.lobName} › ${v.productName} — ${v.members} versions`
+                        : `${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`
+                    }
                     style={{
                       height: headerH,
                       position: 'relative',
@@ -394,6 +426,7 @@ export default function ProductGridView({
                       }}
                     >
                       {labelOf(v)}
+                      {v.members > 1 ? ` (${v.members})` : ''}
                     </span>
                   </div>
                 ))}
@@ -446,23 +479,22 @@ export default function ProductGridView({
               </div>
 
               {/* FORMS-FIRST: the forms register leads the table (core
-                  national / state-required / product-specific sections);
-                  Coverages and Terms roll up inside the form drill-downs, and
-                  every remaining component stays a plain row below. */}
+                  national / state-required / product-specific sections) —
+                  state-required variations aggregate one row per LOB; every
+                  remaining component stays a plain row below. */}
               {model && (
                 <SectionBand
                   label="Forms"
-                  detail={`${model.counts.core} countrywide · ${model.counts.state} state-required · ${model.counts.product} product-specific — expand a form for its coverages, coverage parts, endorsements and clauses`}
+                  detail={`${model.counts.core} countrywide · ${model.counts.state} state-required · ${model.counts.product} product-specific — open a form for its coverages, coverage parts, endorsements and clauses`}
                 />
               )}
               {model && (
                 <FormsSection
                   model={model}
+                  columns={columns}
                   grid={grid}
                   density={density}
                   notesOpen={notesOpen}
-                  open={formsOpen}
-                  onToggle={(k) => setFormsOpen((c) => ({ ...c, [k]: !c[k] }))}
                   onOpenDrill={(rowKey) => openDrill(`${FORMS_DRILL}${rowKey}`, 'all')}
                 />
               )}
@@ -472,13 +504,13 @@ export default function ProductGridView({
                   detail="model components that do not roll up under forms"
                 />
               )}
-              {otherRows.map((row: HeatRow) => (
+              {otherRows.map((row) => (
                 <HeatGridRow
                   key={row.component}
                   rowKey={row.component}
                   grid={grid}
                   density={density}
-                  cells={row.cells}
+                  cells={denseCells(row.cells, columns)}
                   total={row.total}
                   pending={row.need - row.decided}
                   pct={row.pct}

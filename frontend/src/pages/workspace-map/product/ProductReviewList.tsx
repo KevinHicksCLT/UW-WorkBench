@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  MATCH_META,
-  groupCitations,
-  type ProductDecisionStatus,
-  type VersionColumn,
-} from './spine';
+import { MATCH_META, groupCitations, type ProductDecisionStatus } from './spine';
+import type { BoardColumn } from './boardApi';
 import type { ReviewRow } from './gridModel';
 
 // The Products workspace's drill-down review list — the decision queue.
@@ -44,7 +40,7 @@ function ElementDetailModal({
   onClose,
 }: {
   row: ReviewRow;
-  columns: VersionColumn[];
+  columns: BoardColumn[];
   onClose: () => void;
 }) {
   const meta = MATCH_META[row.group.status];
@@ -258,7 +254,7 @@ export default function ProductReviewList({
   groupOf,
   groupOrder,
 }: {
-  columns: VersionColumn[];
+  columns: BoardColumn[];
   rows: ReviewRow[];
   defaultFilter: ReviewFilter;
   /** Scope completion % — rendered inline with the filter chips. */
@@ -272,7 +268,7 @@ export default function ProductReviewList({
     comment?: string,
   ) => Promise<void>;
   /** Column label (full or abbreviated) — full name always on hover. */
-  labelOf?: (v: VersionColumn) => string;
+  labelOf?: (v: BoardColumn) => string;
   abbr?: boolean;
   onToggleAbbr?: () => void;
   /** Group label per row key (`lobId:groupKey`) — anything beyond coverages
@@ -340,7 +336,7 @@ export default function ProductReviewList({
   // the same compact cells as a 26-product one instead of page-wide bars.
   // No Status column — the presence blocks carry the status color directly.
   const gridCols = `320px repeat(${columns.length}, 44px) 22px 140px 236px 200px`;
-  const colLabel = labelOf ?? ((v: VersionColumn) => `${v.productName} · ${v.name}`);
+  const colLabel = labelOf ?? ((v: BoardColumn) => `${v.productName} · ${v.name}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
   const maxLabelChars = columns.reduce((n, v) => Math.max(n, colLabel(v).length), 0);
