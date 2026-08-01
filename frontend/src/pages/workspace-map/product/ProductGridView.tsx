@@ -4,16 +4,10 @@ import { LoadingState } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
-import {
-  columnLabel,
-  denseCells,
-  type BoardColumn,
-  type BoardPayload,
-  type ReviewPayload,
-} from './boardApi';
+import { columnLabel, type BoardColumn, type BoardPayload, type ReviewPayload } from './boardApi';
 import ComponentElementRows from './ComponentElementRows';
 import FormsSection from './FormsSection';
-import { HeatGridRow, SectionBand } from './gridRow';
+import { SectionBand } from './gridRow';
 import { MATCH_META, type ProductDecisionStatus } from './spine';
 
 // The Products workspace GRID — the progress board, FORMS-FIRST (Form
@@ -165,6 +159,16 @@ export default function ProductGridView({
   // Collapse product names to initials — the full name pops on hover (title).
   const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', true);
   const labelOf = (v: BoardColumn) => columnLabel(v, abbr);
+  // The FORMS register collapses behind its band; each model component row
+  // expands to its element table (fetched lazily), the way forms list theirs.
+  const [formsCollapsed, setFormsCollapsed] = useViewState<boolean>(
+    'workspace.product.formsCollapsed',
+    false,
+  );
+  const [openComponents, setOpenComponents] = useViewState<Record<string, boolean>>(
+    'workspace.product.openComponents',
+    {},
+  );
 
   // LAZY drill fetch — one drill's review rows, search filtered server-side.
   const debouncedQ = useDebounced(search.trim(), 250);
@@ -382,6 +386,7 @@ export default function ProductGridView({
               key={`${drill}|${drillFilter}`}
               columns={review.columns}
               rows={review.rows}
+              selfRow={review.self ?? null}
               defaultFilter={drillFilter}
               completePct={review.pct}
               search={search}
@@ -596,9 +601,11 @@ export default function ProductGridView({
                 <SectionBand
                   label="Forms"
                   detail={`${model.counts.core} countrywide · ${model.counts.state} state-required · ${model.counts.product} product-specific — open a form for its coverages, coverage parts, endorsements and clauses`}
+                  collapsed={formsCollapsed}
+                  onToggle={() => setFormsCollapsed((c) => !c)}
                 />
               )}
-              {model && (
+              {model && !formsCollapsed && (
                 <FormsSection
                   model={model}
                   columns={columns}
@@ -608,79 +615,38 @@ export default function ProductGridView({
                   onOpenDrill={(rowKey) => openDrill(`${FORMS_DRILL}${rowKey}`, 'all')}
                 />
               )}
-              {model && (
-                <SectionBand
-                  label="Everything else"
-                  detail="model components that do not roll up under forms"
-                />
-              )}
-              {otherRows.map((row) => (
-                <HeatGridRow
-                  key={row.component}
-                  rowKey={row.component}
-                  grid={grid}
-                  density={density}
-                  cells={denseCells(row.cells, columns)}
-                  total={row.total}
-                  pending={row.need - row.decided}
-                  pct={row.pct}
-                  rag={row.rag}
-                  note={row.note}
-                  notesOpen={notesOpen}
-                  onOpen={() => openDrill(row.component, 'all')}
-                  left={
-                    <button
-                      type="button"
-                      onClick={() => openDrill(row.component, 'all')}
-                      title="open this component's review list"
-                      style={{
-                        font: 'inherit',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '10px 12px',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <span style={{ minWidth: 0 }}>
-                        <span
-                          style={{
-                            display: 'block',
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: '#171717',
-                            lineHeight: 1.25,
-                          }}
-                        >
-                          {row.component}
-                        </span>
-                        {/* Coverage counts for the section — the same traffic
-                            light the cells use, so the row reads at a glance. */}
-                        <span
-                          style={{
-                            display: 'block',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            marginTop: 1,
-                            fontVariantNumeric: 'tabular-nums',
-                          }}
-                        >
-                          <span style={{ color: MATCH_META.COMMON.fg }}>{row.common} common</span>
-                          <span style={{ color: '#9ca3af' }}> · </span>
-                          <span style={{ color: MATCH_META.PARTIAL.fg }}>
-                            {row.similar} similar
-                          </span>
-                          <span style={{ color: '#9ca3af' }}> · </span>
-                          <span style={{ color: MATCH_META.UNIQUE.fg }}>{row.unique} unique</span>
-                        </span>
-                      </span>
-                    </button>
-                  }
-                />
-              ))}
+              {/* Every remaining model component gets its own collapsible band
+                  — Rating, Pricing, … through Lifecycle — with its element
+                  table beneath it, exactly like the forms register. */}
+              {otherRows.map((row) => {
+                const open = Boolean(openComponents[row.component]);
+                const pending = row.need - row.decided;
+                return (
+                  <div key={row.component} style={{ display: 'contents' }}>
+                    <SectionBand
+                      label={row.component}
+                      detail={`${row.total} coverages · ${row.common} common · ${row.similar} similar · ${row.unique} unique${
+                        pending > 0 ? ` · ${pending} to decide` : ''
+                      } — ${row.pct}% decided`}
+                      collapsed={!open}
+                      onToggle={() =>
+                        setOpenComponents((o) => ({ ...o, [row.component]: !o[row.component] }))
+                      }
+                    />
+                    {open && (
+                      <ComponentElementRows
+                        component={row.component}
+                        scopeQS={scopeQS}
+                        grid={grid}
+                        density={density}
+                        columns={columns}
+                        notesOpen={notesOpen}
+                        onOpen={() => openDrill(row.component, 'all')}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

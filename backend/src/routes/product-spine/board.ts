@@ -188,6 +188,7 @@ export function registerProductBoardRoutes(router: Router): void {
 
       let rows: ReviewRow[];
       let groupOf: Record<string, string> | undefined;
+      let selfRow: ReviewRow | null = null;
       let pct = heat.totals.pct;
       if (drill === '__all__') {
         rows = heat.rows.flatMap((r) => r.reviewRows);
@@ -197,6 +198,7 @@ export function registerProductBoardRoutes(router: Router): void {
         if (!payload) return res.status(404).json({ error: 'Unknown form drill' });
         rows = payload.reviewRows;
         groupOf = payload.groupOf;
+        selfRow = payload.self;
         pct = payload.pct;
       } else {
         const row = heat.rows.find((r) => r.component === drill);
@@ -224,6 +226,7 @@ export function registerProductBoardRoutes(router: Router): void {
         total,
         truncated: Math.max(0, total - capped.length),
         pct,
+        self: selfRow,
         groupOf,
         groupOrder: ['Form', ...Object.values(CONTENT_LABEL)],
       });

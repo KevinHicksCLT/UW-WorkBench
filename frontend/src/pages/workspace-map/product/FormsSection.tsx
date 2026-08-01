@@ -5,6 +5,7 @@
 // portfolio scale); what a form CONTAINS — coverages, coverage parts,
 // endorsements, clauses — lives in its drill-down review list, one click away.
 
+import { useViewState } from '../../../lib/viewState';
 import { FORM_LAYER_META } from './formsModel';
 import { denseCells, type BoardColumn, type BoardFormRow, type BoardForms } from './boardApi';
 import { HeatGridRow, SectionBand, type Density } from './gridRow';
@@ -26,6 +27,12 @@ export default function FormsSection({
   /** Open the review list drilled to a forms row (key from the register). */
   onOpenDrill: (rowKey: string) => void;
 }) {
+  // Each register layer (countrywide / state-required / product-specific)
+  // collapses behind its band, like every other band on the board.
+  const [closedLayers, setClosedLayers] = useViewState<Record<string, boolean>>(
+    'workspace.product.formsLayersClosed',
+    {},
+  );
   return (
     <>
       {model.sections.map((section) =>
@@ -34,18 +41,23 @@ export default function FormsSection({
             <SectionBand
               label={`${FORM_LAYER_META[section.layer].label} (${section.rows.length})`}
               detail={FORM_LAYER_META[section.layer].hint || undefined}
+              collapsed={Boolean(closedLayers[section.layer])}
+              onToggle={() =>
+                setClosedLayers((c) => ({ ...c, [section.layer]: !c[section.layer] }))
+              }
             />
-            {section.rows.map((row) => (
-              <FormRegisterRow
-                key={row.key}
-                row={row}
-                columns={columns}
-                grid={grid}
-                density={density}
-                notesOpen={notesOpen}
-                onOpenDrill={onOpenDrill}
-              />
-            ))}
+            {!closedLayers[section.layer] &&
+              section.rows.map((row) => (
+                <FormRegisterRow
+                  key={row.key}
+                  row={row}
+                  columns={columns}
+                  grid={grid}
+                  density={density}
+                  notesOpen={notesOpen}
+                  onOpenDrill={onOpenDrill}
+                />
+              ))}
           </div>
         ),
       )}

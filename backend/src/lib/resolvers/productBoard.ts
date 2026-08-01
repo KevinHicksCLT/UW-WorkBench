@@ -393,22 +393,20 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
     const productsInLob = new Set(productOf.values()).size;
     const byId = new Map(lob.versions.map((v) => [v.id, v]));
     // Countrywide carriage COVERS the product's state versions: a concern on a
-    // product's countrywide version is live in every state version its filings
-    // cover, so those versions count as carrying it too (presence + status).
-    // Without this, every countrywide form reads "in 1 of N columns" and the
-    // heat cells render empty.
+    // product's countrywide version is the nationwide baseline — state-form
+    // versions amend the base policy, they don't drop its coverages — so every
+    // sibling version counts as carrying it too (presence + status). (The
+    // countrywide version's `states` list names where that filing is the ONLY
+    // live form; it deliberately excludes the state-form states, so it must
+    // NOT gate this.) Without the extension every countrywide concern reads
+    // "in 1 of N columns" and its heat cells render empty.
     const coveredVersionIds = (g: { perVersion: Record<string, unknown> }): Set<string> => {
       const out = new Set(Object.keys(g.perVersion));
       for (const vid of Object.keys(g.perVersion)) {
         const carrier = byId.get(vid);
         if (!carrier || stateOf(carrier.name) !== NO_STATE) continue;
         for (const v of lob.versions) {
-          if (v.productName !== carrier.productName || v.id === carrier.id) continue;
-          const st = stateOf(v.name);
-          // No explicit filing list on the countrywide version = it applies
-          // countrywide, i.e. to every state edition of the product.
-          if (st !== NO_STATE && (carrier.states.length === 0 || carrier.states.includes(st)))
-            out.add(v.id);
+          if (v.productName === carrier.productName && v.id !== carrier.id) out.add(v.id);
         }
       }
       return out;

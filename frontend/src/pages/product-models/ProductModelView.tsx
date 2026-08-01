@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { Card, Chip, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
@@ -94,6 +94,70 @@ function isSectionKey(v: string | null): v is SectionKey {
   return SECTIONS.some((s) => s.key === v);
 }
 
+function TableHead() {
+  return (
+    <thead>
+      <tr className="text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] border-b border-[#eaeaea]">
+        <th className="py-1.5 px-3 font-semibold">Element</th>
+        <th className="py-1.5 px-3 font-semibold hidden lg:table-cell">Where it lives today</th>
+        <th className="py-1.5 px-3 font-semibold w-28 hidden md:table-cell">Format</th>
+      </tr>
+    </thead>
+  );
+}
+
+/** Element rows for a shared table body — the section pages compose several
+ *  runs of these (banded) under ONE TableHead. */
+function ElementRows({
+  rows,
+  emptyText,
+  tone,
+}: {
+  rows: (ModelElement & { from?: string })[];
+  emptyText: string;
+  tone?: 'state';
+}) {
+  if (rows.length === 0)
+    return emptyText ? (
+      <tr>
+        <td colSpan={3} className="text-xs text-[#737373] italic px-3 py-2">
+          {emptyText}
+        </td>
+      </tr>
+    ) : null;
+  return (
+    <>
+      {rows.map((e, i) => (
+        <tr
+          key={`${e.element}-${i}`}
+          className={`border-b border-[#f5f5f5] align-top ${tone === 'state' ? 'bg-amber-50/60' : ''}`}
+        >
+          <td className="py-2 px-3">
+            <div className="font-medium text-[#171717] flex items-center gap-2 flex-wrap">
+              {e.element}
+              {e.from && (
+                <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 rounded px-1.5 py-0.5">
+                  {e.from}
+                </span>
+              )}
+            </div>
+            {e.description && (
+              <div className="text-xs text-[#666666] mt-0.5 max-w-3xl">{e.description}</div>
+            )}
+            {e.livesIn && (
+              <div className="text-[11px] text-[#8a8a8a] mt-0.5 lg:hidden">{e.livesIn}</div>
+            )}
+          </td>
+          <td className="py-2 px-3 text-xs text-[#525252] hidden lg:table-cell">{e.livesIn}</td>
+          <td className="py-2 px-3 hidden md:table-cell">
+            {e.format && <Chip variant="soft">{e.format}</Chip>}
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 function ElementTable({
   rows,
   emptyText,
@@ -107,66 +171,69 @@ function ElementTable({
     return <div className="text-xs text-[#737373] italic px-3 py-2">{emptyText}</div>;
   return (
     <table className="w-full text-sm">
-      <thead>
-        <tr className="text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] border-b border-[#eaeaea]">
-          <th className="py-1.5 px-3 font-semibold">Element</th>
-          <th className="py-1.5 px-3 font-semibold hidden lg:table-cell">Where it lives today</th>
-          <th className="py-1.5 px-3 font-semibold w-28 hidden md:table-cell">Format</th>
-        </tr>
-      </thead>
+      <TableHead />
       <tbody>
-        {rows.map((e, i) => (
-          <tr
-            key={`${e.element}-${i}`}
-            className={`border-b border-[#f5f5f5] align-top ${tone === 'state' ? 'bg-amber-50/60' : ''}`}
-          >
-            <td className="py-2 px-3">
-              <div className="font-medium text-[#171717] flex items-center gap-2 flex-wrap">
-                {e.element}
-                {e.from && (
-                  <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 rounded px-1.5 py-0.5">
-                    {e.from}
-                  </span>
-                )}
-              </div>
-              {e.description && (
-                <div className="text-xs text-[#666666] mt-0.5 max-w-3xl">{e.description}</div>
-              )}
-              {e.livesIn && (
-                <div className="text-[11px] text-[#8a8a8a] mt-0.5 lg:hidden">{e.livesIn}</div>
-              )}
-            </td>
-            <td className="py-2 px-3 text-xs text-[#525252] hidden lg:table-cell">{e.livesIn}</td>
-            <td className="py-2 px-3 hidden md:table-cell">
-              {e.format && <Chip variant="soft">{e.format}</Chip>}
-            </td>
-          </tr>
-        ))}
+        <ElementRows rows={rows} emptyText={emptyText} tone={tone} />
       </tbody>
     </table>
   );
 }
 
-function SubBand({ label, count }: { label: string; count: number }) {
+/** Collapsible band row inside the shared table — chevron + label + count,
+ *  spans every column; the band's element rows fold behind it. */
+function BandRow({
+  label,
+  count,
+  collapsed,
+  onToggle,
+}: {
+  label: string;
+  count: number;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <div className="flex items-baseline gap-2 px-3 py-1.5 bg-[#fcfcfd] border-y border-[#f1f3f5]">
-      <span className="text-[10px] font-bold uppercase tracking-[0.07em] text-[#374151]">
-        {label}
-      </span>
-      <span className="text-[10px] text-[#737373] tnum">{count}</span>
-    </div>
+    <tr
+      role="button"
+      onClick={onToggle}
+      title={collapsed ? `expand ${label}` : `collapse ${label}`}
+      className="cursor-pointer bg-[#fcfcfd] border-y border-[#f1f3f5]"
+    >
+      <td colSpan={3} className="px-3 py-1.5">
+        <span className="flex items-baseline gap-2">
+          <span aria-hidden className="text-[10px] text-[#525252]">
+            {collapsed ? '▸' : '▾'}
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.07em] text-[#374151]">
+            {label}
+          </span>
+          <span className="text-[10px] text-[#737373] tnum">{count}</span>
+        </span>
+      </td>
+    </tr>
   );
 }
 
-/** Element count for a section's TOC card (overlays excluded — the cards
- *  describe the countrywide core; states surface inside the section). */
-function sectionCount(model: ProductModelPayload['model'], key: SectionKey): number {
+/** Element count for a section's TOC card. With a state picked, Forms and
+ *  Filings include that state's own-form additions — the cards show the
+ *  scoped model before the user drills in. */
+function sectionCount(
+  model: ProductModelPayload['model'],
+  key: SectionKey,
+  overlay: StateOverlay | null,
+): number {
   if (key === 'forms') {
     const f = model.forms;
     return (
-      f.base.length + f.coverages.length + f.terms.length + f.endorsements.length + f.clauses.length
+      f.base.length +
+      f.coverages.length +
+      f.terms.length +
+      f.endorsements.length +
+      f.clauses.length +
+      (overlay?.forms.length ?? 0)
     );
   }
+  if (key === 'filings') return model.filings.length + (overlay?.filings.length ?? 0);
   return model[key].length;
 }
 
@@ -196,6 +263,10 @@ export default function ProductModelView({ id }: { id: string }) {
     () => (data && state ? (data.stateOverlays.find((o) => o.state === state) ?? null) : null),
     [data, state],
   );
+  // Per-band collapse (Coverages / Terms / Endorsements / …) on the section
+  // pages — session-local, all expanded by default.
+  const [closedBands, setClosedBands] = useState<Record<string, boolean>>({});
+  const toggleBand = (k: string) => setClosedBands((c) => ({ ...c, [k]: !c[k] }));
 
   if (loading) return <LoadingState message="Loading the product model…" />;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
@@ -237,28 +308,31 @@ export default function ProductModelView({ id }: { id: string }) {
           <span className="font-semibold">Written in:</span> {countrywide.states.length || '—'}{' '}
           jurisdiction{countrywide.states.length === 1 ? '' : 's'}
         </span>
-        {/* Jurisdiction is a FILTER (the document's separation) — it matters
-            on the sections a state's own form deviates on. */}
-        {(section === 'forms' || section === 'filings') && stateOverlays.length > 0 && (
+        {/* Version / jurisdiction is a FILTER on the whole product page (the
+            document's separation) — an L4 node IS a "Version / Jurisdiction",
+            so one selector covers both. Picking a state re-scopes the card
+            counts and every section; the deviations land on Forms and
+            Filings, flagged as that state's additions. */}
+        {stateOverlays.length > 0 && (
           <label className="flex items-center gap-2 text-xs text-[#525252]">
-            <span className="font-semibold">Jurisdiction:</span>
+            <span className="font-semibold">Version / jurisdiction:</span>
             <select
               value={state}
               onChange={(e) => setParam('state', e.target.value || null)}
               className="border border-[#d4d4d4] rounded-md px-2 py-1 text-xs bg-white"
             >
-              <option value="">Countrywide core</option>
+              <option value="">Countrywide core — {countrywide.states.length} jurisdictions</option>
               {stateOverlays.map((o) => (
                 <option key={o.state} value={o.state}>
-                  US-{o.state} — own state form
+                  US-{o.state} — own state form{o.status ? ` · ${o.status}` : ''}
                 </option>
               ))}
             </select>
           </label>
         )}
-        {overlay && (section === 'forms' || section === 'filings') && (
+        {overlay && (
           <span className="text-[11px] font-medium text-amber-800 bg-amber-100 rounded px-2 py-0.5">
-            Showing the core model + US-{overlay.state}&rsquo;s deviations
+            Core model + US-{overlay.state}&rsquo;s deviations
           </span>
         )}
       </div>
@@ -270,7 +344,7 @@ export default function ProductModelView({ id }: { id: string }) {
     const rows: TocRow[] = SECTIONS.map((s) => ({
       id: s.key,
       name: s.name,
-      count: sectionCount(model, s.key),
+      count: sectionCount(model, s.key, overlay),
       extra: s.hint,
       // Pushed (not replaced) so the browser back button pops the section.
       onClick: () => setParam(SECTION_PARAM, s.key, true),
@@ -286,9 +360,11 @@ export default function ProductModelView({ id }: { id: string }) {
           extraLabel="What it holds"
           unit="model components"
           totals={
-            stateOverlays.length > 0
-              ? `${stateOverlays.length} jurisdiction${stateOverlays.length === 1 ? '' : 's'} with an own state form: ${stateOverlays.map((o) => o.state).join(', ')}`
-              : 'every covered jurisdiction runs the countrywide core'
+            overlay
+              ? `US-${overlay.state} — the core model plus this state's own-form deviations`
+              : stateOverlays.length > 0
+                ? `${stateOverlays.length} jurisdiction${stateOverlays.length === 1 ? '' : 's'} with an own state form: ${stateOverlays.map((o) => o.state).join(', ')}`
+                : 'every covered jurisdiction runs the countrywide core'
           }
         />
       </div>
@@ -305,35 +381,74 @@ export default function ProductModelView({ id }: { id: string }) {
       {header}
       <Card className="p-0 overflow-hidden mb-4">
         {section === 'forms' ? (
-          <>
-            {model.forms.base.length > 0 && (
-              <>
-                <SubBand label="Base policy form" count={model.forms.base.length} />
-                <ElementTable rows={model.forms.base} emptyText="" />
-              </>
-            )}
-            <SubBand label="Coverages" count={model.forms.coverages.length} />
-            <ElementTable rows={model.forms.coverages} emptyText="none recorded" />
-            <SubBand label="Terms" count={model.forms.terms.length} />
-            <ElementTable rows={model.forms.terms} emptyText="none recorded" />
-            <SubBand
-              label="Endorsements"
-              count={model.forms.endorsements.length + overlayForms.length}
-            />
-            <ElementTable rows={model.forms.endorsements} emptyText="none recorded" />
-            {overlayForms.length > 0 && (
-              <ElementTable rows={overlayForms} emptyText="" tone="state" />
-            )}
-            <SubBand label="Clauses" count={model.forms.clauses.length} />
-            <ElementTable rows={model.forms.clauses} emptyText="none recorded" />
-          </>
+          // ONE table, ONE header — every band is a collapsible row inside it.
+          <table className="w-full text-sm">
+            <TableHead />
+            <tbody>
+              {model.forms.base.length > 0 && (
+                <>
+                  <BandRow
+                    label="Base policy form"
+                    count={model.forms.base.length}
+                    collapsed={Boolean(closedBands.base)}
+                    onToggle={() => toggleBand('base')}
+                  />
+                  {!closedBands.base && <ElementRows rows={model.forms.base} emptyText="" />}
+                </>
+              )}
+              <BandRow
+                label="Coverages"
+                count={model.forms.coverages.length}
+                collapsed={Boolean(closedBands.coverages)}
+                onToggle={() => toggleBand('coverages')}
+              />
+              {!closedBands.coverages && (
+                <ElementRows rows={model.forms.coverages} emptyText="none recorded" />
+              )}
+              <BandRow
+                label="Terms"
+                count={model.forms.terms.length}
+                collapsed={Boolean(closedBands.terms)}
+                onToggle={() => toggleBand('terms')}
+              />
+              {!closedBands.terms && (
+                <ElementRows rows={model.forms.terms} emptyText="none recorded" />
+              )}
+              <BandRow
+                label="Endorsements"
+                count={model.forms.endorsements.length + overlayForms.length}
+                collapsed={Boolean(closedBands.endorsements)}
+                onToggle={() => toggleBand('endorsements')}
+              />
+              {!closedBands.endorsements && (
+                <>
+                  <ElementRows rows={model.forms.endorsements} emptyText="none recorded" />
+                  {overlayForms.length > 0 && (
+                    <ElementRows rows={overlayForms} emptyText="" tone="state" />
+                  )}
+                </>
+              )}
+              <BandRow
+                label="Clauses"
+                count={model.forms.clauses.length}
+                collapsed={Boolean(closedBands.clauses)}
+                onToggle={() => toggleBand('clauses')}
+              />
+              {!closedBands.clauses && (
+                <ElementRows rows={model.forms.clauses} emptyText="none recorded" />
+              )}
+            </tbody>
+          </table>
         ) : section === 'filings' ? (
-          <>
-            <ElementTable rows={model.filings} emptyText="none recorded" />
-            {overlayFilings.length > 0 && (
-              <ElementTable rows={overlayFilings} emptyText="" tone="state" />
-            )}
-          </>
+          <table className="w-full text-sm">
+            <TableHead />
+            <tbody>
+              <ElementRows rows={model.filings} emptyText="none recorded" />
+              {overlayFilings.length > 0 && (
+                <ElementRows rows={overlayFilings} emptyText="" tone="state" />
+              )}
+            </tbody>
+          </table>
         ) : (
           <ElementTable rows={model[section]} emptyText="none recorded" />
         )}

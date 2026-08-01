@@ -139,6 +139,9 @@ export interface ReviewPayload {
   total: number;
   truncated: number;
   pct: number;
+  /** Forms drills only: the drilled form's own review row — rendered as the
+   *  list's TITLE header (with its decision controls), never as a table row. */
+  self?: ReviewRow | null;
   groupOf?: Record<string, string>;
   groupOrder: string[];
 }

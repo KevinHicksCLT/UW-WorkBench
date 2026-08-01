@@ -124,13 +124,15 @@ describe('buildFormsModel', () => {
     const model = buildFormsModel(heat, [lob])!;
     const base = model.sections.find((s) => s.layer === 'core')!.rows.find((r) => r.isBase)!;
     const drill = model.byKey.get(base.key)!;
+    // The form itself is the drill's TITLE (self), never one of its own rows.
+    expect(drill.self?.group.name).toBe(base.label);
     const bands = new Set(Object.values(drill.groupOf));
-    expect(bands.has('Form')).toBe(true);
+    expect(bands.has('Form')).toBe(false);
     expect(bands.has('Coverages')).toBe(true);
     expect(bands.has('Clauses')).toBe(true);
     expect(bands.has('Endorsements')).toBe(true);
-    // Form + 2 coverages + 1 clause + 3 endorsements (water backup + 2 state).
-    expect(drill.reviewRows).toHaveLength(7);
+    // 2 coverages + 1 clause + 3 endorsements (water backup + 2 state).
+    expect(drill.reviewRows).toHaveLength(6);
   });
 
   it('returns null when the scope has no Forms component', () => {

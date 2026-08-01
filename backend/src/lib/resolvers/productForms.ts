@@ -60,6 +60,9 @@ export interface FormRow extends FormRowData {
 export interface FormsDrill extends FormRowData {
   reviewRows: ReviewRow[];
   groupOf: Record<string, string>;
+  /** The drilled form's own review row — the drill's TITLE, never a list row.
+   *  Null for aggregate drills (state register) where there is no single form. */
+  self: ReviewRow | null;
 }
 
 export interface FormsModel {
@@ -366,6 +369,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
           cells: row.cells.map((c) => ({ ...c })),
           reviewRows: [r],
           groupOf: { [rowKeyOf(r)]: 'Form' },
+          self: null,
         };
         agg = { row, drill, states: new Set() };
         stateAgg.set(r.lobId, agg);
@@ -396,12 +400,14 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
     sections[FORM_LAYER_ORDER.indexOf(cls.layer)].rows.push(formRow);
     counts[cls.layer] += 1;
 
-    // Drill payload = the form + everything it contains.
+    // Drill payload = the form as the TITLE (self) + everything it contains
+    // as the list rows — the form never repeats inside its own table.
     const drill: FormsDrill = {
       ...own,
       cells: own.cells.map((c) => ({ ...c })),
-      reviewRows: [r],
-      groupOf: { [rowKeyOf(r)]: 'Form' },
+      reviewRows: [],
+      groupOf: {},
+      self: r,
     };
     const seen = new Set([rowKeyOf(r)]);
     for (const g of contents)
@@ -417,6 +423,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
             ...data,
             reviewRows: [review],
             groupOf: { [k]: CONTENT_LABEL[g.kind] },
+            self: null,
           });
       }
     drill.rag = ragOf(drill);

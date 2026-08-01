@@ -240,9 +240,24 @@ export function HeatGridRow({
 
 /** Full-width section band separating the Forms section from the other model
  *  components (spans every grid column). */
-export function SectionBand({ label, detail }: { label: string; detail?: string }) {
+export function SectionBand({
+  label,
+  detail,
+  collapsed,
+  onToggle,
+}: {
+  label: string;
+  detail?: string;
+  /** When onToggle is set the band is collapsible — the chevron reflects
+   *  `collapsed` and the whole band toggles on click. */
+  collapsed?: boolean;
+  onToggle?: () => void;
+}) {
   return (
     <div
+      role={onToggle ? 'button' : undefined}
+      onClick={onToggle}
+      title={onToggle ? (collapsed ? `expand ${label}` : `collapse ${label}`) : undefined}
       style={{
         gridColumn: '1 / -1',
         display: 'flex',
@@ -252,8 +267,14 @@ export function SectionBand({ label, detail }: { label: string; detail?: string 
         background: '#f3f4f6',
         borderBottom: '1px solid #e5e7eb',
         minWidth: '100%',
+        cursor: onToggle ? 'pointer' : undefined,
       }}
     >
+      {onToggle && (
+        <span aria-hidden style={{ fontSize: 10, color: '#525252', alignSelf: 'center' }}>
+          {collapsed ? '▸' : '▾'}
+        </span>
+      )}
       <span
         style={{
           fontSize: 10.5,

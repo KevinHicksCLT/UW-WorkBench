@@ -33,6 +33,58 @@ function rowText(r: ReviewRow): string {
   return `${r.group.name} ${el?.description ?? ''} ${r.lobName}`.toLowerCase();
 }
 
+/** Retain · Standardize · Retire (or the auto-standardized note) — shared by
+ *  the list rows and the forms drill's title header. */
+function DecisionActions({
+  row,
+  saving,
+  onAct,
+}: {
+  row: ReviewRow;
+  saving: boolean;
+  onAct: (status: ProductDecisionStatus | null) => void;
+}) {
+  if (!row.needsDecision)
+    return (
+      <span
+        style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
+        title="This coverage is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."
+      >
+        Common — auto-standardized, no decision needed
+      </span>
+    );
+  return (
+    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
+      {STATUS_ACTIONS.map(([status, label, tone]) => {
+        const on = row.decision?.status === status;
+        return (
+          <button
+            key={status}
+            type="button"
+            disabled={saving}
+            title={on ? 'click again to withdraw this decision' : STATUS_LABEL[status]}
+            onClick={() => onAct(on ? null : status)}
+            style={{
+              font: 'inherit',
+              fontSize: 11.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              borderRadius: 6,
+              padding: '3px 10px',
+              color: on ? '#fff' : tone,
+              background: on ? tone : '#fff',
+              border: `1px solid ${on ? 'transparent' : tone}`,
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            {on ? `✓ ${label}` : label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Full element detail — everything the compact row hides. */
 function ElementDetailModal({
   row,
@@ -244,6 +296,7 @@ function ElementDetailModal({
 export default function ProductReviewList({
   columns,
   rows,
+  selfRow = null,
   defaultFilter,
   completePct,
   search = '',
@@ -258,6 +311,9 @@ export default function ProductReviewList({
 }: {
   columns: BoardColumn[];
   rows: ReviewRow[];
+  /** Forms drills: the drilled form itself — rendered as the list's TITLE
+   *  header (with its own decision controls), never repeated as a table row. */
+  selfRow?: ReviewRow | null;
   defaultFilter: ReviewFilter;
   /** Scope completion % — rendered inline with the filter chips. */
   completePct?: number;
@@ -286,6 +342,9 @@ export default function ProductReviewList({
   onDeepScroll?: (hidden: boolean) => void;
 }) {
   const [filter, setFilter] = useState<ReviewFilter>(defaultFilter);
+  // Collapsed band groups (Form / Coverages / Endorsements / …) — the band
+  // header stays visible, its rows fold away.
+  const [closedBands, setClosedBands] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<ReviewRow | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -368,6 +427,134 @@ export default function ProductReviewList({
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* Forms drill title — the drilled form itself, with its decision and
+          note controls; the table below lists only what the form CONTAINS. */}
+      {selfRow &&
+        (() => {
+          const key = rowKey(selfRow);
+          const saving = savingKey === key;
+          const editing = editingKey === key;
+          return (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                flexWrap: 'wrap',
+                padding: '10px 14px',
+                borderBottom: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    letterSpacing: '.07em',
+                    textTransform: 'uppercase',
+                    color: '#64748b',
+                  }}
+                >
+                  Form · {selfRow.lobName}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDetail(selfRow)}
+                  title="open the full form detail"
+                  style={{
+                    font: 'inherit',
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: '#171717',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {selfRow.group.name}
+                </button>
+              </div>
+              <div style={{ flex: 1 }} />
+              <DecisionActions
+                row={selfRow}
+                saving={saving}
+                onAct={(status) => void act(selfRow, status)}
+              />
+              {editing ? (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter')
+                        void act(selfRow, selfRow.decision?.status ?? 'HELD', draft);
+                      if (e.key === 'Escape') setEditingKey(null);
+                    }}
+                    style={{
+                      font: 'inherit',
+                      fontSize: 11.5,
+                      border: '1px solid #d4d4d4',
+                      borderRadius: 6,
+                      padding: '3px 8px',
+                      width: 220,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void act(selfRow, selfRow.decision?.status ?? 'HELD', draft)}
+                    style={{
+                      font: 'inherit',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: '#fff',
+                      background: '#171717',
+                      border: 'none',
+                      borderRadius: 6,
+                      padding: '3px 9px',
+                      cursor: 'pointer',
+                      opacity: saving ? 0.6 : 1,
+                    }}
+                  >
+                    {saving ? '…' : 'Save'}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingKey(key);
+                    setDraft(selfRow.decision?.comment ?? '');
+                  }}
+                  title="leave a reviewer note on this form"
+                  style={{
+                    font: 'inherit',
+                    fontSize: 12,
+                    color: selfRow.decision?.comment ? '#171717' : '#525252',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    padding: 0,
+                    lineHeight: 1.35,
+                    maxWidth: 240,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {selfRow.decision?.comment ?? '✎'}
+                </button>
+              )}
+            </div>
+          );
+        })()}
       {/* Toolbar — the status filter chips + inline completion %. Navigation
           out of the drill is the browser back button / header Back. */}
       <div
@@ -627,6 +814,9 @@ export default function ProductReviewList({
               <div key={key} style={{ display: 'contents' }}>
                 {band && (
                   <div
+                    role="button"
+                    onClick={() => setClosedBands((c) => ({ ...c, [band]: !c[band] }))}
+                    title={closedBands[band] ? `expand ${band}` : `collapse ${band}`}
                     style={{
                       display: 'flex',
                       alignItems: 'baseline',
@@ -635,8 +825,15 @@ export default function ProductReviewList({
                       background: '#f3f4f6',
                       borderBottom: '1px solid #e5e7eb',
                       minWidth: '100%',
+                      cursor: 'pointer',
                     }}
                   >
+                    <span
+                      aria-hidden
+                      style={{ fontSize: 10, color: '#525252', alignSelf: 'center' }}
+                    >
+                      {closedBands[band] ? '▸' : '▾'}
+                    </span>
                     <span
                       style={{
                         fontSize: 10.5,
@@ -651,180 +848,147 @@ export default function ProductReviewList({
                     </span>
                   </div>
                 )}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: gridCols,
-                    alignItems: 'center',
-                    padding: '4px 14px',
-                    borderBottom: '1px solid #f1f3f5',
-                    background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setDetail(r)}
-                    title="open the full coverage detail"
+                {!(group && closedBands[group]) && (
+                  <div
                     style={{
-                      font: 'inherit',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: '#00619a',
-                      background: 'none',
-                      border: 'none',
-                      padding: '2px 12px 2px 0',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      lineHeight: 1.3,
+                      display: 'grid',
+                      gridTemplateColumns: gridCols,
+                      alignItems: 'center',
+                      padding: '4px 14px',
+                      borderBottom: '1px solid #f1f3f5',
+                      background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
                     }}
                   >
-                    {r.group.name}
-                  </button>
-                  {/* Presence blocks carry the status color directly — green
-                    common, amber similar, red unique (no separate column). */}
-                  {r.presence.map((p, i) => (
-                    <span
-                      key={`${key}:${i}`}
-                      title={
-                        p
-                          ? `${columns[i]?.productName ?? ''} carries this ${meta.label.toLowerCase()} coverage`
-                          : `not in ${columns[i]?.productName ?? 'this product'}`
-                      }
+                    <button
+                      type="button"
+                      onClick={() => setDetail(r)}
+                      title="open the full coverage detail"
                       style={{
-                        alignSelf: 'stretch',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderLeft: '1px solid #e2e8f0',
-                        padding: '3px 3px',
+                        font: 'inherit',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: '#00619a',
+                        background: 'none',
+                        border: 'none',
+                        padding: '2px 12px 2px 0',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        lineHeight: 1.3,
                       }}
                     >
+                      {r.group.name}
+                    </button>
+                    {/* Presence blocks carry the status color directly — green
+                    common, amber similar, red unique (no separate column). */}
+                    {r.presence.map((p, i) => (
                       <span
+                        key={`${key}:${i}`}
+                        title={
+                          p
+                            ? `${columns[i]?.productName ?? ''} carries this ${meta.label.toLowerCase()} coverage`
+                            : `not in ${columns[i]?.productName ?? 'this product'}`
+                        }
                         style={{
-                          flex: 1,
-                          height: 18,
-                          borderRadius: 4,
-                          background: p ? meta.bg : '#fff',
-                          border: p ? `1.5px solid ${meta.fg}` : '1px solid #e5e7eb',
+                          alignSelf: 'stretch',
+                          display: 'flex',
+                          alignItems: 'center',
+                          borderLeft: '1px solid #e2e8f0',
+                          padding: '3px 3px',
                         }}
-                      />
-                    </span>
-                  ))}
-                  <span aria-hidden />
-                  <span style={{ fontSize: 12, color: '#262626', paddingRight: 8 }}>
-                    {r.lobName}
-                  </span>
-                  <div>
-                    {r.needsDecision ? (
-                      <div
-                        style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}
                       >
-                        {STATUS_ACTIONS.map(([status, label, tone]) => {
-                          const on = r.decision?.status === status;
-                          return (
-                            <button
-                              key={status}
-                              type="button"
-                              disabled={saving}
-                              title={
-                                on ? 'click again to withdraw this decision' : STATUS_LABEL[status]
-                              }
-                              onClick={() => void act(r, on ? null : status)}
-                              style={{
-                                font: 'inherit',
-                                fontSize: 11.5,
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                borderRadius: 6,
-                                padding: '3px 10px',
-                                color: on ? '#fff' : tone,
-                                background: on ? tone : '#fff',
-                                border: `1px solid ${on ? 'transparent' : tone}`,
-                                opacity: saving ? 0.6 : 1,
-                              }}
-                            >
-                              {on ? `✓ ${label}` : label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <span
-                        style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
-                        title="This coverage is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."
-                      >
-                        Common — auto-standardized, no decision needed
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ paddingRight: 4 }}>
-                    {editing ? (
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <input
-                          value={draft}
-                          onChange={(e) => setDraft(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') void act(r, r.decision?.status ?? 'HELD', draft);
-                            if (e.key === 'Escape') setEditingKey(null);
-                          }}
+                        <span
                           style={{
-                            font: 'inherit',
-                            fontSize: 11.5,
-                            border: '1px solid #d4d4d4',
-                            borderRadius: 6,
-                            padding: '3px 8px',
                             flex: 1,
-                            minWidth: 0,
+                            height: 18,
+                            borderRadius: 4,
+                            background: p ? meta.bg : '#fff',
+                            border: p ? `1.5px solid ${meta.fg}` : '1px solid #e5e7eb',
                           }}
                         />
+                      </span>
+                    ))}
+                    <span aria-hidden />
+                    <span style={{ fontSize: 12, color: '#262626', paddingRight: 8 }}>
+                      {r.lobName}
+                    </span>
+                    <div>
+                      <DecisionActions
+                        row={r}
+                        saving={saving}
+                        onAct={(status) => void act(r, status)}
+                      />
+                    </div>
+                    <div style={{ paddingRight: 4 }}>
+                      {editing ? (
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                          <input
+                            value={draft}
+                            onChange={(e) => setDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter')
+                                void act(r, r.decision?.status ?? 'HELD', draft);
+                              if (e.key === 'Escape') setEditingKey(null);
+                            }}
+                            style={{
+                              font: 'inherit',
+                              fontSize: 11.5,
+                              border: '1px solid #d4d4d4',
+                              borderRadius: 6,
+                              padding: '3px 8px',
+                              flex: 1,
+                              minWidth: 0,
+                            }}
+                          />
+                          <button
+                            type="button"
+                            disabled={saving}
+                            onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
+                            style={{
+                              font: 'inherit',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: '#fff',
+                              background: '#171717',
+                              border: 'none',
+                              borderRadius: 6,
+                              padding: '3px 9px',
+                              cursor: 'pointer',
+                              opacity: saving ? 0.6 : 1,
+                            }}
+                          >
+                            {saving ? '…' : 'Save'}
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           type="button"
-                          disabled={saving}
-                          onClick={() => void act(r, r.decision?.status ?? 'HELD', draft)}
+                          onClick={() => {
+                            setEditingKey(key);
+                            setDraft(r.decision?.comment ?? '');
+                          }}
+                          title="leave a reviewer note"
                           style={{
                             font: 'inherit',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: '#fff',
-                            background: '#171717',
+                            fontSize: 12,
+                            color: r.decision?.comment ? '#171717' : '#525252',
+                            background: 'none',
                             border: 'none',
-                            borderRadius: 6,
-                            padding: '3px 9px',
                             cursor: 'pointer',
-                            opacity: saving ? 0.6 : 1,
+                            textAlign: 'left',
+                            padding: 0,
+                            lineHeight: 1.35,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
                           }}
                         >
-                          {saving ? '…' : 'Save'}
+                          {r.decision?.comment ?? '✎'}
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingKey(key);
-                          setDraft(r.decision?.comment ?? '');
-                        }}
-                        title="leave a reviewer note"
-                        style={{
-                          font: 'inherit',
-                          fontSize: 12,
-                          color: r.decision?.comment ? '#171717' : '#525252',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          padding: 0,
-                          lineHeight: 1.35,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {r.decision?.comment ?? '✎'}
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
