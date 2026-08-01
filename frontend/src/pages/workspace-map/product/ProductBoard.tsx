@@ -251,6 +251,10 @@ export default function ProductBoard({
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeComponent = selected ? selected.component : null;
   const fill = useFillHeight();
+  // Deep-scrolling the grid hides everything above the table (lens tabs +
+  // filter bar + dashboard strip) — the table gets the whole viewport; it all
+  // returns the moment the grid scrolls back to the top.
+  const [chromeHidden, setChromeHidden] = useState(false);
 
   // Fit-to-frame per scope width.
   const fittedFor = useRef<string | null>(null);
@@ -394,7 +398,9 @@ export default function ProductBoard({
         search={search}
         onSearch={setSearch}
       />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexShrink: 0 }}
+      >
         <span style={{ fontSize: 11, color: '#525252' }}>View</span>
         <div
           style={{
@@ -463,8 +469,8 @@ export default function ProductBoard({
           minHeight: 300,
         }}
       >
-        {lensBar}
-        {filterRow}
+        {!chromeHidden && lensBar}
+        {!chromeHidden && filterRow}
         <div
           style={{
             border: '1px solid #eaeaea',
@@ -478,7 +484,14 @@ export default function ProductBoard({
             flexDirection: 'column',
           }}
         >
-          <ProductGridView board={board} scopeQS={scopeQS} onDecide={decide} search={search} />
+          <ProductGridView
+            board={board}
+            scopeQS={scopeQS}
+            onDecide={decide}
+            search={search}
+            chromeHidden={chromeHidden}
+            onDeepScroll={setChromeHidden}
+          />
         </div>
         <ImpactPanel gate={gate} />
       </div>

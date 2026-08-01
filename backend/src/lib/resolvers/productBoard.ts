@@ -391,14 +391,47 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
     // product carriage before anything is counted.
     const productOf = new Map(lob.versions.map((v) => [v.id, v.productName]));
     const productsInLob = new Set(productOf.values()).size;
+    const byId = new Map(lob.versions.map((v) => [v.id, v]));
+    // Countrywide carriage COVERS the product's state versions: a concern on a
+    // product's countrywide version is live in every state version its filings
+    // cover, so those versions count as carrying it too (presence + status).
+    // Without this, every countrywide form reads "in 1 of N columns" and the
+    // heat cells render empty.
+    const coveredVersionIds = (g: { perVersion: Record<string, unknown> }): Set<string> => {
+      const out = new Set(Object.keys(g.perVersion));
+      for (const vid of Object.keys(g.perVersion)) {
+        const carrier = byId.get(vid);
+        if (!carrier || stateOf(carrier.name) !== NO_STATE) continue;
+        for (const v of lob.versions) {
+          if (v.productName !== carrier.productName || v.id === carrier.id) continue;
+          const st = stateOf(v.name);
+          // No explicit filing list on the countrywide version = it applies
+          // countrywide, i.e. to every state edition of the product.
+          if (st !== NO_STATE && (carrier.states.length === 0 || carrier.states.includes(st)))
+            out.add(v.id);
+        }
+      }
+      return out;
+    };
+    const coveredByGroup = new Map<object, Set<string>>();
     for (const row of comparison.rows) {
       for (const g of row.groups) {
-        const carrying = new Set(Object.keys(g.perVersion).map((vid) => productOf.get(vid) ?? vid))
-          .size;
-        if (productsInLob === 1) g.status = 'SINGLE';
-        else if (carrying === productsInLob) g.status = 'COMMON';
-        else if (carrying <= 2) g.status = 'UNIQUE';
-        else g.status = 'PARTIAL';
+        const covered = coveredVersionIds(g);
+        coveredByGroup.set(g, covered);
+        if (productsInLob > 1) {
+          const carrying = new Set([...covered].map((vid) => productOf.get(vid) ?? vid)).size;
+          if (carrying === productsInLob) g.status = 'COMMON';
+          else if (carrying <= 2) g.status = 'UNIQUE';
+          else g.status = 'PARTIAL';
+        } else if (lob.versions.length === 1) {
+          g.status = 'SINGLE';
+        } else {
+          // Single-product scope: commonality reads across the product's own
+          // state/version editions (with countrywide coverage extended).
+          if (covered.size === lob.versions.length) g.status = 'COMMON';
+          else if (covered.size <= 2) g.status = 'UNIQUE';
+          else g.status = 'PARTIAL';
+        }
       }
     }
     for (const compRow of comparison.rows) {
@@ -444,7 +477,7 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
         }
         if (decision?.comment) row.note = decision.comment;
         const presence = columns.map(() => false);
-        for (const vid of Object.keys(g.perVersion)) {
+        for (const vid of coveredByGroup.get(g) ?? Object.keys(g.perVersion)) {
           const idx = colOf.get(vid);
           if (idx !== undefined) presence[idx] = true;
         }
@@ -516,7 +549,7 @@ interface MemoEntry {
 const SPINE_TTL_MS = 10_000;
 const spineMemo = new Map<string, MemoEntry>();
 
-function parseStates(attributes: unknown, name: string): string[] {
+export function parseStates(attributes: unknown, name: string): string[] {
   const attrs = attributes as { states?: unknown } | null;
   if (attrs && Array.isArray(attrs.states)) {
     const list = attrs.states.filter((x): x is string => typeof x === 'string');
@@ -526,7 +559,7 @@ function parseStates(attributes: unknown, name: string): string[] {
   return parsed === NO_STATE ? [] : [parsed];
 }
 
-function parseElements(attributes: unknown): SpineElement[] {
+export function parseElements(attributes: unknown): SpineElement[] {
   const attrs = attributes as { elements?: unknown } | null;
   if (!attrs || !Array.isArray(attrs.elements)) return [];
   const out: SpineElement[] = [];

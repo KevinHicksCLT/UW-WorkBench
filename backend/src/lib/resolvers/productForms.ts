@@ -17,6 +17,7 @@ import {
   type Heatmap,
   type HeatRow,
   type ReviewRow,
+  type SpineComponent,
   type SpineElement,
   type SpineLob,
 } from './productBoard.js';
@@ -446,4 +447,56 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
     );
 
   return { sections, counts, byKey };
+}
+
+// ── Product model view (Product Models TOC → product page) ─────────────────
+// The TOC's product page presents the model the way the rationalization
+// document reads it: FORMS decomposed into coverages / terms / endorsements /
+// clauses, then Rating · Pricing · Underwriting Rules · Filings · Lifecycle
+// Behavior. This splitter is pure so the grouping is testable.
+
+export interface ProductModelSections {
+  forms: {
+    /** The policy wordings themselves (base form first). */
+    base: SpineElement[];
+    coverages: SpineElement[];
+    terms: SpineElement[];
+    endorsements: SpineElement[];
+    clauses: SpineElement[];
+  };
+  rating: SpineElement[];
+  pricing: SpineElement[];
+  underwriting: SpineElement[];
+  filings: SpineElement[];
+  lifecycle: SpineElement[];
+}
+
+const BASE_FORM = /\b(policy|coverage form|wording|base form|slip)\b/i;
+const CLAUSE =
+  /\b(clause|condition|provision|dut(?:y|ies)|settlement|appraisal|cancellation|assignment|subrogation|notice|suit against)\b/i;
+
+/** Group one version's components into the document's reading order. A Terms
+ *  element that reads like a policy condition surfaces under Clauses (and only
+ *  there — no element is double-counted). */
+export function splitProductModel(components: Map<string, SpineComponent>): ProductModelSections {
+  const els = (name: string): SpineElement[] => components.get(name)?.elements ?? [];
+  const formEls = els(FORMS_COMPONENT);
+  const base: SpineElement[] = [];
+  const endorsements: SpineElement[] = [];
+  for (const e of formEls) {
+    const cls = classifyForm(e.element, e, false);
+    if (cls.layer === 'core' && BASE_FORM.test(e.element) && base.length === 0) base.push(e);
+    else endorsements.push(e);
+  }
+  const terms: SpineElement[] = [];
+  const clauses: SpineElement[] = [];
+  for (const e of els('Terms')) (CLAUSE.test(e.element) ? clauses : terms).push(e);
+  return {
+    forms: { base, coverages: els('Coverages'), terms, endorsements, clauses },
+    rating: els('Rating'),
+    pricing: els('Pricing'),
+    underwriting: els('Underwriting Rules'),
+    filings: els('Filings'),
+    lifecycle: els('Lifecycle Behavior'),
+  };
 }

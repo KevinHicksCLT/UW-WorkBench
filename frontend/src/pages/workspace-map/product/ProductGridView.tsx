@@ -11,6 +11,7 @@ import {
   type BoardPayload,
   type ReviewPayload,
 } from './boardApi';
+import ComponentElementRows from './ComponentElementRows';
 import FormsSection from './FormsSection';
 import { HeatGridRow, SectionBand } from './gridRow';
 import { MATCH_META, type ProductDecisionStatus } from './spine';
@@ -100,6 +101,8 @@ export default function ProductGridView({
   scopeQS,
   onDecide,
   search = '',
+  chromeHidden = false,
+  onDeepScroll,
 }: {
   board: BoardPayload;
   /** The scope + nonce query string — review drills refetch on the same key. */
@@ -115,6 +118,11 @@ export default function ProductGridView({
   /** Free-text search from the spine filter bar — narrows the register rows
    *  and the drill review list. */
   search?: string;
+  /** True while the board chrome (lens tabs + filter bar) is scroll-hidden —
+   *  the dashboard strip and legend hide with it so only the table shows. */
+  chromeHidden?: boolean;
+  /** Deep grid scroll → true (hide the chrome); back at the top → false. */
+  onDeepScroll?: (hidden: boolean) => void;
 }) {
   const heat = board.heat;
   const columns = board.columns;
@@ -172,11 +180,32 @@ export default function ProductGridView({
   } = useApi<ReviewPayload>(reviewUrl);
 
   // The dashboard tiles collapse behind a chevron (persisted per view) so the
-  // table can take the full height — scrolling never hides them.
+  // table can take the full height.
   const [tilesCollapsed, setTilesCollapsed] = useViewState<boolean>(
     'workspace.product.tilesCollapsed',
     false,
   );
+
+  // Scrolling down hides everything but the table (the parent hides the lens
+  // tabs + filter bar, this view hides the strip + legend) and SNAPS the grid
+  // back to its first row, so the maximized table reads from the top. The
+  // overflow guard skips barely-overflowing grids. Restore: wheel up while
+  // already at the top, or the header button.
+  const onGridScroll = (el: HTMLElement) => {
+    if (chromeHidden) return;
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (el.scrollTop > 0 && overflow > 240) {
+      onDeepScroll?.(true);
+      el.scrollTop = 0;
+    }
+  };
+  const onGridWheel = (el: HTMLElement, deltaY: number) => {
+    if (chromeHidden && deltaY < 0 && el.scrollTop === 0) onDeepScroll?.(false);
+  };
+  // An open drill replaces the grid scroller — bring the chrome back.
+  useEffect(() => {
+    if (drill) onDeepScroll?.(false);
+  }, [drill, onDeepScroll]);
 
   const pending = heat.totals.need - heat.totals.decided;
   const colCount = columns.length;
@@ -191,11 +220,17 @@ export default function ProductGridView({
   const notesW = notesOpen ? 220 : 44;
   const grid = `250px repeat(${colCount}, ${colW}px) 22px 76px 84px 128px ${notesW}px`;
   // The header is exactly tall enough for the LONGEST angled label — every
-  // label fully visible, nothing spilling out of the header band.
-  const maxLabelChars = columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
+  // label fully visible, nothing spilling out of the header band. The fold
+  // count suffix ("(10)") leans with the label, so it counts too.
+  const maxLabelChars = columns.reduce(
+    (n, v) => Math.max(n, labelOf(v).length + (v.members > 1 ? ` (${v.members})`.length : 0)),
+    0,
+  );
   // 6.6px/char is deliberately generous for the 11px label font — labels must
-  // never ellipsize unless the 400px hard cap is hit.
-  const headerH = Math.min(400, Math.max(96, Math.round(maxLabelChars * 6.6 * 0.79) + 34));
+  // never ellipsize unless the 400px hard cap is hit. The floor is just tall
+  // enough for the Coverage/To decide/Progress chips — short labels waste no
+  // vertical space.
+  const headerH = Math.min(400, Math.max(64, Math.round(maxLabelChars * 6.6 * 0.79) + 34));
 
   const openDrill = (component: string, filter: ReviewFilter) => {
     setDrillFilter(filter);
@@ -207,7 +242,7 @@ export default function ProductGridView({
       {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
           while a review list is open; the chevron collapses it to a slim
           summary strip so the table gets the full height. */}
-      {drill ? null : tilesCollapsed ? (
+      {drill || chromeHidden ? null : tilesCollapsed ? (
         <div
           style={{
             display: 'flex',
@@ -360,13 +395,19 @@ export default function ProductGridView({
               // beyond coverages groups like the register sections).
               groupOf={review.groupOf}
               groupOrder={review.groupOrder}
+              chromeHidden={chromeHidden}
+              onDeepScroll={onDeepScroll}
             />
           </>
         )
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
-          <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+          <div
+            style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
+            onScroll={(e) => onGridScroll(e.currentTarget)}
+            onWheel={(e) => onGridWheel(e.currentTarget, e.deltaY)}
+          >
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
                 style={{
@@ -419,6 +460,29 @@ export default function ProductGridView({
                   >
                     {abbr ? '⌄' : '⌃'}
                   </button>
+                  {chromeHidden && (
+                    <button
+                      type="button"
+                      onClick={() => onDeepScroll?.(false)}
+                      title="show the filters and dashboard again"
+                      style={{
+                        font: 'inherit',
+                        fontSize: 9.5,
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        color: '#525252',
+                        background: '#fff',
+                        border: '1px solid #d4d4d4',
+                        borderRadius: 5,
+                        padding: '2px 7px',
+                        cursor: 'pointer',
+                        textTransform: 'none',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      ▾ filters
+                    </button>
+                  )}
                 </div>
                 {columns.map((v) => (
                   <div
@@ -620,29 +684,32 @@ export default function ProductGridView({
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '7px 14px',
-              borderTop: '1px solid #eaeaea',
-              background: '#fafafa',
-              fontSize: 11.5,
-              color: '#374151',
-              flexShrink: 0,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span>
-              cells: <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>■ common</span>{' '}
-              — in every product ·{' '}
-              <span style={{ color: MATCH_META.PARTIAL.fg, fontWeight: 600 }}>■ similar</span> —
-              configured differently ·{' '}
-              <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>■ unique</span> — in
-              1–2 products
-            </span>
-          </div>
+          {!chromeHidden && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                padding: '7px 14px',
+                borderTop: '1px solid #eaeaea',
+                background: '#fafafa',
+                fontSize: 11.5,
+                color: '#374151',
+                flexShrink: 0,
+                flexWrap: 'wrap',
+              }}
+            >
+              <span>
+                cells:{' '}
+                <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>■ common</span> — in
+                every product ·{' '}
+                <span style={{ color: MATCH_META.PARTIAL.fg, fontWeight: 600 }}>■ similar</span> —
+                configured differently ·{' '}
+                <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>■ unique</span> — in
+                1–2 products
+              </span>
+            </div>
+          )}
         </>
       )}
     </div>

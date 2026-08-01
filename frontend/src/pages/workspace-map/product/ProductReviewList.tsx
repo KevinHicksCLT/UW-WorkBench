@@ -253,6 +253,8 @@ export default function ProductReviewList({
   onToggleAbbr,
   groupOf,
   groupOrder,
+  chromeHidden = false,
+  onDeepScroll,
 }: {
   columns: BoardColumn[];
   rows: ReviewRow[];
@@ -276,6 +278,12 @@ export default function ProductReviewList({
   groupOf?: Record<string, string>;
   /** Band order; groups not listed sort last alphabetically. */
   groupOrder?: string[];
+  /** True while the board chrome (lens tabs + filter bar) is scroll-hidden —
+   *  the toolbar hides with it so only the table + header show. */
+  chromeHidden?: boolean;
+  /** Scrolling the list down → true (hide the chrome); restore via wheel-up
+   *  at the top or the header button. */
+  onDeepScroll?: (hidden: boolean) => void;
 }) {
   const [filter, setFilter] = useState<ReviewFilter>(defaultFilter);
   const [detail, setDetail] = useState<ReviewRow | null>(null);
@@ -342,7 +350,21 @@ export default function ProductReviewList({
   const maxLabelChars = columns.reduce((n, v) => Math.max(n, colLabel(v).length), 0);
   // 6.6px/char is deliberately generous for the 10.5px label font — labels
   // must never ellipsize unless the 400px hard cap is hit.
-  const headerH = Math.min(400, Math.max(90, Math.round(maxLabelChars * 6.6 * 0.79) + 30));
+  const headerH = Math.min(400, Math.max(64, Math.round(maxLabelChars * 6.6 * 0.79) + 30));
+
+  // Scrolling down hides everything above the table (parent chrome + this
+  // toolbar) and snaps back to the first row, exactly like the grid face.
+  const onListScroll = (el: HTMLElement) => {
+    if (chromeHidden) return;
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (el.scrollTop > 0 && overflow > 240) {
+      onDeepScroll?.(true);
+      el.scrollTop = 0;
+    }
+  };
+  const onListWheel = (el: HTMLElement, deltaY: number) => {
+    if (chromeHidden && deltaY < 0 && el.scrollTop === 0) onDeepScroll?.(false);
+  };
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
@@ -350,7 +372,7 @@ export default function ProductReviewList({
           out of the drill is the browser back button / header Back. */}
       <div
         style={{
-          display: 'flex',
+          display: chromeHidden ? 'none' : 'flex',
           alignItems: 'center',
           gap: 10,
           padding: '8px 14px',
@@ -436,7 +458,11 @@ export default function ProductReviewList({
       {/* One scroll surface for header + rows: the angled header sticks to the
           top while the table takes every remaining pixel, and horizontal
           scrolling keeps header and body in lockstep. */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
+      <div
+        style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
+        onScroll={(e) => onListScroll(e.currentTarget)}
+        onWheel={(e) => onListWheel(e.currentTarget, e.deltaY)}
+      >
         <div style={{ minWidth: '100%', width: 'max-content' }}>
           <div
             style={{
@@ -490,6 +516,29 @@ export default function ProductReviewList({
                   }}
                 >
                   {abbr ? '⌄' : '⌃'}
+                </button>
+              )}
+              {chromeHidden && (
+                <button
+                  type="button"
+                  onClick={() => onDeepScroll?.(false)}
+                  title="show the filters and toolbar again"
+                  style={{
+                    font: 'inherit',
+                    fontSize: 9.5,
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    color: '#525252',
+                    background: '#fff',
+                    border: '1px solid #d4d4d4',
+                    borderRadius: 5,
+                    padding: '2px 7px',
+                    cursor: 'pointer',
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ▾ filters
                 </button>
               )}
             </span>

@@ -171,14 +171,27 @@ function MultiPick({
   const [openPick, setOpenPick] = openState;
   const open = openPick === openKey;
   const ref = useRef<HTMLDivElement>(null);
-  // Click-away closes the popover (one popover open at a time).
+  // The bar scrolls horizontally (single line), so the popover is FIXED and
+  // anchored to the button's rect at open time — absolute positioning would be
+  // clipped by the bar's overflow.
+  const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(null);
+  // Click-away closes the popover (one popover open at a time); any outside
+  // scroll closes it too, since a fixed popover can't follow its button.
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpenPick(null);
     };
+    const onScroll = (e: Event) => {
+      if (ref.current && e.target instanceof Node && ref.current.contains(e.target)) return;
+      setOpenPick(null);
+    };
     window.addEventListener('mousedown', onDown);
-    return () => window.removeEventListener('mousedown', onDown);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('scroll', onScroll, true);
+    };
   }, [open, setOpenPick]);
 
   // Stale picks (removed by an upstream change) don't count toward the label.
@@ -217,7 +230,15 @@ function MultiPick({
       <button
         type="button"
         aria-label={ariaLabel}
-        onClick={() => setOpenPick(open ? null : openKey)}
+        onClick={() => {
+          if (!open) {
+            const r = ref.current?.getBoundingClientRect();
+            setAnchor(
+              r ? { top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 264) } : null,
+            );
+          }
+          setOpenPick(open ? null : openKey);
+        }}
         style={{
           font: 'inherit',
           height: 26,
@@ -240,9 +261,9 @@ function MultiPick({
       {open && (
         <div
           style={{
-            position: 'absolute',
-            top: 30,
-            left: 0,
+            position: 'fixed',
+            top: anchor?.top ?? 30,
+            left: anchor?.left ?? 0,
             zIndex: 30,
             background: '#fff',
             border: '1px solid #d4d4d4',
@@ -393,7 +414,13 @@ export default function SpineFilterBar({
         display: 'flex',
         alignItems: 'center',
         gap: 7,
-        flexWrap: 'wrap',
+        // ONE line always: the bar never wraps — on narrow viewports it
+        // scrolls horizontally instead (popovers are fixed, so no clipping).
+        flexWrap: 'nowrap',
+        overflowX: 'auto',
+        scrollbarWidth: 'thin',
+        flex: 1,
+        minWidth: 0,
         marginBottom: 8,
       }}
     >
@@ -476,7 +503,9 @@ export default function SpineFilterBar({
           border: '1px solid #d4d4d4',
           borderRadius: 8,
           padding: '4px 10px',
-          width: 190,
+          width: 160,
+          minWidth: 110,
+          flexShrink: 1,
           marginLeft: 2,
         }}
       />

@@ -30,14 +30,19 @@ import {
   type ReviewRow,
   type SpineFilters,
   type SpineLob,
+  type SpineComponent,
 } from '../../lib/resolvers/productBoard.js';
+import { prisma } from '../../db/prisma.js';
 import {
   buildFormsModel,
+  classifyForm,
   CONTENT_LABEL,
   FORMS_COMPONENT,
   ROLLED_UP_COMPONENTS,
+  splitProductModel,
   type FormsModel,
 } from '../../lib/resolvers/productForms.js';
+import { parseElements, parseStates, stateOf, NO_STATE } from '../../lib/resolvers/productBoard.js';
 
 const REVIEW_ROW_CAP = 400;
 
@@ -221,6 +226,125 @@ export function registerProductBoardRoutes(router: Router): void {
         pct,
         groupOf,
         groupOrder: ['Form', ...Object.values(CONTENT_LABEL)],
+      });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // The Product Models TOC's product page: the model read the way the
+  // rationalization document reads it — FORMS decomposed into coverages /
+  // terms / endorsements / clauses, then Rating · Pricing · Underwriting
+  // Rules · Filings · Lifecycle Behavior — for the countrywide version, plus
+  // per-state overlays (the components a state's own form actually deviates
+  // on). Versions and jurisdictions surface as FILTERS here, never as levels.
+  router.get('/product/:id/model', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const company = await activeCompany(req);
+      if (!company) return res.status(404).json({ error: 'No company' });
+      const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
+
+      const product = await prisma.productNode.findFirst({
+        where: { id, companyId: company.id },
+        select: {
+          id: true,
+          displayValue: true,
+          description: true,
+          code: true,
+          parentId: true,
+          attributes: true,
+          productLevelType: { select: { levelNumber: true } },
+        },
+      });
+      if (!product || product.productLevelType.levelNumber !== 3)
+        return res.status(404).json({ error: 'Product not found' });
+
+      // Ancestry (LOB, segment) + the version/component subtree — batched.
+      const [versions, lobNode] = await Promise.all([
+        prisma.productNode.findMany({
+          where: { parentId: product.id, companyId: company.id },
+          orderBy: { sortOrder: 'asc' },
+          select: { id: true, displayValue: true, status: true, attributes: true },
+        }),
+        product.parentId
+          ? prisma.productNode.findFirst({
+              where: { id: product.parentId, companyId: company.id },
+              select: { id: true, displayValue: true, parentId: true },
+            })
+          : Promise.resolve(null),
+      ]);
+      const [components, segNode] = await Promise.all([
+        prisma.productNode.findMany({
+          where: { parentId: { in: versions.map((v) => v.id) }, companyId: company.id },
+          orderBy: { sortOrder: 'asc' },
+          select: { parentId: true, displayValue: true, sortOrder: true, attributes: true },
+        }),
+        lobNode?.parentId
+          ? prisma.productNode.findFirst({
+              where: { id: lobNode.parentId, companyId: company.id },
+              select: { id: true, displayValue: true },
+            })
+          : Promise.resolve(null),
+      ]);
+
+      const compsOf = (versionId: string): Map<string, SpineComponent> => {
+        const map = new Map<string, SpineComponent>();
+        for (const c of components) {
+          if (c.parentId !== versionId) continue;
+          map.set(c.displayValue, {
+            name: c.displayValue,
+            sortOrder: c.sortOrder,
+            elements: parseElements(c.attributes),
+          });
+        }
+        return map;
+      };
+
+      const enriched = versions.map((v) => ({
+        id: v.id,
+        name: v.displayValue,
+        status: v.status,
+        state: stateOf(v.displayValue),
+        states: parseStates(v.attributes, v.displayValue),
+        components: compsOf(v.id),
+      }));
+      const countrywide = enriched.find((v) => v.state === NO_STATE) ?? enriched[0] ?? null;
+      if (!countrywide) return res.status(404).json({ error: 'Product has no versions' });
+
+      const stateOverlays = enriched
+        .filter((v) => v.id !== countrywide.id && v.state !== NO_STATE)
+        .map((v) => ({
+          state: v.state,
+          versionId: v.id,
+          status: v.status,
+          forms: (v.components.get(FORMS_COMPONENT)?.elements ?? []).map((e) => ({
+            ...e,
+            layer: classifyForm(e.element, e, false).layer,
+          })),
+          filings: v.components.get('Filings')?.elements ?? [],
+        }));
+
+      const attrs = (product.attributes ?? {}) as { runsIn?: unknown };
+      res.json({
+        product: {
+          id: product.id,
+          name: product.displayValue,
+          code: product.code,
+          description: product.description,
+          runsIn: typeof attrs.runsIn === 'string' ? attrs.runsIn : null,
+        },
+        ancestors: [
+          ...(segNode ? [{ id: segNode.id, name: segNode.displayValue, levelNumber: 1 }] : []),
+          ...(lobNode ? [{ id: lobNode.id, name: lobNode.displayValue, levelNumber: 2 }] : []),
+        ],
+        countrywide: {
+          versionId: countrywide.id,
+          name: countrywide.name,
+          status: countrywide.status,
+          states: countrywide.states,
+        },
+        model: splitProductModel(countrywide.components),
+        stateOverlays,
       });
     } catch (e) {
       next(e);
