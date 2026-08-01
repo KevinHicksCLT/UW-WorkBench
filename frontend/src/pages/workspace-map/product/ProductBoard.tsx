@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
 import { api } from '../../../lib/api';
@@ -55,6 +55,30 @@ import type {
 
 /** Auto view boundary: ≤ this many versions renders the detail board. */
 export const DETAIL_THRESHOLD = 5;
+
+/**
+ * Fill the viewport from the element's actual top edge — the previous
+ * `calc(100vh - 178px)` guessed the chrome height above the board, and on
+ * real windows the guess ran short: the board's bottom hung below the fold,
+ * the page scrolled, and the table showed one row. Measuring the document
+ * offset makes the board end exactly at the viewport bottom.
+ */
+function useFillHeight(min = 300, bottomGap = 12) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = ref.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      setHeight(Math.max(min, window.innerHeight - top - bottomGap));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [min, bottomGap]);
+  return { ref, height };
+}
 
 export default function ProductBoard({
   lens,
@@ -226,6 +250,7 @@ export default function ProductBoard({
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeComponent = selected ? selected.component : null;
+  const fill = useFillHeight();
 
   // Fit-to-frame per scope width.
   const fittedFor = useRef<string | null>(null);
@@ -427,10 +452,11 @@ export default function ProductBoard({
   if (effectiveView === 'grid')
     return (
       <div
+        ref={fill.ref}
         style={{
           display: 'flex',
           flexDirection: 'column',
-          height: 'calc(100vh - 178px)',
+          height: fill.height ?? 'calc(100vh - 178px)',
           // Low floor on purpose: a 480px floor pushed the board past the fold
           // on half-height windows, and with the wheel captured by the inner
           // scroller the clipped bottom was unreachable (scroll bug).
@@ -469,10 +495,11 @@ export default function ProductBoard({
 
   return (
     <div
+      ref={fill.ref}
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 178px)',
+        height: fill.height ?? 'calc(100vh - 178px)',
         minHeight: 300,
       }}
     >
