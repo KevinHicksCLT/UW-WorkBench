@@ -171,16 +171,12 @@ export default function ProductGridView({
     error: reviewError,
   } = useApi<ReviewPayload>(reviewUrl);
 
-  // Only the DASHBOARD TILES hide on scroll-down (per review feedback) — the
-  // lens bar / filters stay put. Guards against the hide/clamp/show
-  // oscillation: tiles only hide when there is substantially more overflow
-  // than the tiles are tall, and they return at the top.
-  const [tilesHidden, setTilesHidden] = useState(false);
-  const onGridScroll = (el: HTMLElement) => {
-    const overflow = el.scrollHeight - el.clientHeight;
-    if (el.scrollTop < 8) setTilesHidden(false);
-    else if (el.scrollTop > 60 && overflow > 240) setTilesHidden(true);
-  };
+  // The dashboard tiles collapse behind a chevron (persisted per view) so the
+  // table can take the full height — scrolling never hides them.
+  const [tilesCollapsed, setTilesCollapsed] = useViewState<boolean>(
+    'workspace.product.tilesCollapsed',
+    false,
+  );
 
   const pending = heat.totals.need - heat.totals.decided;
   const colCount = columns.length;
@@ -209,9 +205,44 @@ export default function ProductGridView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
-          while a review list is open, and while the table is scrolled down
-          (it returns at the top). */}
-      {drill || tilesHidden ? null : (
+          while a review list is open; the chevron collapses it to a slim
+          summary strip so the table gets the full height. */}
+      {drill ? null : tilesCollapsed ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '3px 14px',
+            borderBottom: '1px solid #eaeaea',
+            background: '#fafafa',
+            flexShrink: 0,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setTilesCollapsed(false)}
+            title="expand the dashboard tiles"
+            style={{
+              font: 'inherit',
+              border: 'none',
+              background: 'transparent',
+              padding: '2px 4px',
+              fontSize: 12,
+              color: '#525252',
+              cursor: 'pointer',
+              lineHeight: 1,
+            }}
+          >
+            ▾
+          </button>
+          <span style={{ fontSize: 11.5, color: '#525252', whiteSpace: 'nowrap' }}>
+            {colCount} {board.columnMode === 'product' ? 'products' : 'versions'} ·{' '}
+            {heat.totals.total} coverages · {pending} decisions pending · {heat.totals.pct}%
+            normalized
+          </span>
+        </div>
+      ) : (
         <div
           style={{
             display: 'flex',
@@ -268,6 +299,24 @@ export default function ProductGridView({
             tone={heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626'}
             bar={heat.totals.pct}
           />
+          <button
+            type="button"
+            onClick={() => setTilesCollapsed(true)}
+            title="collapse the dashboard tiles"
+            style={{
+              font: 'inherit',
+              border: 'none',
+              background: 'transparent',
+              padding: '0 2px',
+              fontSize: 12,
+              color: '#525252',
+              cursor: 'pointer',
+              alignSelf: 'flex-start',
+              lineHeight: 1,
+            }}
+          >
+            ▴
+          </button>
         </div>
       )}
 
@@ -317,10 +366,7 @@ export default function ProductGridView({
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
-          <div
-            style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-            onScroll={(e) => onGridScroll(e.currentTarget)}
-          >
+          <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}>
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
                 style={{
