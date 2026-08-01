@@ -313,9 +313,34 @@ export function versionInScope(v: SpineVersion, f: SpineFilters): boolean {
   );
 }
 
+const generationNo = (token: string) => Number(/^v(\d+)$/.exec(token)?.[1] ?? 0);
+
+/** A product's versions span GENERATIONS (v1, v2, …). The board must never
+ *  put two generations of the same product in one comparison — the old
+ *  edition would read as a phantom sibling product — so with no explicit
+ *  version-token filter only each product's latest generation stays in scope
+ *  (older editions are reachable via the version chip filter). */
+function latestGenerationOnly(versions: SpineVersion[]): SpineVersion[] {
+  const latest = new Map<string, number>();
+  for (const v of versions) {
+    const n = generationNo(versionTokenOf(v.name));
+    const cur = latest.get(v.productName);
+    if (cur === undefined || n > cur) latest.set(v.productName, n);
+  }
+  return versions.filter(
+    (v) => generationNo(versionTokenOf(v.name)) === (latest.get(v.productName) ?? 0),
+  );
+}
+
 export function scopeLobs(lobs: SpineLob[], f: SpineFilters): SpineLob[] {
   return lobs
-    .map((l) => ({ ...l, versions: l.versions.filter((v) => versionInScope(v, f)) }))
+    .map((l) => {
+      const scoped = l.versions.filter((v) => versionInScope(v, f));
+      return {
+        ...l,
+        versions: f.versionTokens.length === 0 ? latestGenerationOnly(scoped) : scoped,
+      };
+    })
     .filter((l) => l.versions.length > 0);
 }
 

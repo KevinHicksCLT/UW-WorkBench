@@ -42,7 +42,13 @@ import {
   splitProductModel,
   type FormsModel,
 } from '../../lib/resolvers/productForms.js';
-import { parseElements, parseStates, stateOf, NO_STATE } from '../../lib/resolvers/productBoard.js';
+import {
+  parseElements,
+  parseStates,
+  stateOf,
+  versionTokenOf,
+  NO_STATE,
+} from '../../lib/resolvers/productBoard.js';
 
 const REVIEW_ROW_CAP = 400;
 
@@ -245,7 +251,9 @@ export function registerProductBoardRoutes(router: Router): void {
     try {
       const company = await activeCompany(req);
       if (!company) return res.status(404).json({ error: 'No company' });
-      const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
+      const { id, version: versionParam } = z
+        .object({ id: z.string().min(1), version: z.string().optional() })
+        .parse({ ...req.params, version: req.query.version });
 
       const product = await prisma.productNode.findFirst({
         where: { id, companyId: company.id },
@@ -308,13 +316,39 @@ export function registerProductBoardRoutes(router: Router): void {
         name: v.displayValue,
         status: v.status,
         state: stateOf(v.displayValue),
+        version: versionTokenOf(v.displayValue),
         states: parseStates(v.attributes, v.displayValue),
         components: compsOf(v.id),
       }));
-      const countrywide = enriched.find((v) => v.state === NO_STATE) ?? enriched[0] ?? null;
+
+      // Versions are GENERATIONS (v1, v2, …) — each is a complete edition of
+      // the product (countrywide core + its own-form states), and the page
+      // filters to exactly one. Default: the latest generation.
+      const generationNo = (t: string) => Number(/^v(\d+)$/.exec(t)?.[1] ?? 0);
+      const tokens = [...new Set(enriched.map((v) => v.version))].sort(
+        (a, b) => generationNo(a) - generationNo(b),
+      );
+      const generations = tokens.map((t) => {
+        const members = enriched.filter((v) => v.version === t);
+        const core = members.find((v) => v.state === NO_STATE) ?? null;
+        return {
+          version: t,
+          status: core?.status ?? members[0]?.status ?? null,
+          countrywideStates: core?.states ?? [],
+          ownFormStates: members
+            .filter((v) => v.state !== NO_STATE)
+            .map((v) => v.state)
+            .sort(),
+        };
+      });
+      const selectedVersion =
+        versionParam && tokens.includes(versionParam) ? versionParam : (tokens.at(-1) ?? null);
+      const inGeneration = enriched.filter((v) => v.version === selectedVersion);
+
+      const countrywide = inGeneration.find((v) => v.state === NO_STATE) ?? inGeneration[0] ?? null;
       if (!countrywide) return res.status(404).json({ error: 'Product has no versions' });
 
-      const stateOverlays = enriched
+      const stateOverlays = inGeneration
         .filter((v) => v.id !== countrywide.id && v.state !== NO_STATE)
         .map((v) => ({
           state: v.state,
@@ -348,6 +382,8 @@ export function registerProductBoardRoutes(router: Router): void {
         },
         model: splitProductModel(countrywide.components),
         stateOverlays,
+        generations,
+        selectedVersion,
       });
     } catch (e) {
       next(e);

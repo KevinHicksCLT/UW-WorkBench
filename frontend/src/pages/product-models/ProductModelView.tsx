@@ -33,6 +33,15 @@ interface StateOverlay {
   filings: ModelElement[];
 }
 
+/** One version GENERATION of the product (v1, v2, …) — a complete edition:
+ *  countrywide core + the states with an own form in that generation. */
+interface Generation {
+  version: string;
+  status: string | null;
+  countrywideStates: string[];
+  ownFormStates: string[];
+}
+
 interface ProductModelPayload {
   product: {
     id: string;
@@ -48,6 +57,8 @@ interface ProductModelPayload {
     status: string | null;
     states: string[];
   };
+  generations: Generation[];
+  selectedVersion: string | null;
   model: {
     forms: {
       base: ModelElement[];
@@ -238,26 +249,34 @@ function sectionCount(
 }
 
 export default function ProductModelView({ id }: { id: string }) {
-  const { data, error, loading } = useApi<ProductModelPayload>(
-    `/product-spine/product/${encodeURIComponent(id)}/model`,
-  );
-  // The open section AND the jurisdiction pick live in the URL — the back
-  // button pops the section like any other drill, and a deep link lands on
-  // the same view.
+  // The open section, the VERSION pick and the JURISDICTION pick all live in
+  // the URL — the back button pops the section like any other drill, and a
+  // deep link lands on the same view. The version re-fetches (the server
+  // derives that generation's model); the jurisdiction filters client-side.
   const [searchParams, setSearchParams] = useSearchParams();
   const sectionParam = searchParams.get(SECTION_PARAM);
   const section: SectionKey | null = isSectionKey(sectionParam) ? sectionParam : null;
   const state = searchParams.get('state') ?? '';
-  const setParam = (key: string, value: string | null, push = false) =>
+  const version = searchParams.get('version') ?? '';
+  const { data, error, loading } = useApi<ProductModelPayload>(
+    `/product-spine/product/${encodeURIComponent(id)}/model${
+      version ? `?version=${encodeURIComponent(version)}` : ''
+    }`,
+  );
+  const setParams = (entries: [string, string | null][], push = false) =>
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        if (value) next.set(key, value);
-        else next.delete(key);
+        for (const [key, value] of entries) {
+          if (value) next.set(key, value);
+          else next.delete(key);
+        }
         return next;
       },
       { replace: !push },
     );
+  const setParam = (key: string, value: string | null, push = false) =>
+    setParams([[key, value]], push);
 
   const overlay = useMemo(
     () => (data && state ? (data.stateOverlays.find((o) => o.state === state) ?? null) : null),
@@ -271,7 +290,23 @@ export default function ProductModelView({ id }: { id: string }) {
   if (loading) return <LoadingState message="Loading the product model…" />;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!data) return null;
-  const { product, ancestors, countrywide, model, stateOverlays } = data;
+  const { product, ancestors, countrywide, model, stateOverlays, generations } = data;
+
+  // Cross-filtering: with a jurisdiction picked, only the generations that
+  // reach that state stay pickable; the jurisdiction list is always the
+  // selected generation's coverage. Switching to a generation that doesn't
+  // reach the picked state clears the jurisdiction.
+  const activeVersion = data.selectedVersion ?? '';
+  const reaches = (g: Generation, st: string) =>
+    g.ownFormStates.includes(st) || g.countrywideStates.includes(st);
+  const versionOptions = state ? generations.filter((g) => reaches(g, state)) : generations;
+  const pickVersion = (v: string) => {
+    const target = generations.find((g) => g.version === v);
+    setParams([
+      ['version', v || null],
+      ['state', state && target && reaches(target, state) ? state : null],
+    ]);
+  };
 
   const header = (
     <div className="mb-4">
@@ -308,14 +343,33 @@ export default function ProductModelView({ id }: { id: string }) {
           <span className="font-semibold">Written in:</span> {countrywide.states.length || '—'}{' '}
           jurisdiction{countrywide.states.length === 1 ? '' : 's'}
         </span>
-        {/* Version / jurisdiction is a FILTER on the whole product page (the
-            document's separation) — an L4 node IS a "Version / Jurisdiction",
-            so one selector covers both. Picking a state re-scopes the card
-            counts and every section; the deviations land on Forms and
-            Filings, flagged as that state's additions. */}
-        {stateOverlays.length > 0 && (
+        {/* Version and jurisdiction are TWO SEPARATE FILTERS (the document's
+            separation), and they filter each other: the version pick re-fetches
+            that generation's model (a product only gets a new version when
+            something changed), and the jurisdiction list is that generation's
+            coverage; with a jurisdiction picked, only the generations reaching
+            that state stay pickable. */}
+        {generations.length > 0 && (
           <label className="flex items-center gap-2 text-xs text-[#525252]">
-            <span className="font-semibold">Version / jurisdiction:</span>
+            <span className="font-semibold">Version:</span>
+            <select
+              value={activeVersion}
+              onChange={(e) => pickVersion(e.target.value)}
+              className="border border-[#d4d4d4] rounded-md px-2 py-1 text-xs bg-white"
+            >
+              {versionOptions.map((g) => (
+                <option key={g.version} value={g.version}>
+                  {g.version}
+                  {g.version === generations.at(-1)?.version ? ' — current' : ''}
+                  {g.status ? ` · ${g.status}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {(stateOverlays.length > 0 || countrywide.states.length > 0) && (
+          <label className="flex items-center gap-2 text-xs text-[#525252]">
+            <span className="font-semibold">Jurisdiction:</span>
             <select
               value={state}
               onChange={(e) => setParam('state', e.target.value || null)}
@@ -332,7 +386,7 @@ export default function ProductModelView({ id }: { id: string }) {
         )}
         {overlay && (
           <span className="text-[11px] font-medium text-amber-800 bg-amber-100 rounded px-2 py-0.5">
-            Core model + US-{overlay.state}&rsquo;s deviations
+            {activeVersion || 'core'} + US-{overlay.state}&rsquo;s deviations
           </span>
         )}
       </div>
