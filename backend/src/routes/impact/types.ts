@@ -30,6 +30,20 @@ export function classOf(t: ChangeType): ChangeClass {
 export type ImpactSeverity = 'BREAKING' | 'HIGH' | 'MEDIUM' | 'LOW';
 const LADDER: ImpactSeverity[] = ['BREAKING', 'HIGH', 'MEDIUM', 'LOW'];
 
+/** The six knock-on impact domains every report is organized under (the
+ *  "Impact Assessment" step of the outlier decision workflow). Every impact
+ *  line belongs to exactly one; the panel shows all six so an empty domain
+ *  reads as "checked — nothing there", not "not checked". */
+export const IMPACT_DOMAINS = [
+  'product',
+  'technology',
+  'data',
+  'operational',
+  'compliance',
+  'testing',
+] as const;
+export type ImpactDomain = (typeof IMPACT_DOMAINS)[number];
+
 /** Grade a base severity by change class: destructive keeps the base,
  *  restructure steps down one, adopt/hold steps down two. */
 export function grade(base: ImpactSeverity, cls: ChangeClass): ImpactSeverity {
@@ -39,6 +53,8 @@ export function grade(base: ImpactSeverity, cls: ChangeClass): ImpactSeverity {
 
 export interface Impact {
   severity: ImpactSeverity;
+  /** Which knock-on domain the line lands in. */
+  domain: ImpactDomain;
   /** Grouping bucket: roles | tasks | applications | deliverables |
    *  compliance | standards | checklists | initiatives | products | scope */
   category: string;
@@ -71,10 +87,11 @@ export function buildReport(
   impacts: Impact[],
 ): ImpactReport {
   const order = (s: ImpactSeverity) => LADDER.indexOf(s);
+  const dom = (d: ImpactDomain) => IMPACT_DOMAINS.indexOf(d);
   const sorted = [...impacts].sort(
     (a, b) =>
+      dom(a.domain) - dom(b.domain) ||
       order(a.severity) - order(b.severity) ||
-      a.category.localeCompare(b.category) ||
       a.entityName.localeCompare(b.entityName),
   );
   const n = (s: ImpactSeverity) => sorted.filter((i) => i.severity === s).length;

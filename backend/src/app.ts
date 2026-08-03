@@ -35,7 +35,7 @@ import taxonomyRoutes from './routes/taxonomy.js';
 import productModelRoutes from './routes/product-models/index.js';
 import productSpineRoutes from './routes/product-spine/index.js';
 import portfolioRoutes from './routes/portfolio/index.js';
-import workRoutes from './routes/work.js';
+import workRoutes from './routes/work/index.js';
 import workLibraryRoutes from './routes/work-library/index.js';
 import chatRoutes from './routes/chat.js';
 import standardsSkillsRoutes from './routes/standardsSkills.js';

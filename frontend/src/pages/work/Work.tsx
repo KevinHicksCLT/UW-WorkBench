@@ -37,30 +37,21 @@ type Deliverable = {
   processes: string[];
   level3: string | null;
   level4: string | null;
-  test: string | null;
 };
+// Slim list row — the /work Tasks grain carries only what the list, TOC and
+// drill actually render (description etc. come from /work/task/:id on click).
 type Task = {
   id: string;
   title: string;
-  description: string | null;
   owner: string | null;
   contributors: string[];
-  status: string;
-  dueDate: string | null;
-  source: string;
   deliverableId: string | null;
   deliverableTitle: string | null;
-  roles: string[];
-  processes: string[];
-  level3: string | null;
   level4: string | null;
   division: string | null;
-  department: string | null;
-  roleName: string | null;
   valueStreamName: string | null;
   agentScore: number | null;
   agentRationale: string | null;
-  test: string | null;
   testPattern: string | null;
   standards: string[];
   regulations: string[];
@@ -499,6 +490,12 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
 
 const DASH = '—';
 
+// Lazy per-tab data: each tab fetches only its own grain (`kind=`), and the
+// result is kept for the SPA session so tab flips and back-navigation render
+// instantly instead of re-pulling ~30k rows. The page is read-only, so a
+// session-stale cache is acceptable; a hard refresh refetches.
+const workCache = new Map<string, WorkData>();
+
 export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
@@ -506,14 +503,25 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const [detail, setDetail] = useState<Detail | null>(null);
   useEffect(() => {
     if (companyLoading) return;
+    const cacheKey = `${companyId ?? ''}:${tab}`;
+    const cached = workCache.get(cacheKey);
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    // fetch all rows (tasks exceed the old 5k default; splits push the total higher).
+    // fetch all rows of the ACTIVE grain only (tasks exceed the old 5k default;
+    // splits push the total higher).
     api
-      .get<WorkData>(withCompany('/work?take=30000', companyId))
-      .then(setData)
+      .get<WorkData>(withCompany(`/work?take=30000&kind=${tab}`, companyId))
+      .then((d) => {
+        workCache.set(cacheKey, d);
+        setData(d);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [companyId, companyLoading]);
+  }, [companyId, companyLoading, tab]);
 
   // Open a row's drill-down in the sidebar by fetching its detail. The open
   // target persists per tab (lib/viewState), so drilling out of the sidebar
