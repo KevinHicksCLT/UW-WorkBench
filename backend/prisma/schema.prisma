@@ -375,6 +375,15 @@ model Company {
   scenarios                     Scenario[]
   telemetrySignals              TelemetrySignal[]
   analysisStatuses              AnalysisStatus[]
+  // UW Workbench
+  uwAccounts                    UwAccount[]
+  uwSubmissions                 UwSubmission[]
+  uwEnrichmentSources           UwEnrichmentSource[]
+  uwAppetiteStatements          UwAppetiteStatement[]
+  uwGuidelineRules              UwGuidelineRule[]
+  uwAuthorityGrants             UwAuthorityGrant[]
+  uwGovernanceEvents            UwGovernanceEvent[]
+  uwDivergencePairs             UwDivergencePair[]
 
   @@unique([tenantId, slug])
 }
@@ -424,6 +433,7 @@ model OrgUnit {
   portfolioInitiatives PortfolioInitiative[]
   scenarios            Scenario[]
   users                User[]                @relation("UserOrgUnit")
+  uwAppetiteStatements UwAppetiteStatement[] @relation("UwAppetiteOwner")
 
   @@index([companyId, orgLevelTypeId])
   @@index([parentId])
@@ -489,6 +499,10 @@ model Role {
   nodeStandardEvidences         NodeStandardEvidence[]
   nodeRegulationEvidences       NodeRegulationEvidence[]
   users                         User[]                         @relation("UserOperatingRole")
+  // UW Workbench — authority-as-data + referral chains bind to the Roles catalog (ADR-03)
+  uwAuthorityGrants             UwAuthorityGrant[]             @relation("UwAuthorityGrantRole")
+  uwReferralCasesEscalated      UwReferralCase[]               @relation("UwReferralEscalatedTo")
+  uwSubmissionsAssigned         UwSubmission[]                 @relation("UwSubmissionAssignedRole")
 
   @@unique([companyId, dbValue])
   @@index([companyId])
@@ -579,6 +593,7 @@ model ProcessNode {
   rationalizationWorkspaces RationalizationWorkspace[]
   userValueStreams          UserValueStream[]
   screenAssets              ScreenAsset[]
+  uwSubmissions             UwSubmission[]             @relation("UwSubmissionValueStream")
 
   @@index([companyId, processLevelTypeId])
   @@index([parentId])
@@ -833,6 +848,9 @@ model Application {
   nodeRegulationEvidences   NodeRegulationEvidence[]
   rationalizationWorkspaces RationalizationWorkspace[]
   rationalizationApps       RationalizationApp[]
+  // UW Workbench — bind executes on a PAS Application node (six-dimension participation)
+  uwBindEvents              UwBindEvent[]                  @relation("UwBindApplication")
+  uwPasBindings             UwPasBinding[]                 @relation("UwPasBindingApplication")
 
   @@index([companyId])
   @@index([orgUnitId])
@@ -2879,4 +2897,473 @@ model RegulatorySource {
 
   @@index([companyId])
   @@index([jurisdictionId])
+}
+
+// ─── UW WORKBENCH (submission → clearance → triage → desk → quote → bind) ─
+// AI-native underwriting workbench (UW-WORK module). 19 tenant-scoped entities
+// in five planes (submission / signal / decision / commercial / governance),
+// implementing tb-uw-workbench ontology v0.1.0 one-for-one. Six-dimension
+// participation: AuthorityGrant→Role (ADR-03), AppetiteStatement→OrgUnit,
+// BindEvent/PasBinding→Application, Submission→ProcessNode (flows-through).
+// Invariants INV-1..7 are enforced in the service layer (routes/uw); the
+// governance spine (UwGovernanceEvent) is append-only — no update/delete path.
+
+model UwAccount {
+  id          String  @id @default(cuid())
+  tenantId    String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  identifiers Json? // { fein?, duns?, naics? ... }
+  domicile    String? // ISO country / US state token
+  industry    String? // NAICS description
+  blocked     Boolean @default(false) // blocked-account clearance input
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submissions UwSubmission[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model UwSubmission {
+  id                String       @id @default(cuid())
+  tenantId          String
+  companyId         String
+  company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref               String // human ref e.g. SUB-88121
+  accountId         String
+  account           UwAccount    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  channel           String       @default("PORTAL") // EMAIL | PORTAL | API | FILE
+  status            String       @default("RECEIVED") // RECEIVED | IN_CLEARANCE | IN_TRIAGE | IN_REVIEW | REFERRED | QUOTED | BOUND | DECLINED | WITHDRAWN
+  lob               String // CP | EB | GL | BOP | OM | XS | WC
+  brokerName        String?
+  receivedAt        DateTime     @default(now())
+  effectiveDate     DateTime?
+  slaDueAt          DateTime?
+  tivTotal          Float?
+  description       String?
+  appetiteVerdict   String? // IN | EDGE | OUT — latest evaluation (cache; citations in payload)
+  appetiteCitations Json? // [{ statementRef, version }]
+  // Extracted evidence with per-field confidence + provenance (LLR-01):
+  // [{ field, value, confidence, provenance:{ docId, page, bbox, extractorVersion } }]
+  extractedFields   Json?
+  assignedRoleId    String?
+  assignedRole      Role?        @relation("UwSubmissionAssignedRole", fields: [assignedRoleId], references: [id], onDelete: SetNull)
+  valueStreamNodeId String? // flows-through: six-dimension ValueStream participation
+  valueStreamNode   ProcessNode? @relation("UwSubmissionValueStream", fields: [valueStreamNodeId], references: [id], onDelete: SetNull)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  riskObjects      UwRiskObject[]
+  coverageRequests UwCoverageRequest[]
+  clearanceChecks  UwClearanceCheck[]
+  triageScores     UwTriageScore[]
+  referralCases    UwReferralCase[]
+  decisions        UwDecision[]
+  quoteProposals   UwQuoteProposal[]
+  pasBindings      UwPasBinding[]
+  agentActions     UwAgentAction[]
+  governanceEvents UwGovernanceEvent[]
+
+  @@unique([companyId, ref])
+  @@index([companyId, status])
+  @@index([companyId, slaDueAt])
+  @@index([accountId])
+  @@index([assignedRoleId])
+  @@index([valueStreamNodeId])
+}
+
+model UwRiskObject {
+  id           String       @id @default(cuid())
+  tenantId     String
+  companyId    String
+  submissionId String
+  submission   UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  kind         String       @default("LOCATION") // LOCATION | VEHICLE | VESSEL | ENTITY | EQUIPMENT
+  name         String
+  situs        String? // address / territory token
+  tiv          Float?
+  exposureData Json? // { sprinklerClass?, floodZone?, ammoniaRefrigeration? ... }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrichmentRecords UwEnrichmentRecord[]
+
+  @@index([submissionId])
+  @@index([companyId])
+}
+
+model UwCoverageRequest {
+  id           String       @id @default(cuid())
+  tenantId     String
+  companyId    String
+  submissionId String
+  submission   UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  lob          String // CP | EB | GL | BOP | OM | XS | WC
+  limitAmount  Float?
+  deductible   Float?
+  terms        Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([submissionId])
+  @@index([companyId])
+}
+
+model UwClearanceCheck {
+  id                String       @id @default(cuid())
+  tenantId          String
+  companyId         String
+  submissionId      String
+  submission        UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  checkType         String // DUPLICATE | BLOCKED | WATCHLIST
+  verdict           String       @default("CLEAR") // CLEAR | HIT | RELEASED
+  matchEvidence     Json? // list evidence / match score from screening
+  // Dual-control release (INV-4): two distinct operating roles required.
+  firstReleaseBy    String? // email
+  firstReleaseRole  String? // operating role id or role token
+  firstReleaseAt    DateTime?
+  secondReleaseBy   String?
+  secondReleaseRole String?
+  secondReleaseAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([submissionId])
+  @@index([companyId, verdict])
+}
+
+model UwEnrichmentSource {
+  id            String  @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name          String
+  kind          String // HAZARD | FIRMOGRAPHIC | GEOCODE | CAT_MODEL | LOSS_HISTORY | SANCTIONS
+  costClass     String  @default("LOW") // FREE | LOW | MEDIUM | HIGH
+  ttlHours      Int     @default(720)
+  jurisdictions String? // comma list of permitted jurisdictions; null = unrestricted (NFR-06)
+  active        Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrichmentRecords UwEnrichmentRecord[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model UwEnrichmentRecord {
+  id           String             @id @default(cuid())
+  tenantId     String
+  companyId    String
+  riskObjectId String
+  riskObject   UwRiskObject       @relation(fields: [riskObjectId], references: [id], onDelete: Cascade)
+  sourceId     String
+  source       UwEnrichmentSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  payload      Json
+  payloadHash  String
+  cost         Float?
+  fetchedAt    DateTime           @default(now())
+  expiresAt    DateTime? // fetchedAt + source.ttlHours; cache respects TTL (LLR-06)
+
+  @@index([riskObjectId])
+  @@index([sourceId])
+  @@index([companyId])
+}
+
+model UwTriageScore {
+  id             String       @id @default(cuid())
+  tenantId       String
+  companyId      String
+  submissionId   String
+  submission     UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  appetiteFit    Float // 0..100 per-lens sub-scores (LLR-05, explainable)
+  winnability    Float
+  expectedValue  Float
+  effort         Float
+  composite      Float
+  weightsVersion String       @default("w1")
+  rationale      Json? // per-lens explanation strings
+  scoredAt       DateTime     @default(now())
+  // Versioned, never overwritten — re-score appends a new row (LLR-05).
+
+  @@index([submissionId, scoredAt])
+  @@index([companyId])
+}
+
+model UwAppetiteStatement {
+  id             String    @id @default(cuid())
+  tenantId       String
+  companyId      String
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref            String // AS-114 — stable across versions
+  version        Int       @default(1)
+  stance         String // TARGET | ACCEPTABLE | REFER | DECLINE
+  lob            String
+  segment        String?
+  naicsCodes     String? // comma list, ^\d{4,6}$ each
+  geographies    String? // comma list of region tokens
+  tivMax         Float?
+  capacityLimit  Float? // rejected on DECLINE stance (semantic gate)
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  rationale      String
+  status         String    @default("ACTIVE") // ACTIVE | SUPERSEDED | RETIRED
+  ownerOrgUnitId String? // owned-by: six-dimension Organization participation
+  ownerOrgUnit   OrgUnit?  @relation("UwAppetiteOwner", fields: [ownerOrgUnitId], references: [id], onDelete: SetNull)
+  publishedBy    String? // email
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  // Versioned, never mutated in place (INV-3): publish creates ref@version+1.
+
+  @@unique([companyId, ref, version])
+  @@index([companyId, status])
+  @@index([ownerOrgUnitId])
+}
+
+model UwGuidelineRule {
+  id            String    @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref           String // GR-2201 — stable across versions
+  version       Int       @default(1)
+  name          String
+  kind          String    @default("DECISION_TABLE") // DECISION_TABLE | EXPRESSION
+  definition    Json // decision table rows / expression AST — evaluated by the pure evaluator
+  inputsSchema  Json? // declared inputs for inputsHash computation
+  stpPath       Boolean   @default(false) // straight-through allowed ONLY when true + G4 approval (INV-2 exception)
+  stpApprovedBy String? // G4 approver email — required when stpPath=true
+  status        String    @default("ACTIVE") // ACTIVE | SUPERSEDED | RETIRED
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  decisions UwDecision[] @relation("UwDecisionStpRule")
+
+  @@unique([companyId, ref, version])
+  @@index([companyId, status])
+}
+
+model UwAuthorityGrant {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  companyId          String
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref                String // AG-31 — stable across versions
+  version            Int       @default(1)
+  roleId             String // authority-as-data: bound to the Roles catalog, never a user id (ADR-03)
+  role               Role      @relation("UwAuthorityGrantRole", fields: [roleId], references: [id], onDelete: Cascade)
+  premiumMax         Float
+  tivMax             Float
+  lineSize           Float?
+  lobs               String // comma list of LOB tokens
+  territories        String // comma list of territory tokens
+  delegable          Boolean   @default(false)
+  bordereauxAttached Boolean   @default(false) // delegable grants blocked until a bordereaux schedule is attached
+  effectiveFrom      DateTime  @default(now())
+  effectiveTo        DateTime?
+  status             String    @default("ACTIVE") // ACTIVE | SUPERSEDED | RETIRED
+  breachCount90d     Int       @default(0) // refreshed by delegated-book breach detection (CAP-13)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  decisions UwDecision[]
+
+  @@unique([companyId, ref, version])
+  @@index([companyId, status])
+  @@index([roleId])
+}
+
+model UwReferralCase {
+  id                String       @id @default(cuid())
+  tenantId          String
+  companyId         String
+  submissionId      String
+  submission        UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  decisionId        String?
+  decision          UwDecision?  @relation(fields: [decisionId], references: [id], onDelete: SetNull)
+  reason            String // authority breach / EDGE appetite / rule refer outcome
+  status            String       @default("OPEN") // OPEN | APPROVED | DECLINED | RETURNED | EXPIRED
+  slaDueAt          DateTime
+  escalatedToRoleId String // escalation chain derives from the Roles catalog (LLR-11)
+  escalatedToRole   Role         @relation("UwReferralEscalatedTo", fields: [escalatedToRoleId], references: [id], onDelete: Cascade)
+  resolvedBy        String? // email — resolver must appear in the escalation chain
+  resolvedByRole    String? // operating role id of resolver at resolution time
+  resolutionNote    String?
+  slaBreached       Boolean      @default(false)
+  openedAt          DateTime     @default(now())
+  resolvedAt        DateTime?
+
+  @@index([submissionId])
+  @@index([companyId, status])
+  @@index([escalatedToRoleId])
+}
+
+model UwDecision {
+  id               String            @id @default(cuid())
+  tenantId         String
+  companyId        String
+  submissionId     String
+  submission       UwSubmission      @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  outcome          String // QUOTE | DECLINE | REFER
+  premium          Float?
+  sublimits        Json? // [{ peril, amount }] — each >= 0 and <= TIV (syntax gate)
+  rationale        String
+  authorityGrantId String?
+  authorityGrant   UwAuthorityGrant? @relation(fields: [authorityGrantId], references: [id], onDelete: SetNull)
+  authorityResult  String // PASS | BREACH_REFERRED — pure-function validation output (INV-1)
+  authorityDetail  Json? // per-limit pass/fail breakdown from the pure validator
+  dispositionedBy  String // email of the human principal (ADR-02) or "stp:<ruleRef>"
+  viaStpRuleId     String? // set ONLY on the G4-approved stpPath bypass
+  viaStpRule       UwGuidelineRule?  @relation("UwDecisionStpRule", fields: [viaStpRuleId], references: [id], onDelete: SetNull)
+  decidedAt        DateTime          @default(now())
+
+  referralCases  UwReferralCase[]
+  quoteProposals UwQuoteProposal[]
+
+  @@index([submissionId])
+  @@index([companyId, outcome])
+  @@index([authorityGrantId])
+}
+
+model UwQuoteProposal {
+  id                 String       @id @default(cuid())
+  tenantId           String
+  companyId          String
+  submissionId       String
+  submission         UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  decisionId         String?
+  decision           UwDecision?  @relation(fields: [decisionId], references: [id], onDelete: SetNull)
+  premium            Float
+  terms              Json?
+  modelRef           String? // priced-by → RATE-PRICING model ref, ^M-[A-Z]{2}-\d{2}$
+  formSetRef         String? // documented-by → FORMS-RATION form set ref, ^FS-[A-Z-]+-\d{2}$
+  pricedResolved     Boolean      @default(false) // cross-module edge resolution (INV-7)
+  documentedResolved Boolean      @default(false)
+  status             String       @default("DRAFT") // DRAFT | PROPOSED | ACCEPTED | BOUND | EXPIRED
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  bindEvent UwBindEvent?
+
+  @@index([submissionId])
+  @@index([companyId, status])
+}
+
+model UwBindEvent {
+  id            String          @id @default(cuid())
+  tenantId      String
+  companyId     String
+  quoteId       String          @unique // binds 1—1 QuoteProposal
+  quote         UwQuoteProposal @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  correlationId String // idempotency key — replay returns the existing pasPolicyRef (LLR-12)
+  applicationId String // executes-on: PAS Application node (six-dimension participation)
+  application   Application     @relation("UwBindApplication", fields: [applicationId], references: [id], onDelete: Cascade)
+  pasPolicyRef  String
+  executedBy    String // email of binding principal
+  executedAt    DateTime        @default(now())
+
+  @@unique([companyId, correlationId])
+  @@index([applicationId])
+  @@index([companyId])
+}
+
+model UwPasBinding {
+  id              String       @id @default(cuid())
+  tenantId        String
+  companyId       String
+  submissionId    String
+  submission      UwSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  applicationId   String // connector-layer bind-execution target (routed-via)
+  application     Application  @relation("UwPasBindingApplication", fields: [applicationId], references: [id], onDelete: Cascade)
+  contractVersion String       @default("v1")
+  status          String       @default("REGISTERED") // REGISTERED | ACTIVE | FAILED
+
+  createdAt DateTime @default(now())
+
+  @@unique([submissionId, applicationId])
+  @@index([companyId])
+  @@index([applicationId])
+}
+
+model UwAgentAction {
+  id                String             @id @default(cuid())
+  tenantId          String
+  companyId         String
+  agentId           String // e.g. triage-01, mcp:<tool>
+  kind              String // EXTRACTION | TRIAGE | ENRICHMENT | PROPOSAL | QNA | MCP_TOOL
+  modelRef          String // model id used, e.g. claude-fable-5
+  promptHash        String
+  confidence        Float?
+  proposal          Json? // ProposalEnvelope output — never a state transition (ADR-02)
+  disposition       String             @default("PENDING") // PENDING | ACCEPTED | MODIFIED | REJECTED | AUTO_STP
+  dispositionedBy   String? // human principal email (or "stp:<ruleRef>")
+  dispositionedAt   DateTime?
+  submissionId      String?
+  submission        UwSubmission?      @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  governanceEventId String?            @unique // audited-by 1—1 (INV-5) — required at service layer
+  governanceEvent   UwGovernanceEvent? @relation(fields: [governanceEventId], references: [id], onDelete: SetNull)
+  createdAt         DateTime           @default(now())
+
+  @@index([companyId, disposition])
+  @@index([submissionId])
+}
+
+model UwGovernanceEvent {
+  id            String        @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  eventType     String // SubmissionCreated | ExtractionCompleted | ClearanceCompleted | AppetiteEvaluated | TriageScored | EnrichmentRecorded | ProposalIssued | DecisionRecorded | ReferralOpened | ReferralResolved | QuoteProposed | BindExecuted | DivergenceDetected | RationalizationActioned | AgentControl
+  actorKind     String // HUMAN | AGENT | SYSTEM
+  actorId       String // email or agent id
+  actorRole     String? // operating role id / token at event time
+  payloadHash   String
+  payload       Json?
+  correlationId String // stitches intake → bind across modules (NFR-04)
+  submissionId  String?
+  submission    UwSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  at            DateTime      @default(now())
+  // Append-only audit spine — the service layer exposes no update/delete path.
+
+  agentAction UwAgentAction?
+
+  @@index([companyId, at])
+  @@index([companyId, eventType])
+  @@index([correlationId])
+  @@index([submissionId])
+}
+
+model UwDivergencePair {
+  id            String    @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref           String // DP-018
+  kind          String // APPETITE | RULE | AUTHORITY
+  leftRef       String // artifact ref on the left estate (e.g. AS-114)
+  leftEstate    String?
+  rightRef      String
+  rightEstate   String?
+  weight        Float // 1 - similarity
+  proposal      String? // MERGE | MERGE_WITH_EXCEPTION | RETIRE | KEEP_BOTH
+  impactPreview Json? // { submissionsAffected, rolesAffected, pasBindingsAffected }
+  status        String    @default("OPEN") // OPEN | MERGED | RETIRED | KEEP_BOTH
+  actionedBy    String? // CUO-role principal (INV-6)
+  actionNote    String?
+  actionedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([companyId, ref])
+  @@index([companyId, kind, status])
 }

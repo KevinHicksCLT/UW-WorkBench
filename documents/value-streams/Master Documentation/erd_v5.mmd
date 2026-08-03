@@ -1196,6 +1196,107 @@ erDiagram
     string method "IN_APP|ADAPTIVE_CARD_TEAMS|ADAPTIVE_CARD_EMAIL|SERVICENOW|API"
     string externalRef "e.g. ServiceNow ticket #"
   }
+  %% ---------- UW WORKBENCH (submission -> clearance -> triage -> desk -> quote -> bind) ----------
+  %% AI-native underwriting workbench (UW-WORK). Five planes: submission / signal /
+  %% decision / commercial / governance. Six-dimension participation: authority
+  %% grants bind to Role (ADR-03), appetite to OrgUnit, bind to Application (PAS),
+  %% submission to ProcessNode value stream. Governance spine append-only.
+  UwAccount {
+    string status "insured party spine, durable across renewals"
+    string id PK  string companyId FK  string name  json identifiers  string domicile  boolean blocked
+  }
+  UwSubmission {
+    string status_ "RECEIVED|IN_CLEARANCE|IN_TRIAGE|IN_REVIEW|REFERRED|QUOTED|BOUND|DECLINED|WITHDRAWN"
+    string id PK  string companyId FK  string ref "SUB-#####"  string accountId FK
+    string channel "EMAIL|PORTAL|API|FILE"  string lob  string brokerName
+    datetime effectiveDate  datetime slaDueAt  float tivTotal
+    string appetiteVerdict "IN|EDGE|OUT cached; citations in payload"
+    json extractedFields "per-field confidence + provenance (LLR-01)"
+    string assignedRoleId FK  string valueStreamNodeId FK "flows-through"
+  }
+  UwRiskObject {
+    string status "schedulable exposure unit"
+    string id PK  string submissionId FK  string kind "LOCATION|VEHICLE|VESSEL|ENTITY|EQUIPMENT"
+    string name  string situs  float tiv  json exposureData
+  }
+  UwCoverageRequest {
+    string id PK  string submissionId FK  string lob  float limitAmount  float deductible  json terms
+  }
+  UwClearanceCheck {
+    string status "dual-control release on watchlist (INV-4)"
+    string id PK  string submissionId FK  string checkType "DUPLICATE|BLOCKED|WATCHLIST"
+    string verdict "CLEAR|HIT|RELEASED"  json matchEvidence
+    string firstReleaseBy  string firstReleaseRole  string secondReleaseBy  string secondReleaseRole
+  }
+  UwEnrichmentSource {
+    string status "registered internal/third-party source"
+    string id PK  string companyId FK  string name  string kind "HAZARD|FIRMOGRAPHIC|GEOCODE|CAT_MODEL|LOSS_HISTORY|SANCTIONS"
+    string costClass "FREE|LOW|MEDIUM|HIGH"  int ttlHours  string jurisdictions "NFR-06 filter"
+  }
+  UwEnrichmentRecord {
+    string id PK  string riskObjectId FK  string sourceId FK  json payload  string payloadHash  float cost  datetime expiresAt "TTL cache"
+  }
+  UwTriageScore {
+    string status "versioned, append-only re-scores (LLR-05)"
+    string id PK  string submissionId FK  float appetiteFit  float winnability  float expectedValue  float effort
+    float composite  string weightsVersion  json rationale "per-lens explanation"
+  }
+  UwAppetiteStatement {
+    string status_ "ACTIVE|SUPERSEDED|RETIRED — versioned, never mutated (INV-3)"
+    string id PK  string companyId FK  string ref "AS-###"  int version  string stance "TARGET|ACCEPTABLE|REFER|DECLINE"
+    string lob  string segment  string naicsCodes  string geographies  float tivMax  float capacityLimit
+    datetime effectiveFrom  datetime effectiveTo  string rationale  string ownerOrgUnitId FK "owned-by"
+  }
+  UwGuidelineRule {
+    string status_ "ACTIVE|SUPERSEDED|RETIRED — deterministic, versioned (HLR-09)"
+    string id PK  string companyId FK  string ref "GR-####"  int version  string kind "DECISION_TABLE|EXPRESSION"
+    json definition  boolean stpPath "G4-approved STP bypass only (INV-2)"  string stpApprovedBy
+  }
+  UwAuthorityGrant {
+    string status "authority-as-data bound to Roles catalog (ADR-03)"
+    string id PK  string companyId FK  string ref "AG-##"  int version  string roleId FK
+    float premiumMax  float tivMax  float lineSize  string lobs  string territories
+    boolean delegable  boolean bordereauxAttached  int breachCount90d
+  }
+  UwReferralCase {
+    string status_ "OPEN|APPROVED|DECLINED|RETURNED|EXPIRED"
+    string id PK  string submissionId FK  string decisionId FK  string reason
+    datetime slaDueAt  string escalatedToRoleId FK "chain from Roles catalog"  string resolvedBy  boolean slaBreached
+  }
+  UwDecision {
+    string status "pure-function authority validation (INV-1)"
+    string id PK  string submissionId FK  string outcome "QUOTE|DECLINE|REFER"  float premium  json sublimits
+    string authorityGrantId FK  string authorityResult "PASS|BREACH_REFERRED"  string dispositionedBy "human principal (ADR-02)"  string viaStpRuleId FK
+  }
+  UwQuoteProposal {
+    string status_ "DRAFT|PROPOSED|ACCEPTED|BOUND|EXPIRED"
+    string id PK  string submissionId FK  string decisionId FK  float premium
+    string modelRef "priced-by RATE-PRICING"  string formSetRef "documented-by FORMS-RATION"
+    boolean pricedResolved "INV-7"  boolean documentedResolved "INV-7"
+  }
+  UwBindEvent {
+    string status "idempotent by correlationId (LLR-12); requires human-dispositioned decision (INV-2)"
+    string id PK  string quoteId FK "1-1"  string correlationId  string applicationId FK "executes-on PAS"  string pasPolicyRef  string executedBy
+  }
+  UwPasBinding {
+    string id PK  string submissionId FK  string applicationId FK  string contractVersion  string status_ "REGISTERED|ACTIVE|FAILED"
+  }
+  UwAgentAction {
+    string status "ProposalEnvelope only — never a state transition (ADR-02, INV-5)"
+    string id PK  string agentId  string kind "EXTRACTION|TRIAGE|ENRICHMENT|PROPOSAL|QNA|MCP_TOOL"
+    string modelRef  string promptHash  float confidence  json proposal
+    string disposition "PENDING|ACCEPTED|MODIFIED|REJECTED|AUTO_STP"  string governanceEventId FK "audited-by 1-1"
+  }
+  UwGovernanceEvent {
+    string status "append-only audit spine — humans and agents share it (LLR-13)"
+    string id PK  string companyId FK  string eventType "13 event types"  string actorKind "HUMAN|AGENT|SYSTEM"
+    string actorId  string payloadHash  string correlationId "stitches intake to bind"  string submissionId FK
+  }
+  UwDivergencePair {
+    string status_ "OPEN|MERGED|RETIRED|KEEP_BOTH — CUO gate + impact ack (INV-6)"
+    string id PK  string companyId FK  string ref "DP-###"  string kind "APPETITE|RULE|AUTHORITY"
+    string leftRef  string rightRef  float weight "1 - similarity"  string proposal  json impactPreview
+  }
   %% ================= RELATIONSHIPS =================
   %% approvals
   ApprovalPolicy ||--o{ ApprovalPolicyStage : "defines stages"
@@ -1418,6 +1519,41 @@ erDiagram
   PermissionSet ||--o{ PermissionGrant : "grants"
   User ||--o{ UserPermissionOverride : "overrides"
   User ||--o{ UserPreference : "prefers"
+  %% UW Workbench
+  Company ||--o{ UwAccount : "insureds"
+  Company ||--o{ UwSubmission : "receives"
+  UwAccount ||--o{ UwSubmission : "submitted-for"
+  UwSubmission ||--o{ UwRiskObject : "covers"
+  UwSubmission ||--o{ UwCoverageRequest : "requests"
+  UwSubmission ||--o{ UwClearanceCheck : "cleared-by"
+  UwSubmission ||--o{ UwTriageScore : "scored-by (versioned)"
+  UwRiskObject ||--o{ UwEnrichmentRecord : "enriched-by"
+  Company ||--o{ UwEnrichmentSource : "registers"
+  UwEnrichmentSource ||--o{ UwEnrichmentRecord : "sourced-from"
+  Company ||--o{ UwAppetiteStatement : "declares"
+  OrgUnit |o--o{ UwAppetiteStatement : "owned-by"
+  Company ||--o{ UwGuidelineRule : "governs-by"
+  Company ||--o{ UwAuthorityGrant : "grants"
+  Role ||--o{ UwAuthorityGrant : "held-by (ADR-03)"
+  Role |o--o{ UwSubmission : "assigned"
+  ProcessNode |o--o{ UwSubmission : "flows-through"
+  UwSubmission ||--o{ UwReferralCase : "raised-on"
+  Role ||--o{ UwReferralCase : "escalates-to"
+  UwSubmission ||--o{ UwDecision : "decides"
+  UwAuthorityGrant |o--o{ UwDecision : "bounds"
+  UwGuidelineRule |o--o{ UwDecision : "stp-path"
+  UwDecision |o--o{ UwReferralCase : "breach-opens"
+  UwSubmission ||--o{ UwQuoteProposal : "quotes"
+  UwDecision |o--o{ UwQuoteProposal : "authorizes"
+  UwQuoteProposal ||--|| UwBindEvent : "binds 1-1"
+  Application ||--o{ UwBindEvent : "executes-on (PAS)"
+  UwSubmission ||--o{ UwPasBinding : "routed-via"
+  Application ||--o{ UwPasBinding : "targets"
+  UwSubmission |o--o{ UwAgentAction : "context"
+  UwGovernanceEvent ||--|| UwAgentAction : "audited-by (INV-5)"
+  Company ||--o{ UwGovernanceEvent : "audit spine"
+  UwSubmission |o--o{ UwGovernanceEvent : "narrates"
+  Company ||--o{ UwDivergencePair : "rationalizes"
   %% ================= COLOR CODING =================
   %% red=connection tables · blue=value stream · orange=org · green=work · purple=other · teal=peripheral
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21

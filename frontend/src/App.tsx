@@ -33,6 +33,7 @@ const Portfolio = lazy(() => import('./pages/portfolio/Portfolio'));
 const PortfolioProgram = lazy(() => import('./pages/portfolio-program/PortfolioProgram'));
 const PortfolioInitiative = lazy(() => import('./pages/portfolio-initiative/PortfolioInitiative'));
 const PortfolioRaid = lazy(() => import('./pages/portfolio-raid/PortfolioRaid'));
+const UwWorkbench = lazy(() => import('./pages/uw-workbench/UwWorkbench'));
 const Work = lazy(() => import('./pages/work/Work'));
 const Automatable = lazy(() => import('./pages/automatable/Automatable'));
 const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
@@ -246,6 +247,17 @@ export default function App() {
                     element={
                       <G k="workspace">
                         <Portfolio />
+                      </G>
+                    }
+                  />
+                  {/* UW Workbench — AI-native underwriting decisioning module (UW-WORK):
+            pipeline triage, risk workspace, appetite/authority studios,
+            rationalization, and the governance event spine. */}
+                  <Route
+                    path="/uw-workbench"
+                    element={
+                      <G k="uw-workbench">
+                        <UwWorkbench />
                       </G>
                     }
                   />

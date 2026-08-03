@@ -35,6 +35,7 @@ import { seedWorkspaceVocabulary } from './seedWorkspaceVocabulary.js';
 import { seedProductModelAnatomy } from './seedProductModelAnatomy.js';
 import { seedProductModel } from './productModel.js';
 import { seedRoleProfiles } from './seedRoleProfiles.js';
+import { seedUwWorkbench } from './seedUwWorkbench.js';
 import { decomposeSingleChild } from '../../scripts/decompose-single-child.js';
 
 const prisma = new PrismaClient();
@@ -214,6 +215,7 @@ async function main() {
   await run('productModelAnatomy', () => seedProductModelAnatomy(prisma, ctx));
   await run('productModel', () => seedProductModel(prisma, { ...ctx, refs }));
   await run('portfolio', () => seedPortfolio(prisma, { ...ctx, refs }));
+  await run('uwWorkbench', () => seedUwWorkbench(prisma, ctx));
   await run('regulations', () => seedRegulations(prisma, { ...ctx, refs }));
   await run('federalRegs', () => seedFederalRegs(prisma, { ...ctx, refs }));
   await run('standards', () => seedStandards(prisma, { ...ctx, refs }));
