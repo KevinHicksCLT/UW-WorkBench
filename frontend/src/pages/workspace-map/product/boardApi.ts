@@ -6,6 +6,7 @@
 // (the detail face). This module holds those payload types plus the adapters
 // back into the existing client vocabulary (spine.ts / gridModel.ts).
 
+import { versionPlaceLabel } from '../../../lib/usStates';
 import type { HeatCell, HeatCounts, Rag, ReviewRow } from './gridModel';
 import type {
   ComponentElement,
@@ -222,9 +223,10 @@ export function compareVersions(payload: ComparePayload): VersionColumn[] {
 }
 
 /** Column label helper shared by grid + review list (works for both column
- *  modes: folded product columns have an empty version name). */
+ *  modes: folded product columns have an empty version name). Version names
+ *  render in place vocabulary — "v2 · California", never "v2 — US-CA". */
 export function columnLabel(c: BoardColumn, abbr: boolean): string {
-  if (!abbr) return c.name ? `${c.productName} · ${c.name}` : c.productName;
+  if (!abbr) return c.name ? `${c.productName} · ${versionPlaceLabel(c.name)}` : c.productName;
   const initials = c.productName
     .split(/[\s/–—-]+/)
     .filter(Boolean)

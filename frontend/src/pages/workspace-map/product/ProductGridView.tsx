@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LoadingState } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
+import { versionPlaceLabel } from '../../../lib/usStates';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
 import { columnLabel, type BoardColumn, type BoardPayload, type ReviewPayload } from './boardApi';
@@ -495,7 +496,7 @@ export default function ProductGridView({
                     title={
                       v.members > 1
                         ? `${v.segmentName} › ${v.lobName} › ${v.productName} — ${v.members} versions`
-                        : `${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`
+                        : `${v.segmentName} › ${v.lobName} › ${v.productName} · ${versionPlaceLabel(v.name)}`
                     }
                     style={{
                       height: headerH,

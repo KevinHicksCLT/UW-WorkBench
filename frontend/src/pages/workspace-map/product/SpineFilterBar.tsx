@@ -7,6 +7,7 @@
 // below so the cascade stays coherent.
 
 import { useEffect, useRef, useState } from 'react';
+import { versionPlaceLabel } from '../../../lib/usStates';
 import type { VersionColumn, LobOption } from './spine';
 
 export interface SpineFilters {
@@ -483,7 +484,7 @@ export default function SpineFilterBar({
         allLabel="All products"
         options={productPool.map((v) => ({
           value: v.id,
-          label: `${v.productName} · ${v.name}`,
+          label: `${v.productName} · ${versionPlaceLabel(v.name)}`,
           group: v.lobName,
         }))}
         picked={filters.versionIds}

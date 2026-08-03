@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { versionPlaceLabel } from '../../../lib/usStates';
 import { MATCH_META, groupCitations, type ProductDecisionStatus } from './spine';
 import type { BoardColumn } from './boardApi';
 import type { ReviewRow } from './gridModel';
@@ -248,7 +249,7 @@ function ElementDetailModal({
                         flexShrink: 0,
                       }}
                     >
-                      {v.productName} · {v.name}
+                      {v.productName} · {versionPlaceLabel(v.name)}
                     </span>
                     <span
                       style={{
@@ -403,7 +404,8 @@ export default function ProductReviewList({
   // the same compact cells as a 26-product one instead of page-wide bars.
   // No Status column — the presence blocks carry the status color directly.
   const gridCols = `320px repeat(${columns.length}, 44px) 22px 140px 236px 200px`;
-  const colLabel = labelOf ?? ((v: BoardColumn) => `${v.productName} · ${v.name}`);
+  const colLabel =
+    labelOf ?? ((v: BoardColumn) => `${v.productName} · ${versionPlaceLabel(v.name)}`);
   // Header exactly tall enough for the longest angled label — fully visible,
   // never spilling out of the header band.
   const maxLabelChars = columns.reduce((n, v) => Math.max(n, colLabel(v).length), 0);
@@ -732,7 +734,7 @@ export default function ProductReviewList({
             {columns.map((v) => (
               <span
                 key={v.id}
-                title={`${v.productName} · ${v.name}`}
+                title={`${v.productName} · ${versionPlaceLabel(v.name)}`}
                 style={{ height: headerH, position: 'relative', overflow: 'visible' }}
               >
                 {/* Divider parallel with the labels. */}

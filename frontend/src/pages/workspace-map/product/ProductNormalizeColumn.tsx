@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../../../lib/api';
+import { versionPlaceLabel } from '../../../lib/usStates';
 import { GREEN, AMBER, INDIGO } from '../types';
 import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
 import ImpactPanel from '../impact/ImpactPanel';
@@ -241,7 +242,7 @@ function ReviewActions({
 
   const carriers = versions.filter((v) => group.perVersion[v.id]);
   const missing = versions.length - carriers.length;
-  const carrierNames = carriers.map((v) => v.name).join(', ');
+  const carrierNames = carriers.map((v) => versionPlaceLabel(v.name)).join(', ');
   const chip: ReviewStatusChip =
     decision === 'APPROVED'
       ? { label: 'Standardized', fg: '#15803d', bg: '#dcfce7', border: '#86efac' }
@@ -300,7 +301,7 @@ function ReviewActions({
           const el = group.perVersion[v.id];
           return {
             key: v.id,
-            name: v.name,
+            name: versionPlaceLabel(v.name),
             sub: v.productName,
             present: !!el,
             title: el?.element,
@@ -540,7 +541,7 @@ function ComponentSection({
       </button>
       {open && (
         <div style={{ padding: '0 12px 12px' }}>
-          <ColumnHeads names={versions.map((v) => v.name)} />
+          <ColumnHeads names={versions.map((v) => versionPlaceLabel(v.name))} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
             {groups.map((g) => (
               <GroupCard
