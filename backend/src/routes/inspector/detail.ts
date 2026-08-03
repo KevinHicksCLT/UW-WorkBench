@@ -535,11 +535,36 @@ export function registerDetailRoutes(router: Router): void {
 
       // Work Library plans drive the checklist/testing content of each task card
       // (✓ defined value / ✗ missing key), including tied standard/reg steps.
-      const [plans, roleEntries, appEntries] = await Promise.all([
+      const [plans, roleEntries, appEntries, taskAttrs] = await Promise.all([
         taskPlans(taskNodeIds, { includeTied: true }),
         rolesForNodes(taskNodeIds),
         appsForNodes(taskNodeIds),
+        prisma.processNode.findMany({
+          where: { id: { in: taskNodeIds } },
+          select: { id: true, attributes: true },
+        }),
       ]);
+
+      // Task dependencies (attributes.dependsOn: task ids) → named refs.
+      const dependsOnIds = new Map<string, string[]>();
+      for (const t of taskAttrs) {
+        const dep = (t.attributes as { dependsOn?: unknown } | null)?.dependsOn;
+        if (Array.isArray(dep))
+          dependsOnIds.set(
+            t.id,
+            dep.filter((d): d is string => typeof d === 'string'),
+          );
+      }
+      const depTargets = [...new Set([...dependsOnIds.values()].flat())].filter(
+        (id) => !nameById.has(id),
+      );
+      if (depTargets.length) {
+        const rows = await prisma.processNode.findMany({
+          where: { id: { in: depTargets }, companyId: company.id },
+          select: { id: true, displayValue: true },
+        });
+        for (const r of rows) nameById.set(r.id, r.displayValue);
+      }
 
       const rolesForTask = (nodeId: string) => {
         const seen = new Map<string, { roleId: string; name: string; relation: string }>();
@@ -607,6 +632,10 @@ export function registerDetailRoutes(router: Router): void {
               roles: rolesForTask(nodeId),
               applications,
               subTasks,
+              dependsOn: (dependsOnIds.get(nodeId) ?? []).map((id) => ({
+                taskId: id,
+                name: nameById.get(id) ?? '—',
+              })),
               checklist: checklistRest,
               testing: testingRest,
               standards: p?.standards ?? [],

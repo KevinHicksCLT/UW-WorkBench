@@ -34,6 +34,7 @@ type ChainTask = {
   roles: ChainRole[];
   applications: ChainApp[];
   subTasks: ChainSubTask[];
+  dependsOn: { taskId: string; name: string }[];
   checklist: PlanRow[];
   testing: PlanRow[];
   standards: TiedPlan[];
@@ -284,6 +285,61 @@ function PlanBlock({
   );
 }
 
+// The task's declared inputs — it cannot complete until these tasks have.
+function DependsOnRow({ deps }: { deps: { taskId: string; name: string }[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1 rounded-md bg-[#fdf8ef] border border-[#ecdcc0] px-2 py-1.5">
+      <span className="text-[8px] font-bold uppercase tracking-wide text-[#b45309]">
+        Depends on
+      </span>
+      {deps.map((d) => (
+        <span
+          key={d.taskId}
+          className="text-[10px] font-medium rounded px-1.5 py-px bg-white text-[#92600e] border border-[#ecdcc0]"
+        >
+          {d.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// The generic control keys (data owner, evidence retention, reconciliation …)
+// rendered as a readable control → evidence grid instead of staying hidden.
+function ControlsBlock({ rows }: { rows: PlanRow[] }) {
+  const evidenced = rows.filter((r) => r.defined);
+  if (!evidenced.length) return null;
+  return (
+    <div
+      className="rounded-md mt-1.5"
+      style={{
+        background: '#fdf8ef',
+        border: '1px solid #ecdcc0',
+        borderLeft: '3px solid #b45309',
+      }}
+    >
+      <div className="flex items-center gap-1.5 px-2 pt-1.5">
+        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border text-[#b45309] border-[#ecdcc0]">
+          Standards &amp; controls
+        </span>
+        <span className="text-[9px] text-[#b45309]">
+          {evidenced.length}/{rows.length} evidenced
+        </span>
+      </div>
+      <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
+        {evidenced.map((r, i) => (
+          <div key={i} className="rounded bg-white border border-[#ecdcc0] px-2 py-1">
+            <div className="text-[10px] font-semibold text-[#92600e]">
+              {stripStepNumber(r.key)}
+            </div>
+            <div className="text-[10.5px] text-[#374151] leading-snug">{r.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // One structured AAA sub-task: Actor · Action · Application chips, the steps,
 // and a DoD box that folds the paired verification in (testing lives WITH the
 // definition of done, not in a separate block).
@@ -436,6 +492,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
   const [open, setOpen] = useState(true);
   const tied = [...t.standards, ...t.regulations];
   const subTasks = t.subTasks ?? [];
+  const deps = t.dependsOn ?? [];
   const checklist = t.checklist.filter((r) => !r.generic);
   const testing = t.testing.filter((r) => !r.generic);
   const kids =
@@ -489,6 +546,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
       </button>
       {open && kids > 0 && (
         <div className="px-2.5 pb-2 pl-7 flex flex-col gap-1">
+          {deps.length > 0 && <DependsOnRow deps={deps} />}
           {t.roles.length > 0 && <MiniHead>Roles</MiniHead>}
           {t.roles.map((r) => (
             <button
@@ -526,6 +584,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
             </button>
           ))}
           {subTasks.length > 0 && <SubTaskBlock subTasks={subTasks} />}
+          <ControlsBlock rows={t.checklist.filter((r) => r.generic)} />
           {checklist.length > 0 && (
             <PlanBlock
               label="Sub-tasks"
