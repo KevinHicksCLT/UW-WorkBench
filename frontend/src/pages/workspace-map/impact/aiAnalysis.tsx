@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import type { Impact, ImpactReport, ImpactRequest } from './types';
+import { DOMAIN_META, type Impact, type ImpactReport, type ImpactRequest } from './types';
 
 // The AI layer of the impact panel: a fast narrated read of the whole report
 // (POST /impact/summary) and the deep-dive that derives specific knock-on
@@ -24,34 +24,175 @@ export const IMPACT_ANIM_CSS = `
   0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
   40% { opacity: 1; transform: scale(1); }
 }
+@keyframes impactPing {
+  0% { transform: scale(0.35); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes impactGlow {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+@keyframes impactRise {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 `;
 
-/** The indeterminate scanning bar shown in each domain card while the
- *  deep-dive is running. */
-export function AnalyzingRow() {
-  return (
-    <div
-      style={{
-        border: '1px dashed #dbeafe',
-        background: '#f8fbfd',
-        borderRadius: 7,
-        padding: '8px 8px 9px',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+/** Fake-but-honest sequential progress: one domain "locks in" every couple of
+ *  seconds while the real single-shot analysis runs; the last stays scanning
+ *  until the response actually lands and the parent swaps to the report. */
+const STEP_MS = 2300;
+
+function StatusIcon({ state }: { state: 'done' | 'active' | 'pending' }) {
+  if (state === 'done') {
+    return (
+      <span
+        style={{
+          width: 15,
+          height: 15,
+          borderRadius: '50%',
+          background: LOGO_BLUE,
+          color: '#fff',
+          fontSize: 9.5,
+          fontWeight: 700,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'impactRise 0.25s ease-out',
+        }}
+      >
+        ✓
+      </span>
+    );
+  }
+  if (state === 'active') {
+    return (
+      <span style={{ position: 'relative', width: 15, height: 15, display: 'inline-block' }}>
         <span
-          aria-hidden
           style={{
-            width: 11,
-            height: 11,
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            border: `2px solid ${LOGO_BLUE}`,
+            animation: 'impactPing 1.1s ease-out infinite',
+          }}
+        />
+        <span
+          style={{
+            position: 'absolute',
+            inset: 2,
             borderRadius: '50%',
             border: '2px solid #dbeafe',
             borderTopColor: LOGO_BLUE,
-            animation: 'impactSpin 0.9s linear infinite',
+            animation: 'impactSpin 0.8s linear infinite',
           }}
         />
-        <span style={{ fontSize: 10.5, color: '#64748b' }}>
-          Deriving knock-on effects
+      </span>
+    );
+  }
+  return (
+    <span
+      style={{
+        width: 15,
+        height: 15,
+        borderRadius: '50%',
+        border: '2px solid #e2e8f0',
+        display: 'inline-block',
+      }}
+    />
+  );
+}
+
+/** The futuristic "checking every system" view shown INSTEAD of the report
+ *  body while the assessment + AI deep-dive run. A radar sweeps in the middle
+ *  and the six impact domains light up one by one beneath it. */
+export function ScannerView({ subjectName }: { subjectName: string }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setStep((s) => Math.min(s + 1, DOMAIN_META.length - 1)), STEP_MS);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div
+      style={{
+        padding: '26px 24px 30px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 18,
+      }}
+    >
+      {/* Radar */}
+      <div style={{ position: 'relative', width: 120, height: 120 }}>
+        {[0, 1].map((i) => (
+          <span
+            key={i}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              border: `1.5px solid ${LOGO_BLUE}`,
+              animation: `impactPing 2.2s ${i * 1.1}s ease-out infinite`,
+            }}
+          />
+        ))}
+        <span
+          style={{
+            position: 'absolute',
+            inset: 10,
+            borderRadius: '50%',
+            border: '1px solid #dbeafe',
+          }}
+        />
+        <span
+          style={{
+            position: 'absolute',
+            inset: 26,
+            borderRadius: '50%',
+            border: '1px solid #e8f1f7',
+          }}
+        />
+        {/* Sweep */}
+        <span
+          style={{
+            position: 'absolute',
+            inset: 10,
+            borderRadius: '50%',
+            background: `conic-gradient(from 0deg, rgba(0,112,173,0.35), rgba(0,112,173,0.06) 70deg, transparent 110deg)`,
+            animation: 'impactSpin 2.4s linear infinite',
+          }}
+        />
+        <span
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: 8,
+            height: 8,
+            marginTop: -4,
+            marginLeft: -4,
+            borderRadius: '50%',
+            background: LOGO_BLUE,
+            animation: 'impactGlow 1.4s ease-in-out infinite',
+          }}
+        />
+      </div>
+
+      <div style={{ textAlign: 'center' }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: LOGO_BLUE,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+          }}
+        >
+          Impact analysis in progress
+        </div>
+        <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 3 }}>
+          Tracing everything “{subjectName}” touches across the operating model
           {[0, 1, 2].map((i) => (
             <span
               key={i}
@@ -64,28 +205,61 @@ export function AnalyzingRow() {
               .
             </span>
           ))}
-        </span>
+        </div>
       </div>
+
+      {/* Domain checklist — lights up sequentially */}
       <div
         style={{
-          marginTop: 7,
-          height: 3,
-          borderRadius: 2,
-          background: '#e8f1f7',
-          overflow: 'hidden',
-          position: 'relative',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 260px))',
+          gap: '8px 26px',
+          width: '100%',
+          maxWidth: 620,
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '30%',
-            borderRadius: 2,
-            background: `linear-gradient(90deg, transparent, ${LOGO_BLUE}, transparent)`,
-            animation: 'impactSweep 1.4s ease-in-out infinite',
-          }}
-        />
+        {DOMAIN_META.map((d, i) => {
+          const state: 'done' | 'active' | 'pending' =
+            i < step ? 'done' : i === step ? 'active' : 'pending';
+          return (
+            <div
+              key={d.key}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 9,
+                padding: '7px 10px',
+                borderRadius: 8,
+                border: `1px solid ${state === 'pending' ? '#f1f5f9' : '#dbeafe'}`,
+                background: state === 'active' ? '#f0f7fb' : '#fff',
+                transition: 'background 0.3s, border-color 0.3s',
+              }}
+            >
+              <StatusIcon state={state} />
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: 0.4,
+                    textTransform: 'uppercase',
+                    color: state === 'pending' ? '#94a3b8' : '#171717',
+                    ...(state === 'active' ? { animation: 'impactGlow 1.3s infinite' } : {}),
+                  }}
+                >
+                  {d.label}
+                </div>
+                <div style={{ fontSize: 9, color: '#94a3b8' }}>
+                  {state === 'done'
+                    ? 'Checked'
+                    : state === 'active'
+                      ? `Scanning ${d.areas}`
+                      : d.areas}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

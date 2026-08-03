@@ -8,13 +8,7 @@ import {
   type Impact,
   type ImpactSeverity,
 } from './types';
-import {
-  AiAssessment,
-  AnalyzingRow,
-  IMPACT_ANIM_CSS,
-  LOGO_BLUE,
-  useAiAnalysis,
-} from './aiAnalysis';
+import { AiAssessment, IMPACT_ANIM_CSS, LOGO_BLUE, ScannerView, useAiAnalysis } from './aiAnalysis';
 import type { ImpactGate } from './useImpactGate';
 
 // The common change-impact panel — rendered by every lens's decision surface
@@ -66,19 +60,8 @@ function SeverityTotals({ impacts }: { impacts: Impact[] }) {
 }
 
 /** One knock-on impact domain. Always rendered — an empty card states its
- *  fixed coverage areas; while the AI deep-dive runs it shows the analyzing
- *  animation instead of "No impact detected". */
-function DomainCard({
-  label,
-  areas,
-  items,
-  analyzing,
-}: {
-  label: string;
-  areas: string;
-  items: Impact[];
-  analyzing: boolean;
-}) {
+ *  fixed coverage areas and "No impact detected". */
+function DomainCard({ label, areas, items }: { label: string; areas: string; items: Impact[] }) {
   const worst = items.length ? SEVERITY_META[items[0].severity] : null;
   return (
     <div
@@ -114,7 +97,7 @@ function DomainCard({
         </div>
         <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>{areas}</div>
       </div>
-      {items.length === 0 && !analyzing && (
+      {items.length === 0 && (
         <div style={{ fontSize: 10.5, color: '#a3a3a3' }}>No impact detected.</div>
       )}
       {items.map((impact, i) => {
@@ -163,7 +146,6 @@ function DomainCard({
           </div>
         );
       })}
-      {analyzing && <AnalyzingRow />}
     </div>
   );
 }
@@ -178,6 +160,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   const verb = CHANGE_LABELS[s.request.changeType];
   const destructive = DESTRUCTIVE.has(s.request.changeType);
   const subjectName = report?.subject.name ?? s.request.label ?? 'this change';
+  // One scan phase covers both the graph walk and the AI deep-dive — the
+  // report view appears only when the full analysis is in.
+  const scanning = s.loading || ai.loading;
   const merged = report
     ? [
         ...report.impacts,
@@ -245,16 +230,13 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               {report.subject.context}
             </div>
           )}
-          {merged.length > 0 && <SeverityTotals impacts={merged} />}
+          {!scanning && merged.length > 0 && <SeverityTotals impacts={merged} />}
         </div>
 
-        {/* Body */}
+        {/* Body — full-screen scanner while assessing/deriving, the six-card
+            report only once everything has landed. */}
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          {s.loading && (
-            <div style={{ padding: 24, fontSize: 12.5, color: '#737373' }}>
-              Assessing everything this change touches…
-            </div>
-          )}
+          {scanning && !s.error && <ScannerView subjectName={subjectName} />}
           {!s.loading && s.error && !report && (
             <div
               style={{
@@ -271,10 +253,10 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               have not been reviewed.
             </div>
           )}
-          {report && (
+          {report && !scanning && (
             <>
               <AiAssessment report={report} />
-              {merged.length === 0 && !ai.loading ? (
+              {merged.length === 0 ? (
                 <div style={{ padding: '18px 16px', fontSize: 12, color: '#737373' }}>
                   Nothing else in the model touches this — the change is self-contained.
                 </div>
@@ -294,7 +276,6 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                       label={d.label}
                       areas={d.areas}
                       items={merged.filter((i) => i.domain === d.key)}
-                      analyzing={ai.loading}
                     />
                   ))}
                 </div>
@@ -368,7 +349,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               opacity: s.busy || s.loading ? 0.6 : 1,
             }}
           >
-            {s.busy ? 'Applying…' : `Proceed — ${verb.toLowerCase()}`}
+            {s.busy ? 'Applying…' : 'Proceed'}
           </button>
         </div>
       </div>
