@@ -512,8 +512,11 @@ export function registerDetailRoutes(router: Router): void {
 
       const { nodes } = await processSubtree(node.id);
       const detail = node.isTask;
-      const scopeIds = detail ? [node.id] : nodes.map((n) => n.id);
+      // Scope is always the whole subtree — a task inspected directly still
+      // brings its nested supporting/verify tasks into the chain.
+      const scopeIds = nodes.map((n) => n.id);
       const isTaskSet = new Set(nodes.filter((n) => n.isTask).map((n) => n.id));
+      const parentOf = new Map(nodes.map((n) => [n.id, n.parentId]));
       const nameById = new Map(nodes.map((n) => [n.id, n.displayValue]));
       nameById.set(node.id, node.displayValue);
 
@@ -614,9 +617,23 @@ export function registerDetailRoutes(router: Router): void {
           e.taskIds.push({ nodeId: l.processNodeId, linkId: l.id });
       }
 
+      type ChainTaskCard = {
+        taskId: string;
+        name: string;
+        roles: ReturnType<typeof rolesForTask>;
+        applications: ReturnType<typeof appsForTask>;
+        subTasks: ReturnType<typeof parseAaaSubTasks>['subTasks'];
+        dependsOn: { taskId: string; name: string }[];
+        checklist: TaskPlan['checklist'];
+        testing: TaskPlan['testing'];
+        standards: TaskPlan['standards'];
+        regulations: TaskPlan['regulations'];
+        children: ChainTaskCard[];
+      };
       const chain = [...byDeliv.entries()]
         .map(([deliverableId, d]) => {
-          const tasks = d.taskIds.map(({ nodeId }) => {
+          const cards = new Map<string, ChainTaskCard>();
+          for (const { nodeId } of d.taskIds) {
             const p = plans.get(nodeId);
             const applications = appsForTask(nodeId);
             // Structured AAA sub-tasks (actor · action · application + DoD with
@@ -626,7 +643,7 @@ export function registerDetailRoutes(router: Router): void {
               p?.testing ?? [],
               applications.map((a) => a.name),
             );
-            return {
+            cards.set(nodeId, {
               taskId: nodeId,
               name: nameById.get(nodeId) ?? '—',
               roles: rolesForTask(nodeId),
@@ -640,8 +657,20 @@ export function registerDetailRoutes(router: Router): void {
               testing: testingRest,
               standards: p?.standards ?? [],
               regulations: p?.regulations ?? [],
-            };
-          });
+              children: [],
+            });
+          }
+          // A task nested under another task in the same set renders INSIDE its
+          // main task's card (supporting / verification work), not as a peer.
+          const tasks: ChainTaskCard[] = [];
+          for (const card of cards.values()) {
+            const parent = parentOf.get(card.taskId);
+            const parentCard = parent ? cards.get(parent) : undefined;
+            if (parentCard) parentCard.children.push(card);
+            else tasks.push(card);
+          }
+          for (const card of cards.values())
+            card.children.sort((a, b) => a.name.localeCompare(b.name));
           // Deliverable roll-up = verified/total across its tasks' plan rows.
           let defined = 0;
           let total = 0;

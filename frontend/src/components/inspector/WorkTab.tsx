@@ -39,6 +39,7 @@ type ChainTask = {
   testing: PlanRow[];
   standards: TiedPlan[];
   regulations: TiedPlan[];
+  children: ChainTask[];
 };
 type ChainDeliv = {
   deliverableId: string;
@@ -329,9 +330,7 @@ function ControlsBlock({ rows }: { rows: PlanRow[] }) {
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
         {evidenced.map((r, i) => (
           <div key={i} className="rounded bg-white border border-[#ecdcc0] px-2 py-1">
-            <div className="text-[10px] font-semibold text-[#92600e]">
-              {stripStepNumber(r.key)}
-            </div>
+            <div className="text-[10px] font-semibold text-[#92600e]">{stripStepNumber(r.key)}</div>
             <div className="text-[10.5px] text-[#374151] leading-snug">{r.value}</div>
           </div>
         ))}
@@ -487,12 +486,22 @@ function TiedBlock({
   );
 }
 
-function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
+function TaskChain({
+  t,
+  onNav,
+  nested = false,
+}: {
+  t: ChainTask;
+  onNav: (p: string) => void;
+  nested?: boolean;
+}) {
   const openRole = useOpenRole();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!nested);
   const tied = [...t.standards, ...t.regulations];
   const subTasks = t.subTasks ?? [];
   const deps = t.dependsOn ?? [];
+  const children = t.children ?? [];
+  const isVerify = /^verify\b/i.test(t.name);
   const checklist = t.checklist.filter((r) => !r.generic);
   const testing = t.testing.filter((r) => !r.generic);
   const kids =
@@ -501,7 +510,8 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
     subTasks.length +
     checklist.length +
     testing.length +
-    tied.length;
+    tied.length +
+    children.length;
   const allRows = [
     ...checklist,
     ...testing,
@@ -534,8 +544,17 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
             <path d="M9 6l6 6-6 6" />
           </svg>
         )}
-        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white text-[#6d28d9] border border-[#ded5f8] flex-shrink-0">
-          Task
+        <span
+          className={
+            'text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border flex-shrink-0 ' +
+            (nested
+              ? isVerify
+                ? 'text-[#1d4ed8] border-[#cdddf5]'
+                : 'text-[#92600e] border-[#ecdcc0]'
+              : 'text-[#6d28d9] border-[#ded5f8]')
+          }
+        >
+          {nested ? (isVerify ? 'Verification' : 'Supporting task') : 'Task'}
         </span>
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
         {total > 0 && (
@@ -620,6 +639,14 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
               border="#f2cdd8"
               items={t.regulations}
             />
+          )}
+          {children.length > 0 && (
+            <>
+              <MiniHead>Supporting tasks · {children.length}</MiniHead>
+              {children.map((c) => (
+                <TaskChain key={c.taskId} t={c} onNav={onNav} nested />
+              ))}
+            </>
           )}
         </div>
       )}
