@@ -32,7 +32,7 @@ type TaskSlice = {
   division: string | null;
   deliverableTitle: string | null;
   owner: string | null;
-  deliverableId: string | null;
+  valueStreamName: string | null;
 };
 
 export function useWorkToc(
@@ -85,11 +85,6 @@ export function useWorkToc(
 
   const group = groups.find((g) => g.key === groupBy) ?? groups[0];
 
-  const vsByDeliverable = useMemo(
-    () => new Map(deliverables.map((d) => [d.id, d.valueStreamName ?? dash])),
-    [deliverables, dash],
-  );
-
   // Values a row belongs to under the active grouping — multi-valued for
   // deliverable roles (one deliverable counts once per assigned role). Each
   // accessor mirrors the matching List column's filter value exactly.
@@ -105,9 +100,12 @@ export function useWorkToc(
         if (group.key === 'division') return [t.division ?? dash];
         if (group.key === 'deliverable') return [t.deliverableTitle ?? dash];
         if (group.key === 'role') return [t.owner ?? dash];
-        return [t.deliverableId ? (vsByDeliverable.get(t.deliverableId) ?? dash) : dash];
+        // The task's OWN resolved value stream (closure-derived server-side) —
+        // no detour through the deliverables list, which the Tasks tab no
+        // longer loads.
+        return [t.valueStreamName ?? dash];
       },
-    [tab, group, vsByDeliverable, dash],
+    [tab, group, dash],
   );
 
   // Clicking a TOC row drills into that group (Standards-style descent).

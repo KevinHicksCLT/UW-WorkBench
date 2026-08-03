@@ -60,6 +60,8 @@ export async function assessProcessNodes(
     initLinks,
     extCount,
     ancestry,
+    testingTemplateCount,
+    testPlanCount,
   ] = await Promise.all([
     prisma.processNode.count({ where: { id: { in: scopeIds }, isTask: true } }),
     rolesForNodes(scopeIds),
@@ -83,6 +85,10 @@ export async function assessProcessNodes(
     }),
     prisma.externalInteraction.count({ where: { processNodeId: { in: scopeIds } } }),
     streamAncestry(rootIds),
+    prisma.testingTemplate.count({ where: { taskNodeId: { in: scopeIds } } }),
+    prisma.nodeWorkTemplate.count({
+      where: { processNodeId: { in: scopeIds }, template: { kind: 'TEST' } },
+    }),
   ]);
 
   const impacts: Impact[] = [];
@@ -106,6 +112,7 @@ export async function assessProcessNodes(
     ITEM_CAP,
     (id) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'deliverables',
       entityType: 'Deliverable',
       entityId: id,
@@ -114,6 +121,7 @@ export async function assessProcessNodes(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'deliverables',
       entityType: 'Deliverable',
       entityId: null,
@@ -126,6 +134,7 @@ export async function assessProcessNodes(
   if (coDeliv.length) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'operational',
       category: 'deliverables',
       entityType: 'Deliverable',
       entityId: null,
@@ -143,6 +152,7 @@ export async function assessProcessNodes(
     ITEM_CAP,
     ([id, title]) => ({
       severity: grade('BREAKING', cls),
+      domain: 'compliance',
       category: 'compliance',
       entityType: 'Regulation',
       entityId: id,
@@ -151,6 +161,7 @@ export async function assessProcessNodes(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'compliance',
       category: 'compliance',
       entityType: 'Regulation',
       entityId: null,
@@ -163,6 +174,7 @@ export async function assessProcessNodes(
   if (stdCount) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'compliance',
       category: 'standards',
       entityType: 'Standard',
       entityId: null,
@@ -191,6 +203,7 @@ export async function assessProcessNodes(
     ITEM_CAP,
     ([id, v]) => ({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'roles',
       entityType: 'Role',
       entityId: id,
@@ -200,6 +213,7 @@ export async function assessProcessNodes(
     }),
     (rest) => ({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'roles',
       entityType: 'Role',
       entityId: null,
@@ -212,6 +226,7 @@ export async function assessProcessNodes(
   if (participants.length) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'operational',
       category: 'roles',
       entityType: 'Role',
       entityId: null,
@@ -240,6 +255,7 @@ export async function assessProcessNodes(
     ITEM_CAP,
     ([id, v]) => ({
       severity: grade('HIGH', cls),
+      domain: 'technology',
       category: 'applications',
       entityType: 'Application',
       entityId: id,
@@ -249,6 +265,7 @@ export async function assessProcessNodes(
     }),
     (rest) => ({
       severity: grade('HIGH', cls),
+      domain: 'technology',
       category: 'applications',
       entityType: 'Application',
       entityId: null,
@@ -257,16 +274,42 @@ export async function assessProcessNodes(
       count: rest.length,
     }),
   );
+  // Systems of record memorializing the scope's outputs are a DATA impact —
+  // their data model, warehouse feeds, and reporting change with the work.
   const memorializing = [...byApp.values()].filter((v) => v.performed === 0 && v.memorialized > 0);
   if (memorializing.length) {
     impacts.push({
-      severity: grade('LOW', cls),
+      severity: grade('MEDIUM', cls),
+      domain: 'data',
       category: 'applications',
       entityType: 'Application',
       entityId: null,
       entityName: `${memorializing.length} system${memorializing.length === 1 ? '' : 's'} of record`,
-      description: 'Memorialize outputs of this scope.',
+      description:
+        'Memorialize outputs of this scope — records, warehouse feeds and downstream analytics change.',
       count: memorializing.length,
+    });
+  }
+
+  // Testing assets attached to the scope's tasks — verification templates and
+  // test-pattern work plans that must be rewritten or retired with the work.
+  if (testingTemplateCount + testPlanCount > 0) {
+    const parts = [
+      testingTemplateCount
+        ? `${testingTemplateCount} testing template${testingTemplateCount === 1 ? '' : 's'}`
+        : null,
+      testPlanCount ? `${testPlanCount} test plan${testPlanCount === 1 ? '' : 's'}` : null,
+    ].filter(Boolean);
+    impacts.push({
+      severity: grade('MEDIUM', cls),
+      domain: 'testing',
+      category: 'testing',
+      entityType: 'TestingTemplate',
+      entityId: null,
+      entityName: parts.join(' · '),
+      description:
+        'Attached to tasks in this scope — test scripts, UAT and regression packs need updating.',
+      count: testingTemplateCount + testPlanCount,
     });
   }
 
@@ -278,6 +321,7 @@ export async function assessProcessNodes(
     ITEM_CAP,
     ([id, name]) => ({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'initiatives',
       entityType: 'Initiative',
       entityId: id,
@@ -286,6 +330,7 @@ export async function assessProcessNodes(
     }),
     (rest) => ({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'initiatives',
       entityType: 'Initiative',
       entityId: null,
@@ -297,6 +342,7 @@ export async function assessProcessNodes(
   if (checklistCount) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'operational',
       category: 'checklists',
       entityType: 'ChecklistItem',
       entityId: null,
@@ -308,6 +354,7 @@ export async function assessProcessNodes(
   if (extCount) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'operational',
       category: 'external',
       entityType: 'ExternalInteraction',
       entityId: null,
@@ -320,6 +367,7 @@ export async function assessProcessNodes(
   // Scope line — always present so the report states what was walked.
   impacts.push({
     severity: 'LOW',
+    domain: 'operational',
     category: 'scope',
     entityType: 'ProcessNode',
     entityId: rootIds[0],

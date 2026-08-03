@@ -65,6 +65,7 @@ export async function assessRole(
     ITEM_CAP,
     (l) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: l.processNodeId,
@@ -73,6 +74,7 @@ export async function assessRole(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -85,6 +87,7 @@ export async function assessRole(
   if (coOwnedCount > 0) {
     impacts.push({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -97,6 +100,7 @@ export async function assessRole(
   if (participant > 0) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -108,13 +112,16 @@ export async function assessRole(
 
   // Role-global responsibilities only make sense for whole-role changes.
   if (!stepScope) {
-    const [delivs, stds, regs] = await Promise.all([
+    const [delivs, stds, regs, testingTemplates] = await Promise.all([
       prisma.roleDeliverable.findMany({
         where: { roleId },
         select: { deliverableId: true, role_: true, deliverable: { select: { title: true } } },
       }),
       prisma.roleStandard.count({ where: { roleId } }),
       prisma.roleRegulation.count({ where: { roleId } }),
+      prisma.testingTemplate.count({
+        where: { deliverable: { roleDeliverables: { some: { roleId } } } },
+      }),
     ]);
     const ownedDelivs = delivs.filter((d) => d.role_ === 'Owner');
     const otherDelivOwners = ownedDelivs.length
@@ -135,6 +142,7 @@ export async function assessRole(
       ITEM_CAP,
       (d) => ({
         severity: grade('BREAKING', cls),
+        domain: 'operational',
         category: 'deliverables',
         entityType: 'Deliverable',
         entityId: d.deliverableId,
@@ -143,6 +151,7 @@ export async function assessRole(
       }),
       (rest) => ({
         severity: grade('BREAKING', cls),
+        domain: 'operational',
         category: 'deliverables',
         entityType: 'Deliverable',
         entityId: null,
@@ -155,6 +164,7 @@ export async function assessRole(
     if (contribDelivs > 0) {
       impacts.push({
         severity: grade('MEDIUM', cls),
+        domain: 'operational',
         category: 'deliverables',
         entityType: 'Deliverable',
         entityId: null,
@@ -166,6 +176,7 @@ export async function assessRole(
     if (stds + regs > 0) {
       impacts.push({
         severity: grade('HIGH', cls),
+        domain: 'compliance',
         category: 'compliance',
         entityType: 'Role',
         entityId: role.id,
@@ -177,6 +188,7 @@ export async function assessRole(
     if (role._count.ownedStandards) {
       impacts.push({
         severity: grade('HIGH', cls),
+        domain: 'compliance',
         category: 'standards',
         entityType: 'Standard',
         entityId: null,
@@ -188,6 +200,7 @@ export async function assessRole(
     if (role._count.reports) {
       impacts.push({
         severity: grade('HIGH', cls),
+        domain: 'operational',
         category: 'org',
         entityType: 'Role',
         entityId: null,
@@ -199,12 +212,26 @@ export async function assessRole(
     if (role._count.checklistItems) {
       impacts.push({
         severity: grade('MEDIUM', cls),
+        domain: 'operational',
         category: 'checklists',
         entityType: 'ChecklistItem',
         entityId: null,
         entityName: `${role._count.checklistItems} checklist item${role._count.checklistItems === 1 ? '' : 's'}`,
         description: 'Checklist duties assigned to this role become unassigned.',
         count: role._count.checklistItems,
+      });
+    }
+    if (testingTemplates) {
+      impacts.push({
+        severity: grade('MEDIUM', cls),
+        domain: 'testing',
+        category: 'testing',
+        entityType: 'TestingTemplate',
+        entityId: null,
+        entityName: `${testingTemplates} testing template${testingTemplates === 1 ? '' : 's'}`,
+        description:
+          'Verify deliverables this role owns or contributes to — UAT and regression packs lose their subject-matter owner.',
+        count: testingTemplates,
       });
     }
   }
@@ -218,6 +245,7 @@ export async function assessRole(
   if (streams.length) {
     impacts.push({
       severity: 'LOW',
+      domain: 'operational',
       category: 'scope',
       entityType: 'Role',
       entityId: role.id,

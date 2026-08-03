@@ -4,7 +4,7 @@ export { structureCounts, invalidateStructureCounts } from './structureCounts.js
 export type { StructureCounts } from './structureCounts.js';
 export { processSubtree, processSubtrees, orgSubtree } from './subtree.js';
 export type { SubtreeOptions, ProcessSubtreeNode, OrgSubtreeNode } from './subtree.js';
-export { ancestorNames, streamAncestry } from './ancestorNames.js';
+export { ancestorNames, companyTaskAncestorNames, streamAncestry } from './ancestorNames.js';
 export type { AncestorNames, StreamAncestry } from './ancestorNames.js';
 export { rolesForNodes, rolesForNodesByRelation } from './rolesForNodes.js';
 export type { NodeRoleEntry } from './rolesForNodes.js';

@@ -13,7 +13,8 @@ import { assessApplication } from './application.js';
 import { assessProduct } from './product.js';
 
 const id = z.string().trim().min(1);
-const subjectSchema = z.discriminatedUnion('kind', [
+/** Shared with /impact/analyze — the AI deep-dive takes the same subject. */
+export const subjectSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('process-nodes'), nodeIds: z.array(id).min(1).max(200) }),
   z.object({ kind: z.literal('role'), roleId: id, taskIds: z.array(id).max(500).optional() }),
   z.object({

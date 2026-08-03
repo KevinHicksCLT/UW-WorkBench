@@ -8,10 +8,12 @@ import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { registerAssessRoutes } from './assess.js';
 import { registerSummaryRoutes } from './summary.js';
+import { registerAnalyzeRoutes } from './analyze.js';
 
 const router = Router();
 router.use(requireAuth);
 registerAssessRoutes(router);
 registerSummaryRoutes(router);
+registerAnalyzeRoutes(router);
 
 export default router;
