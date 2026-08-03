@@ -16,11 +16,24 @@ import type { AfterFn, Payload, PlanRow, TiedPlan } from './types';
 // ── Deliverable chain payload (mirrors GET /inspector/:nodeId/chain) ─────────
 type ChainRole = { roleId: string; name: string; relation: string };
 type ChainApp = { appId: string; name: string; usageType: string };
+type ChainVerify = { actor: string | null; steps: string[]; passWhen: string | null };
+type ChainSubTask = {
+  n: number;
+  action: string;
+  actor: string | null;
+  steps: string[];
+  doneWhen: string | null;
+  apps: string[];
+  artifact: string | null;
+  verify: ChainVerify | null;
+  defined: boolean;
+};
 type ChainTask = {
   taskId: string;
   name: string;
   roles: ChainRole[];
   applications: ChainApp[];
+  subTasks: ChainSubTask[];
   checklist: PlanRow[];
   testing: PlanRow[];
   standards: TiedPlan[];
@@ -271,6 +284,99 @@ function PlanBlock({
   );
 }
 
+// One structured AAA sub-task: Actor · Action · Application chips, the steps,
+// and a DoD box that folds the paired verification in (testing lives WITH the
+// definition of done, not in a separate block).
+function SubTaskCard({ s }: { s: ChainSubTask }) {
+  return (
+    <div className="rounded-md bg-white border border-[#cbead9] px-2 py-1.5">
+      <div className="flex items-start gap-1.5">
+        <span className="text-[10.5px] tabular-nums text-[#6b7785] mt-px flex-shrink-0">
+          {s.n}.
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11.5px] font-medium text-[#171717] leading-snug">{s.action}</div>
+          <div className="flex flex-wrap items-center gap-1 mt-1">
+            {s.actor && (
+              <span className="text-[9px] font-semibold rounded px-1.5 py-px bg-[#e9f7ef] text-[#196f3d] border border-[#cbead9]">
+                {s.actor}
+              </span>
+            )}
+            {(s.artifact ? [s.artifact] : s.apps).map((a) => (
+              <span
+                key={a}
+                className="text-[9px] font-semibold rounded px-1.5 py-px bg-[#eef4fe] text-[#1d4ed8] border border-[#cdddf5]"
+              >
+                {a}
+              </span>
+            ))}
+          </div>
+          {s.steps.length > 0 && (
+            <div className="mt-1 flex flex-col gap-0.5">
+              {s.steps.map((st, i) => (
+                <div key={i} className="flex items-start gap-1.5">
+                  <span className="text-[9.5px] tabular-nums text-[#a3a3a3] mt-px flex-shrink-0">
+                    {i + 1})
+                  </span>
+                  <span className="text-[11px] text-[#374151] leading-snug">{st}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {(s.doneWhen || s.verify) && (
+            <div className="mt-1.5 rounded bg-[#f2faf6] border border-[#cbead9] px-1.5 py-1">
+              <span className="text-[8px] font-bold uppercase tracking-wide text-[#196f3d]">
+                Done when
+              </span>
+              {s.doneWhen && (
+                <div className="text-[10.5px] text-[#15603f] leading-snug">{s.doneWhen}</div>
+              )}
+              {s.verify && (
+                <div className="mt-0.5 text-[10px] text-[#1d4ed8] leading-snug">
+                  <span className="font-semibold">
+                    Verified{s.verify.actor ? ` by the ${s.verify.actor}` : ''}
+                  </span>
+                  {s.verify.passWhen && <> — pass when {s.verify.passWhen}</>}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// The AAA sub-task block replacing the flat Sub-tasks / Sub-task testing pair.
+function SubTaskBlock({ subTasks }: { subTasks: ChainSubTask[] }) {
+  const defined = subTasks.filter((s) => s.defined).length;
+  return (
+    <div
+      className="rounded-md mt-1.5"
+      style={{
+        background: '#f2faf6',
+        border: '1px solid #cbead9',
+        borderLeft: '3px solid #1e9e6a',
+      }}
+    >
+      <div className="flex items-center gap-1.5 px-2 pt-1.5">
+        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border text-[#1e9e6a] border-[#cbead9]">
+          Sub-tasks
+        </span>
+        <span className="text-[9px] text-[#1e9e6a]">
+          {defined}/{subTasks.length}
+        </span>
+        <span className="text-[8.5px] text-[#8ba99a]">actor · action · application</span>
+      </div>
+      <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
+        {subTasks.map((s) => (
+          <SubTaskCard key={s.n} s={s} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Standards / Regulations as their own colored sub-cards: header chip + count,
 // one titled group per tied item, dashed divider between items.
 function TiedBlock({
@@ -329,16 +435,24 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
   const openRole = useOpenRole();
   const [open, setOpen] = useState(true);
   const tied = [...t.standards, ...t.regulations];
+  const subTasks = t.subTasks ?? [];
   const checklist = t.checklist.filter((r) => !r.generic);
   const testing = t.testing.filter((r) => !r.generic);
   const kids =
-    t.roles.length + t.applications.length + checklist.length + testing.length + tied.length;
+    t.roles.length +
+    t.applications.length +
+    subTasks.length +
+    checklist.length +
+    testing.length +
+    tied.length;
   const allRows = [
     ...checklist,
     ...testing,
     ...tied.flatMap((x) => [...x.checklist, ...x.testing]),
   ];
-  const defined = allRows.filter((r) => r.defined).length;
+  const total = allRows.length + subTasks.length;
+  const defined =
+    allRows.filter((r) => r.defined).length + subTasks.filter((s) => s.defined).length;
   return (
     <div
       className="rounded-lg bg-[#faf8ff] border border-[#ded5f8]"
@@ -367,9 +481,9 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
           Task
         </span>
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
-        {allRows.length > 0 && (
+        {total > 0 && (
           <span className="text-[9px] text-[#7c5db8]">
-            {defined}/{allRows.length}
+            {defined}/{total}
           </span>
         )}
       </button>
@@ -411,6 +525,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
               )}
             </button>
           ))}
+          {subTasks.length > 0 && <SubTaskBlock subTasks={subTasks} />}
           {checklist.length > 0 && (
             <PlanBlock
               label="Sub-tasks"

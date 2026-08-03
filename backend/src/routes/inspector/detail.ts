@@ -7,6 +7,7 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
 import { processSubtree, rolesForNodes, appsForNodes } from '../../lib/resolvers/index.js';
 import { taskPlans, subtreePlanRollup, type TaskPlan } from '../../lib/workPlan.js';
+import { parseAaaSubTasks } from '../../lib/subTaskAaa.js';
 import { subtreeStandards, subtreeRegulations } from '../../lib/govRollup.js';
 import { SCORE_OF, activeCompany, ownedNode } from './helpers.js';
 
@@ -592,13 +593,22 @@ export function registerDetailRoutes(router: Router): void {
         .map(([deliverableId, d]) => {
           const tasks = d.taskIds.map(({ nodeId }) => {
             const p = plans.get(nodeId);
+            const applications = appsForTask(nodeId);
+            // Structured AAA sub-tasks (actor · action · application + DoD with
+            // the paired Verify row folded in); unparsed rows flow on untouched.
+            const { subTasks, checklistRest, testingRest } = parseAaaSubTasks(
+              p?.checklist ?? [],
+              p?.testing ?? [],
+              applications.map((a) => a.name),
+            );
             return {
               taskId: nodeId,
               name: nameById.get(nodeId) ?? '—',
               roles: rolesForTask(nodeId),
-              applications: appsForTask(nodeId),
-              checklist: p?.checklist ?? [],
-              testing: p?.testing ?? [],
+              applications,
+              subTasks,
+              checklist: checklistRest,
+              testing: testingRest,
               standards: p?.standards ?? [],
               regulations: p?.regulations ?? [],
             };
