@@ -24,6 +24,7 @@ function anthropic(): Anthropic | null {
 
 const impactSchema = z.object({
   severity: z.enum(['BREAKING', 'HIGH', 'MEDIUM', 'LOW']),
+  domain: z.string().max(20).optional(),
   category: z.string().max(40),
   entityName: z.string().max(300),
   description: z.string().max(500),
@@ -66,7 +67,8 @@ export function registerSummaryRoutes(router: Router): void {
 
       const { subject, changeType, summary, impacts } = parsed.data;
       const lines = impacts.map(
-        (i) => `[${i.severity}] (${i.category}) ${i.entityName} — ${i.description}`,
+        (i) =>
+          `[${i.severity}] (${i.domain ? `${i.domain} impact · ` : ''}${i.category}) ${i.entityName} — ${i.description}`,
       );
       const prompt = [
         `Change: ${changeType} "${subject.name}"${subject.context ? ` (${subject.context})` : ''} — subject kind: ${subject.kind}.`,

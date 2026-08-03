@@ -27,8 +27,12 @@ export interface ImpactRequest {
   subject: ImpactSubject;
 }
 
+export type ImpactDomain =
+  'product' | 'technology' | 'data' | 'operational' | 'compliance' | 'testing';
+
 export interface Impact {
   severity: ImpactSeverity;
+  domain: ImpactDomain;
   category: string;
   entityType: string;
   entityId: string | null;
@@ -70,6 +74,22 @@ export const CHANGE_LABELS: Record<ChangeType, string> = {
 
 export const DESTRUCTIVE = new Set<ChangeType>(['RETIRE', 'DROP', 'DEPRECATE', 'REPLACE']);
 
+/** The six knock-on impact domains, in display order. `areas` is the fixed
+ *  checklist of what each domain covers — shown even when nothing was found,
+ *  so an empty domain reads as "checked, no impact", not "not checked". */
+export const DOMAIN_META: { key: ImpactDomain; label: string; areas: string }[] = [
+  { key: 'product', label: 'Product Impact', areas: 'Product models · Variants · States' },
+  { key: 'technology', label: 'Technology Impact', areas: 'Core systems · Rating · APIs' },
+  { key: 'data', label: 'Data Impact', areas: 'Data model · Data warehouse · Analytics' },
+  {
+    key: 'operational',
+    label: 'Operational Impact',
+    areas: 'Underwriting · Service · Claims · Billing',
+  },
+  { key: 'compliance', label: 'Compliance Impact', areas: 'Filings · Forms · Regulatory notices' },
+  { key: 'testing', label: 'Testing Impact', areas: 'Test scripts · UAT · Regression packs' },
+];
+
 export const CATEGORY_LABELS: Record<string, string> = {
   tasks: 'Tasks & process',
   roles: 'Roles & people',
@@ -80,6 +100,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   checklists: 'Checklists',
   initiatives: 'Initiatives',
   products: 'Product model',
+  testing: 'Testing & verification',
   external: 'External parties',
   org: 'Organization',
   scope: 'Scope',

@@ -85,6 +85,7 @@ export async function assessApplication(
     ITEM_CAP,
     ([id, name]) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: id,
@@ -93,6 +94,7 @@ export async function assessApplication(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -105,6 +107,7 @@ export async function assessApplication(
   if (coTasks > 0) {
     impacts.push({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -113,16 +116,40 @@ export async function assessApplication(
       count: coTasks,
     });
   }
+  // Record-keeping is a DATA impact — the records, the warehouse feeds and the
+  // analytics built on them need a new home, not just the tasks.
   const memorialized = usage.length - performed.length;
   if (memorialized > 0) {
     impacts.push({
-      severity: grade('MEDIUM', cls),
+      severity: grade('HIGH', cls),
+      domain: 'data',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
       entityName: `${memorialized} record-keeping link${memorialized === 1 ? '' : 's'}`,
-      description: 'Tasks memorialize their outputs here — records need a new system of record.',
+      description:
+        'Tasks memorialize their outputs here — records, data model and downstream reporting need a new system of record.',
       count: memorialized,
+    });
+  }
+
+  // Test & checklist evidence steps that point at this application by FK.
+  const testSteps = estateIds.length
+    ? await prisma.nodeTemplateAnswer.count({
+        where: { applicationId: { in: estateIds }, companyId },
+      })
+    : 0;
+  if (testSteps > 0) {
+    impacts.push({
+      severity: grade('MEDIUM', cls),
+      domain: 'testing',
+      category: 'testing',
+      entityType: 'NodeTemplateAnswer',
+      entityId: null,
+      entityName: `${testSteps} work-plan step${testSteps === 1 ? '' : 's'} reference this application`,
+      description:
+        'Test and checklist steps name this system — scripts, UAT and regression packs must be repointed.',
+      count: testSteps,
     });
   }
 
@@ -139,6 +166,7 @@ export async function assessApplication(
     ITEM_CAP,
     ([id, title]) => ({
       severity: grade('BREAKING', cls),
+      domain: 'compliance',
       category: 'compliance',
       entityType: 'Regulation',
       entityId: id,
@@ -147,6 +175,7 @@ export async function assessApplication(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'compliance',
       category: 'compliance',
       entityType: 'Regulation',
       entityId: null,
@@ -165,6 +194,7 @@ export async function assessApplication(
     if (roles.size) {
       impacts.push({
         severity: grade('MEDIUM', cls),
+        domain: 'operational',
         category: 'roles',
         entityType: 'Role',
         entityId: null,
@@ -180,6 +210,7 @@ export async function assessApplication(
     if (streams.length) {
       impacts.push({
         severity: 'LOW',
+        domain: 'operational',
         category: 'scope',
         entityType: 'Application',
         entityId: estateIds[0] ?? null,
@@ -204,6 +235,7 @@ export async function assessApplication(
     if (sharedDeps) {
       impacts.push({
         severity: grade('HIGH', cls),
+        domain: 'technology',
         category: 'applications',
         entityType: 'RationalizationCapability',
         entityId: null,
@@ -215,6 +247,7 @@ export async function assessApplication(
     if (screens) {
       impacts.push({
         severity: grade('LOW', cls),
+        domain: 'technology',
         category: 'applications',
         entityType: 'ScreenAsset',
         entityId: null,
@@ -227,6 +260,7 @@ export async function assessApplication(
   if (!apps.length && rApps.length) {
     impacts.push({
       severity: 'LOW',
+      domain: 'technology',
       category: 'scope',
       entityType: 'RationalizationApp',
       entityId: rApps[0].id,

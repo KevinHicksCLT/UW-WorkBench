@@ -5,6 +5,7 @@
 // bridge to systems of record), prior sign-off decisions in the same
 // component, and same-named components in other lines of business.
 import { prisma } from '../../db/prisma.js';
+import { parseStates } from '../../lib/resolvers/productBoard.js';
 import {
   buildReport,
   classOf,
@@ -85,7 +86,10 @@ export async function assessProduct(
   // Which versions carry the component (or, when an element is named, carry
   // that element inside the component)?
   const wantedElement = subject.elementName ? norm(subject.elementName) : null;
-  const carriers = new Map<string, { versionName: string; status: string | null }>();
+  const carriers = new Map<
+    string,
+    { versionName: string; status: string | null; attributes: unknown }
+  >();
   const livesIn = new Set<string>();
   for (const c of comps) {
     const els = elementsOf(c.attributes);
@@ -98,13 +102,18 @@ export async function assessProduct(
     if (wantedElement && !relevant.length) continue;
     const version = c.parentId ? versionById.get(c.parentId) : undefined;
     if (version)
-      carriers.set(version.id, { versionName: version.displayValue, status: version.status });
+      carriers.set(version.id, {
+        versionName: version.displayValue,
+        status: version.status,
+        attributes: version.attributes,
+      });
     for (const e of relevant) if (e.livesIn) livesIn.add(e.livesIn);
   }
   if (carriers.size) {
     const names = [...carriers.values()].map((c) => c.versionName);
     impacts.push({
       severity: grade('HIGH', cls),
+      domain: 'product',
       category: 'products',
       entityType: 'ProductNode',
       entityId: null,
@@ -118,6 +127,7 @@ export async function assessProduct(
     if (live.length && cls === 'destructive') {
       impacts.push({
         severity: 'BREAKING',
+        domain: 'product',
         category: 'products',
         entityType: 'ProductNode',
         entityId: null,
@@ -125,6 +135,40 @@ export async function assessProduct(
         description: 'In-force business carries this element — retiring it changes bound policies.',
         count: live.length,
       });
+    }
+
+    // States the carrying versions are written in — the geographic footprint
+    // of the change, and (for a destructive/restructuring change) the filing
+    // obligation that follows from it.
+    const states = [
+      ...new Set(
+        [...carriers.entries()].flatMap(([, c]) => parseStates(c.attributes, c.versionName)),
+      ),
+    ].sort();
+    if (states.length) {
+      impacts.push({
+        severity: grade('HIGH', cls),
+        domain: 'product',
+        category: 'products',
+        entityType: 'ProductNode',
+        entityId: null,
+        entityName: `${states.length} state${states.length === 1 ? '' : 's'} carry this element`,
+        description: `${states.slice(0, 12).join(', ')}${states.length > 12 ? '…' : ''} — every state version realigns.`,
+        count: states.length,
+      });
+      if (cls !== 'adopt') {
+        impacts.push({
+          severity: grade('HIGH', cls),
+          domain: 'compliance',
+          category: 'compliance',
+          entityType: 'ProductNode',
+          entityId: null,
+          entityName: `Filings in ${states.length} state${states.length === 1 ? '' : 's'}`,
+          description:
+            'Changing a filed element requires form amendments, rate/rule filings and regulatory notices in each state that carries it.',
+          count: states.length,
+        });
+      }
     }
   }
 
@@ -149,6 +193,7 @@ export async function assessProduct(
       ITEM_CAP,
       ([id, m]) => ({
         severity: grade(m.kind === 'SystemOfRecord' ? 'BREAKING' : 'HIGH', cls),
+        domain: 'technology',
         category: 'applications',
         entityType: 'Application',
         entityId: id,
@@ -157,6 +202,7 @@ export async function assessProduct(
       }),
       (rest) => ({
         severity: grade('HIGH', cls),
+        domain: 'technology',
         category: 'applications',
         entityType: 'Application',
         entityId: null,
@@ -165,16 +211,33 @@ export async function assessProduct(
         count: rest.length,
       }),
     );
+    // Systems of record among the matches are a DATA impact too — the element
+    // lives in their data model and flows into the warehouse and analytics.
+    const sorCount = [...matched.values()].filter((m) => m.kind === 'SystemOfRecord').length;
+    if (sorCount) {
+      impacts.push({
+        severity: grade('HIGH', cls),
+        domain: 'data',
+        category: 'applications',
+        entityType: 'Application',
+        entityId: null,
+        entityName: `${sorCount} system${sorCount === 1 ? '' : 's'} of record hold this element`,
+        description:
+          'The element sits in their data model — warehouse feeds, extracts and analytics built on it change.',
+        count: sorCount,
+      });
+    }
     const matchedTexts = new Set([...matched.values()].map((m) => m.where));
     const unmatched = [...livesIn].filter((t) => !matchedTexts.has(t));
     if (unmatched.length) {
       impacts.push({
         severity: grade('MEDIUM', cls),
+        domain: 'data',
         category: 'applications',
         entityType: 'SourceLocation',
         entityId: null,
         entityName: `${unmatched.length} source location${unmatched.length === 1 ? '' : 's'} outside the catalog`,
-        description: `${unmatched.slice(0, 4).join(' · ')}${unmatched.length > 4 ? '…' : ''}`,
+        description: `Where the element lives today: ${unmatched.slice(0, 4).join(' · ')}${unmatched.length > 4 ? '…' : ''}`,
         count: unmatched.length,
       });
     }
@@ -188,6 +251,7 @@ export async function assessProduct(
   if (priorDecisions) {
     impacts.push({
       severity: grade('MEDIUM', cls),
+      domain: 'product',
       category: 'products',
       entityType: 'ProductNormalizationDecision',
       entityId: null,
@@ -210,6 +274,7 @@ export async function assessProduct(
   if (crossLob) {
     impacts.push({
       severity: 'LOW',
+      domain: 'product',
       category: 'products',
       entityType: 'ProductNode',
       entityId: null,
@@ -221,6 +286,7 @@ export async function assessProduct(
 
   impacts.push({
     severity: 'LOW',
+    domain: 'product',
     category: 'scope',
     entityType: 'ProductNode',
     entityId: lob.id,

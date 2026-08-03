@@ -5,6 +5,7 @@ import {
   CATEGORY_LABELS,
   CHANGE_LABELS,
   DESTRUCTIVE,
+  DOMAIN_META,
   SEVERITY_META,
   type ImpactReport,
   type ImpactSeverity,
@@ -12,11 +13,13 @@ import {
 import type { ImpactGate } from './useImpactGate';
 
 // The common change-impact panel — rendered by every lens's decision surface
-// over the same gate. The report reads as a board: one column per severity
-// (Breaking › High › Medium › Info) with the touched entities organized
-// beneath, plus a fast AI read of the whole report on top. Brand accents use
-// the Capgemini logo blue. zIndex 70: stacks ABOVE ReviewModal (60), which
-// stays open underneath while the user weighs the report.
+// over the same gate. The report reads as the knock-on impact assessment from
+// the outlier decision workflow: one card per impact domain (Product ›
+// Technology › Data › Operational › Compliance › Testing), every domain
+// always shown so an empty card reads as "checked — no impact", plus a fast
+// AI read of the whole report on top. Brand accents use the Capgemini logo
+// blue. zIndex 70: stacks ABOVE ReviewModal (60), which stays open underneath
+// while the user weighs the report.
 
 /** Capgemini wordmark blue (capgemini-wordmark.svg primary fill). */
 const LOGO_BLUE = '#0070AD';
@@ -43,6 +46,7 @@ function AiAssessment({ report }: { report: ImpactReport }) {
           summary: report.summary,
           impacts: report.impacts.slice(0, 40).map((i) => ({
             severity: i.severity,
+            domain: i.domain,
             category: i.category.slice(0, 40),
             entityName: i.entityName.slice(0, 300),
             description: i.description.slice(0, 500),
@@ -86,9 +90,58 @@ function AiAssessment({ report }: { report: ImpactReport }) {
   );
 }
 
-function SeverityColumn({ severity, report }: { severity: ImpactSeverity; report: ImpactReport }) {
-  const m = SEVERITY_META[severity];
-  const items = report.impacts.filter((i) => i.severity === severity);
+/** Severity totals — the compact strip under the header that preserves the
+ *  Breaking › High › Medium › Info read now the body is organized by domain. */
+function SeverityTotals({ report }: { report: ImpactReport }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
+      {SEVERITIES.map((sev) => {
+        const m = SEVERITY_META[sev];
+        const n =
+          sev === 'BREAKING'
+            ? report.summary.breaking
+            : sev === 'HIGH'
+              ? report.summary.high
+              : sev === 'MEDIUM'
+                ? report.summary.medium
+                : report.summary.low;
+        return (
+          <span
+            key={sev}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'baseline',
+              gap: 4,
+              padding: '2px 8px',
+              borderRadius: 999,
+              border: `1px solid ${n ? m.border : '#f1f5f9'}`,
+              background: n ? m.bg : '#fafafa',
+              fontSize: 10,
+              fontWeight: 700,
+              color: n ? m.fg : '#94a3b8',
+            }}
+          >
+            {m.label}
+            <span style={{ fontSize: 11.5 }}>{n}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/** One knock-on impact domain. Always rendered — an empty card states its
+ *  fixed coverage areas and "No impact detected". */
+function DomainCard({
+  label,
+  areas,
+  items,
+}: {
+  label: string;
+  areas: string;
+  items: ImpactReport['impacts'];
+}) {
+  const worst = items.length ? SEVERITY_META[items[0].severity] : null;
   return (
     <div
       style={{
@@ -97,49 +150,81 @@ function SeverityColumn({ severity, report }: { severity: ImpactSeverity; report
         flexDirection: 'column',
         gap: 6,
         borderRadius: 8,
-        border: `1px solid ${items.length ? m.border : '#f1f5f9'}`,
-        background: items.length ? m.bg : '#fafafa',
+        border: `1px solid ${items.length ? '#e2e8f0' : '#f1f5f9'}`,
+        borderTop: `3px solid ${worst ? worst.fg : '#e2e8f0'}`,
+        background: items.length ? '#fff' : '#fafafa',
         padding: 8,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: items.length ? m.fg : '#94a3b8',
-            textTransform: 'uppercase',
-            letterSpacing: 0.4,
-          }}
-        >
-          {m.label}
-        </span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: items.length ? m.fg : '#cbd5e1' }}>
-          {items.length}
-        </span>
-      </div>
-      {items.length === 0 && <div style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing here.</div>}
-      {items.map((impact, i) => (
-        <div
-          key={`${impact.category}:${impact.entityId ?? impact.entityName}:${i}`}
-          style={{
-            background: '#fff',
-            border: '1px solid rgba(0,0,0,.06)',
-            borderRadius: 7,
-            padding: '6px 8px',
-          }}
-        >
-          <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', lineHeight: 1.3 }}>
-            {impact.entityName}
-          </div>
-          <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>
-            {CATEGORY_LABELS[impact.category] ?? impact.category}
-          </div>
-          <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.45, marginTop: 3 }}>
-            {impact.description}
-          </div>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span
+            style={{
+              flex: 1,
+              fontSize: 10.5,
+              fontWeight: 700,
+              color: items.length ? '#171717' : '#94a3b8',
+              textTransform: 'uppercase',
+              letterSpacing: 0.4,
+            }}
+          >
+            {label}
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: worst ? worst.fg : '#cbd5e1' }}>
+            {items.length}
+          </span>
         </div>
-      ))}
+        <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>{areas}</div>
+      </div>
+      {items.length === 0 && (
+        <div style={{ fontSize: 10.5, color: '#a3a3a3' }}>No impact detected.</div>
+      )}
+      {items.map((impact, i) => {
+        const m = SEVERITY_META[impact.severity];
+        return (
+          <div
+            key={`${impact.category}:${impact.entityId ?? impact.entityName}:${i}`}
+            style={{
+              background: m.bg,
+              border: `1px solid ${m.border}`,
+              borderRadius: 7,
+              padding: '6px 8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              <span
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: '#171717',
+                  lineHeight: 1.3,
+                }}
+              >
+                {impact.entityName}
+              </span>
+              <span
+                style={{
+                  fontSize: 8.5,
+                  fontWeight: 700,
+                  color: m.fg,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.4,
+                }}
+              >
+                {m.label}
+              </span>
+            </div>
+            <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>
+              {CATEGORY_LABELS[impact.category] ?? impact.category}
+            </div>
+            <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.45, marginTop: 3 }}>
+              {impact.description}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -187,7 +272,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         {/* Header */}
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #eaeaea' }}>
           <div style={{ fontSize: 10.5, fontWeight: 700, color: LOGO_BLUE, letterSpacing: 0.4 }}>
-            CHANGE IMPACT ASSESSMENT
+            CHANGE IMPACT — KNOCK-ON EFFECTS
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
             <span style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', flex: 1 }}>
@@ -211,6 +296,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               {report.subject.context}
             </div>
           )}
+          {report && report.impacts.length > 0 && <SeverityTotals report={report} />}
         </div>
 
         {/* Body */}
@@ -247,14 +333,19 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
                     gap: 10,
                     padding: '12px 16px 14px',
                     alignItems: 'start',
                   }}
                 >
-                  {SEVERITIES.map((sev) => (
-                    <SeverityColumn key={sev} severity={sev} report={report} />
+                  {DOMAIN_META.map((d) => (
+                    <DomainCard
+                      key={d.key}
+                      label={d.label}
+                      areas={d.areas}
+                      items={report.impacts.filter((i) => i.domain === d.key)}
+                    />
                   ))}
                 </div>
               )}
