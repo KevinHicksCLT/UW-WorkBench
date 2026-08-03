@@ -61,12 +61,14 @@ export function stateLabel(code: string): string {
   return STATE_NAMES[code] ? `${STATE_NAMES[code]} (${code})` : `US-${code}`;
 }
 
-/** Version-node display name → place vocabulary:
- *  "v2 — US-CA" → "v2 · California"; "v2 — Countrywide" → "v2 · Countrywide". */
+/** Version-node display name → place vocabulary: "v2 — US-CA" →
+ *  "v2 · California". The countrywide EDITION reads "Base edition" — the word
+ *  "countrywide" is reserved for the form layer (countrywide forms), so the
+ *  two never collide on one screen. */
 export function versionPlaceLabel(name: string): string {
   const token = name.split(/[\s—–]+/).filter(Boolean)[0] ?? name;
   const st = /US-([A-Z]{2})\b/.exec(name)?.[1];
   if (st) return `${token} · ${STATE_NAMES[st] ?? `US-${st}`}`;
-  if (/countrywide/i.test(name)) return `${token} · Countrywide`;
+  if (/countrywide/i.test(name)) return `${token} · Base edition`;
   return name;
 }
