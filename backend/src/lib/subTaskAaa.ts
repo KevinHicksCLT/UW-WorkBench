@@ -41,8 +41,9 @@ export interface AaaSubTask {
   doneWhen: string | null;
   /** Linked application names referenced by the action/steps. */
   apps: string[];
-  /** The artifact worked in/produced, e.g. "spec → Confluence". */
-  artifact: string | null;
+  /** Per-app artifact chips, e.g. ["document → Microsoft Word", "spec → Confluence"];
+   *  falls back to the bare app name when no artifact phrase is found. */
+  artifacts: string[];
   /** Paired "N. Verify:" row, folded into the DoD area. */
   verify: AaaVerify | null;
   defined: boolean;
@@ -134,13 +135,13 @@ export function parseAaaSubTasks(
     const text = `${action}\n${body.steps.join('\n')}`;
     const apps = appNames.filter((a) => new RegExp(`\\b${a}\\b`, 'i').test(text));
     // Steps carry the concrete artifact ("Open the spec in Confluence");
-    // action titles state the outcome — prefer the former.
-    const artifact = apps
-      .map((a) => {
-        const art = findArtifact(body.steps.join('\n'), a) ?? findArtifact(action, a);
-        return art ? `${art} → ${a}` : null;
-      })
-      .find(Boolean);
+    // action titles state the outcome — prefer the former. One chip per app so
+    // an authoring-tool → container path reads whole ("document → Word",
+    // "page → Confluence").
+    const artifacts = apps.map((a) => {
+      const art = findArtifact(body.steps.join('\n'), a) ?? findArtifact(action, a);
+      return art ? `${art} → ${a}` : a;
+    });
     const paired = verifyByN.get(n);
     if (paired) verifyByN.delete(n);
     subTasks.push({
@@ -148,9 +149,11 @@ export function parseAaaSubTasks(
       action,
       actor: body.actor,
       steps: body.steps,
-      doneWhen: body.doneWhen,
+      // Verification rows promoted to sub-tasks state "Pass when …" — that IS
+      // their definition of done.
+      doneWhen: body.doneWhen ?? body.passWhen,
       apps,
-      artifact: artifact ?? null,
+      artifacts,
       verify: paired
         ? {
             actor: paired.body.actor,

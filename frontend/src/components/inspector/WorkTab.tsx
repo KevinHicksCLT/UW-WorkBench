@@ -24,7 +24,7 @@ type ChainSubTask = {
   steps: string[];
   doneWhen: string | null;
   apps: string[];
-  artifact: string | null;
+  artifacts: string[];
   verify: ChainVerify | null;
   defined: boolean;
 };
@@ -302,7 +302,7 @@ function SubTaskCard({ s }: { s: ChainSubTask }) {
                 {s.actor}
               </span>
             )}
-            {(s.artifact ? [s.artifact] : s.apps).map((a) => (
+            {(s.artifacts.length ? s.artifacts : s.apps).map((a) => (
               <span
                 key={a}
                 className="text-[9px] font-semibold rounded px-1.5 py-px bg-[#eef4fe] text-[#1d4ed8] border border-[#cdddf5]"
