@@ -206,7 +206,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         {/* Header */}
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #eaeaea' }}>
           <div style={{ fontSize: 10.5, fontWeight: 700, color: LOGO_BLUE, letterSpacing: 0.4 }}>
-            CHANGE IMPACT — KNOCK-ON EFFECTS
+            CHANGE IMPACT
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
             <span style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', flex: 1 }}>
