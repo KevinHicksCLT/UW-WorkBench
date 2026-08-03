@@ -69,41 +69,57 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const pageArgs: { take: number; skip?: number; cursor?: { id: string } } = cursorId
       ? { take, skip: 1, cursor: { id: cursorId } }
       : { take };
+    // `?kind=deliverables|tasks` loads one grain only — each tab fetches just its
+    // own rows (the task grain is ~30k rows plus standards/regulation/test
+    // lookups, so skipping it halves the Deliverables tab's work and vice versa).
+    // No `kind` keeps the legacy both-grains response.
+    const kind =
+      req.query.kind === 'deliverables' || req.query.kind === 'tasks' ? req.query.kind : null;
+    const wantDeliverables = kind !== 'tasks';
+    const wantTasks = kind !== 'deliverables';
 
     const [deliverables, taskNodes, vsNodes] = await Promise.all([
-      prisma.deliverable.findMany({
-        where: { companyId },
-        orderBy: { id: 'asc' },
-        ...pageArgs,
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          automatability: true,
-          roleDeliverables: { select: { role_: true, role: { select: { displayValue: true } } } },
-          nodeDeliverables: {
-            select: { processNodeId: true, processNode: { select: { isTask: true } } },
-          },
-          testingTemplates: { select: { expected: true } },
-        },
-      }),
+      wantDeliverables
+        ? prisma.deliverable.findMany({
+            where: { companyId },
+            orderBy: { id: 'asc' },
+            ...pageArgs,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              automatability: true,
+              roleDeliverables: {
+                select: { role_: true, role: { select: { displayValue: true } } },
+              },
+              nodeDeliverables: {
+                select: { processNodeId: true, processNode: { select: { isTask: true } } },
+              },
+              testingTemplates: { select: { expected: true } },
+            },
+          })
+        : [],
       // tasks = L5 task ProcessNodes.
-      prisma.processNode.findMany({
-        where: { companyId, isTask: true },
-        orderBy: { id: 'asc' },
-        ...pageArgs,
-        select: {
-          id: true,
-          displayValue: true,
-          description: true,
-          automatability: true,
-          nodeRoles: {
-            select: { role_: true, role: { select: { id: true, displayValue: true } } },
-          },
-          nodeDeliverables: { select: { deliverable: { select: { id: true, title: true } } } },
-          testingTemplates: { select: { expected: true } },
-        },
-      }),
+      wantTasks
+        ? prisma.processNode.findMany({
+            where: { companyId, isTask: true },
+            orderBy: { id: 'asc' },
+            ...pageArgs,
+            select: {
+              id: true,
+              displayValue: true,
+              description: true,
+              automatability: true,
+              nodeRoles: {
+                select: { role_: true, role: { select: { id: true, displayValue: true } } },
+              },
+              nodeDeliverables: {
+                select: { deliverable: { select: { id: true, title: true } } },
+              },
+              testingTemplates: { select: { expected: true } },
+            },
+          })
+        : [],
       // value-stream options for the filter dropdown.
       (async () => {
         const types = await prisma.processLevelType.findMany({
