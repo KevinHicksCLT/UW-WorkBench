@@ -305,40 +305,6 @@ function DependsOnRow({ deps }: { deps: { taskId: string; name: string }[] }) {
   );
 }
 
-// The generic control keys (data owner, evidence retention, reconciliation …)
-// rendered as a readable control → evidence grid instead of staying hidden.
-function ControlsBlock({ rows }: { rows: PlanRow[] }) {
-  const evidenced = rows.filter((r) => r.defined);
-  if (!evidenced.length) return null;
-  return (
-    <div
-      className="rounded-md mt-1.5"
-      style={{
-        background: '#fdf8ef',
-        border: '1px solid #ecdcc0',
-        borderLeft: '3px solid #b45309',
-      }}
-    >
-      <div className="flex items-center gap-1.5 px-2 pt-1.5">
-        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border text-[#b45309] border-[#ecdcc0]">
-          Standards &amp; controls
-        </span>
-        <span className="text-[9px] text-[#b45309]">
-          {evidenced.length}/{rows.length} evidenced
-        </span>
-      </div>
-      <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
-        {evidenced.map((r, i) => (
-          <div key={i} className="rounded bg-white border border-[#ecdcc0] px-2 py-1">
-            <div className="text-[10px] font-semibold text-[#92600e]">{stripStepNumber(r.key)}</div>
-            <div className="text-[10.5px] text-[#374151] leading-snug">{r.value}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // One structured AAA sub-task: Actor · Action · Application chips, the steps,
 // and a DoD box that folds the paired verification in (testing lives WITH the
 // definition of done, not in a separate block).
@@ -603,7 +569,6 @@ function TaskChain({
             </button>
           ))}
           {subTasks.length > 0 && <SubTaskBlock subTasks={subTasks} />}
-          <ControlsBlock rows={t.checklist.filter((r) => r.generic)} />
           {checklist.length > 0 && (
             <PlanBlock
               label="Sub-tasks"
