@@ -37,30 +37,21 @@ type Deliverable = {
   processes: string[];
   level3: string | null;
   level4: string | null;
-  test: string | null;
 };
+// Slim list row — the /work Tasks grain carries only what the list, TOC and
+// drill actually render (description etc. come from /work/task/:id on click).
 type Task = {
   id: string;
   title: string;
-  description: string | null;
   owner: string | null;
   contributors: string[];
-  status: string;
-  dueDate: string | null;
-  source: string;
   deliverableId: string | null;
   deliverableTitle: string | null;
-  roles: string[];
-  processes: string[];
-  level3: string | null;
   level4: string | null;
   division: string | null;
-  department: string | null;
-  roleName: string | null;
   valueStreamName: string | null;
   agentScore: number | null;
   agentRationale: string | null;
-  test: string | null;
   testPattern: string | null;
   standards: string[];
   regulations: string[];
