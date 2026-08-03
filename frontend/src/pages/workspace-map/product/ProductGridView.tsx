@@ -1,53 +1,34 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { LoadingState } from '../../../components/ui';
+import { useApi } from '../../../lib/useApi';
+import { versionPlaceLabel } from '../../../lib/usStates';
 import { useViewState } from '../../../lib/viewState';
 import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
-import { abbrevVersion, buildHeatmap, type HeatCell, type HeatRow, type Rag } from './gridModel';
-import {
-  MATCH_META,
-  type LobOption,
-  type ProductDecision,
-  type ProductDecisionStatus,
-} from './spine';
+import { columnLabel, type BoardColumn, type BoardPayload, type ReviewPayload } from './boardApi';
+import ComponentElementRows from './ComponentElementRows';
+import FormsSection from './FormsSection';
+import { SectionBand } from './gridRow';
+import { MATCH_META, type ProductDecisionStatus } from './spine';
 
-// The Products workspace GRID — the progress board:
-//   (1) an executive dashboard pinned on top: total elements, items needing a
+// The Products workspace GRID — the progress board, FORMS-FIRST (Form
+// rationalization design), rendered from the SERVER-DERIVED board payload:
+//   (1) an executive dashboard pinned on top: total coverages, items needing a
 //       decision, decided, % complete — each stat drills into the filtered
 //       review list;
-//   (2) the transposed heatmap below: PRODUCTS as angled column headers
-//       (never truncated), MODEL COMPONENTS as rows, RAG per row, cells that
-//       stretch to the page and carry real insight while few products are in
-//       scope (shrinking to bare counts as the scope grows);
-//   (3) any click — component row, cell or dashboard stat — lands on the
-//       drill-down review list. The drill lives in the URL (?pmDrill=…), so
-//       the browser back button pops it like any navigation.
-
-const RAG_META: Record<Rag, { bg: string; label: string }> = {
-  green: { bg: '#16a34a', label: 'rationalized' },
-  amber: { bg: '#f59e0b', label: 'started' },
-  red: { bg: '#dc2626', label: 'not started' },
-};
+//   (2) the transposed heatmap below in two sections sharing one grid:
+//       FORMS first — the three-layer register (state-required variations
+//       aggregate to one row per LOB at scale) — then the other model
+//       components. Columns are versions while the scope is small and FOLD to
+//       one per product past 48 versions (the server picks; `members` carries
+//       the fold count);
+//   (3) any click lands on the drill-down review list, fetched LAZILY from
+//       /product-spine/review — one drill's rows, capped server-side. The
+//       drill lives in the URL (?pmDrill=…) so the browser back button pops it.
 
 const DRILL_PARAM = 'pmDrill';
-
-// Cell color = the status mix inside it (traffic light): any Unique element →
-// red, else any Similar → amber, else all-Common → green. The figure inside
-// stays the decision workload (pending count, ✓ when nothing is left).
-function cellVisual(cell: HeatCell): { bg: string; fg: string; pending: number } {
-  const pending = cell.need - cell.decided;
-  if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#737373', pending: 0 };
-  if (cell.unique > 0) return { bg: '#fecaca', fg: '#7f1d1d', pending };
-  if (cell.similar > 0) return { bg: '#fde68a', fg: '#78350f', pending };
-  return { bg: '#bbf7d0', fg: '#14532d', pending };
-}
-
-function cellTitle(cell: HeatCell): string {
-  const pending = cell.need - cell.decided;
-  return (
-    `${cell.total} elements — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
-    ` · ${pending > 0 ? `${pending} still to decide` : 'no decisions outstanding'} — open the review list`
-  );
-}
+/** Forms drills are namespaced so they can't collide with component names. */
+const FORMS_DRILL = 'forms:';
 
 function StatTile({
   label,
@@ -100,15 +81,27 @@ function StatTile({
   );
 }
 
+/** Small debounce so the review drill doesn't refetch per keystroke. */
+function useDebounced(value: string, ms: number): string {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+}
+
 export default function ProductGridView({
-  lobs,
-  decisions,
+  board,
+  scopeQS,
   onDecide,
-  onImmersive,
+  search = '',
+  chromeHidden = false,
+  onDeepScroll,
 }: {
-  lobs: LobOption[];
-  /** All persisted decisions, keyed by decisionKey(lobId, groupKey). */
-  decisions: Map<string, ProductDecision>;
+  board: BoardPayload;
+  /** The scope + nonce query string — review drills refetch on the same key. */
+  scopeQS: string;
   /** status null = withdraw the decision (undo). */
   onDecide: (
     lobId: string,
@@ -117,10 +110,40 @@ export default function ProductGridView({
     status: ProductDecisionStatus | null,
     comment?: string,
   ) => Promise<void>;
-  /** Mirrors table scroll depth so the board can hide ITS chrome too. */
-  onImmersive?: (deep: boolean) => void;
+  /** Free-text search from the spine filter bar — narrows the register rows
+   *  and the drill review list. */
+  search?: string;
+  /** True while the board chrome (lens tabs + filter bar) is scroll-hidden —
+   *  the dashboard strip and legend hide with it so only the table shows. */
+  chromeHidden?: boolean;
+  /** Deep grid scroll → true (hide the chrome); back at the top → false. */
+  onDeepScroll?: (hidden: boolean) => void;
 }) {
-  const heat = useMemo(() => buildHeatmap(lobs, decisions), [lobs, decisions]);
+  const heat = board.heat;
+  const columns = board.columns;
+  const fullModel = board.forms;
+  // The filter-bar search narrows the register (form label/sub match) and the
+  // components below (name match); the drill list filters server-side.
+  const q = search.trim().toLowerCase();
+  const model = useMemo(() => {
+    if (!fullModel || !q) return fullModel;
+    return {
+      ...fullModel,
+      sections: fullModel.sections.map((s) => ({
+        ...s,
+        rows: s.rows.filter(
+          (r) =>
+            r.label.toLowerCase().includes(q) ||
+            (r.sub ?? '').toLowerCase().includes(q) ||
+            r.lobName.toLowerCase().includes(q),
+        ),
+      })),
+    };
+  }, [fullModel, q]);
+  const otherRows = useMemo(() => {
+    const rows = model ? heat.rows.filter((r) => !board.rolledUp.includes(r.component)) : heat.rows;
+    return q ? rows.filter((r) => r.component.toLowerCase().includes(q)) : rows;
+  }, [heat, model, q, board.rolledUp]);
   // The drill is URL state: pushing it creates a history entry, so the
   // browser back button (and the header Back) pops out of the list.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -136,45 +159,61 @@ export default function ProductGridView({
   const [notesOpen, setNotesOpen] = useState(false);
   // Collapse product names to initials — the full name pops on hover (title).
   const [abbr, setAbbr] = useViewState<boolean>('workspace.product.abbrCols', true);
-  const labelOf = (v: (typeof heat.columns)[number]) =>
-    abbr ? abbrevVersion(v) : `${v.productName} · ${v.name}`;
-  // Table scrolled away from the top → every chrome row hides (restored the
-  // moment the user scrolls back up).
-  const [immersive, setImmersive] = useState(false);
-  const setDepth = (deep: boolean) => {
-    setImmersive((cur) => {
-      if (cur !== deep) onImmersive?.(deep);
-      return deep;
-    });
-  };
-  // Direction-based with hysteresis: hide only after a real downward scroll,
-  // reappear after ~24px of deliberate upward scroll (or near the top). A bare
-  // position threshold jitters because hiding the chrome itself reflows the
-  // scroller and can swallow the show/hide transitions.
-  const scrollMem = useRef({ y: 0, up: 0 });
-  const handleScrollDepth = (y: number, overflow = Infinity) => {
-    const m = scrollMem.current;
-    const dy = y - m.y;
-    m.y = y;
-    // Only a real downward move resets the upward accumulator — zero-delta
-    // events (layout reflow, scroll anchoring) must not break a slow up-drag.
-    if (dy < 0) m.up -= dy;
-    else if (dy > 0) m.up = 0;
-    if (y < 8 || m.up > 24) setDepth(false);
-    // Hide the chrome only when there is substantially more to scroll than
-    // the chrome itself is tall. On short windows with a small overflow,
-    // hiding the chrome makes the content FIT, the browser clamps scrollTop
-    // back to 0, the chrome pops back — an oscillation that reads as "the
-    // page won't scroll". The guard keeps the chrome put in that regime.
-    else if (dy > 0 && y > 60 && overflow > 240) setDepth(true);
-  };
+  const labelOf = (v: BoardColumn) => columnLabel(v, abbr);
+  // The FORMS register collapses behind its band; each model component row
+  // expands to its element table (fetched lazily), the way forms list theirs.
+  const [formsCollapsed, setFormsCollapsed] = useViewState<boolean>(
+    'workspace.product.formsCollapsed',
+    false,
+  );
+  const [openComponents, setOpenComponents] = useViewState<Record<string, boolean>>(
+    'workspace.product.openComponents',
+    {},
+  );
 
-  const drillRow =
-    drill && drill !== '__all__' ? (heat.rows.find((r) => r.component === drill) ?? null) : null;
-  const allReviewRows = useMemo(() => heat.rows.flatMap((r) => r.reviewRows), [heat]);
+  // LAZY drill fetch — one drill's review rows, search filtered server-side.
+  const debouncedQ = useDebounced(search.trim(), 250);
+  const reviewUrl = drill
+    ? `/product-spine/review?${scopeQS}&drill=${encodeURIComponent(drill)}${
+        debouncedQ ? `&q=${encodeURIComponent(debouncedQ)}` : ''
+      }`
+    : null;
+  const {
+    data: review,
+    loading: reviewLoading,
+    error: reviewError,
+  } = useApi<ReviewPayload>(reviewUrl);
+
+  // The dashboard tiles collapse behind a chevron (persisted per view) so the
+  // table can take the full height.
+  const [tilesCollapsed, setTilesCollapsed] = useViewState<boolean>(
+    'workspace.product.tilesCollapsed',
+    false,
+  );
+
+  // Scrolling down hides everything but the table (the parent hides the lens
+  // tabs + filter bar, this view hides the strip + legend) and SNAPS the grid
+  // back to its first row, so the maximized table reads from the top. The
+  // overflow guard skips barely-overflowing grids. Restore: wheel up while
+  // already at the top, or the header button.
+  const onGridScroll = (el: HTMLElement) => {
+    if (chromeHidden) return;
+    const overflow = el.scrollHeight - el.clientHeight;
+    if (el.scrollTop > 0 && overflow > 240) {
+      onDeepScroll?.(true);
+      el.scrollTop = 0;
+    }
+  };
+  const onGridWheel = (el: HTMLElement, deltaY: number) => {
+    if (chromeHidden && deltaY < 0 && el.scrollTop === 0) onDeepScroll?.(false);
+  };
+  // An open drill replaces the grid scroller — bring the chrome back.
+  useEffect(() => {
+    if (drill) onDeepScroll?.(false);
+  }, [drill, onDeepScroll]);
 
   const pending = heat.totals.need - heat.totals.decided;
-  const colCount = heat.columns.length;
+  const colCount = columns.length;
   const pctOfTotal = (n: number) =>
     heat.totals.total === 0 ? 0 : Math.round((n / heat.totals.total) * 100);
   // Density steps: slightly richer cells while the scope is small, bare counts
@@ -186,135 +225,64 @@ export default function ProductGridView({
   const notesW = notesOpen ? 220 : 44;
   const grid = `250px repeat(${colCount}, ${colW}px) 22px 76px 84px 128px ${notesW}px`;
   // The header is exactly tall enough for the LONGEST angled label — every
-  // label fully visible, nothing spilling out of the header band.
-  const maxLabelChars = heat.columns.reduce((n, v) => Math.max(n, labelOf(v).length), 0);
+  // label fully visible, nothing spilling out of the header band. The fold
+  // count suffix ("(10)") leans with the label, so it counts too.
+  const maxLabelChars = columns.reduce(
+    (n, v) => Math.max(n, labelOf(v).length + (v.members > 1 ? ` (${v.members})`.length : 0)),
+    0,
+  );
   // 6.6px/char is deliberately generous for the 11px label font — labels must
-  // never ellipsize unless the 400px hard cap is hit.
-  const headerH = Math.min(400, Math.max(96, Math.round(maxLabelChars * 6.6 * 0.79) + 34));
+  // never ellipsize unless the 400px hard cap is hit. The floor is just tall
+  // enough for the Coverage/To decide/Progress chips — short labels waste no
+  // vertical space.
+  const headerH = Math.min(400, Math.max(64, Math.round(maxLabelChars * 6.6 * 0.79) + 34));
 
   const openDrill = (component: string, filter: ReviewFilter) => {
     setDrillFilter(filter);
-    setDepth(false);
     setDrill(component);
   };
-
-  // Stats for the open drill — the DRILLED component's own numbers when one
-  // is open, the whole scope's when reviewing everything. Rendered by the
-  // review list directly under its toolbar as one organized band.
-  const scope = drillRow ?? heat.totals;
-  const scopePct = drillRow ? drillRow.pct : heat.totals.pct;
-  const scopePending = scope.need - scope.decided;
-  const statPill = (
-    label: string,
-    fg: string,
-    bg: string,
-    border: string,
-    f: ReviewFilter,
-  ): JSX.Element => (
-    <button
-      key={label}
-      type="button"
-      onClick={() => openDrill(drill ?? '__all__', f)}
-      title="filter the list"
-      style={{
-        font: 'inherit',
-        fontSize: 11.5,
-        fontWeight: 700,
-        color: fg,
-        background: bg,
-        border: `1px solid ${border}`,
-        borderRadius: 999,
-        padding: '2px 10px',
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {label}
-    </button>
-  );
-  const statsBand = immersive ? null : (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '7px 14px',
-        borderBottom: '1px solid #eaeaea',
-        background: '#fafafa',
-        flexShrink: 0,
-        flexWrap: 'wrap',
-      }}
-    >
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
-        {colCount} products
-      </span>
-      <span style={{ color: '#9ca3af' }}>·</span>
-      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#171717', whiteSpace: 'nowrap' }}>
-        {scope.total} elements
-      </span>
-      <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
-      {statPill(
-        `${scope.common} common`,
-        MATCH_META.COMMON.fg,
-        MATCH_META.COMMON.bg,
-        MATCH_META.COMMON.border,
-        'auto',
-      )}
-      {statPill(
-        `${scope.similar} similar`,
-        MATCH_META.PARTIAL.fg,
-        MATCH_META.PARTIAL.bg,
-        MATCH_META.PARTIAL.border,
-        'similar',
-      )}
-      {statPill(
-        `${scope.unique} unique`,
-        MATCH_META.UNIQUE.fg,
-        MATCH_META.UNIQUE.bg,
-        MATCH_META.UNIQUE.border,
-        'unique',
-      )}
-      <span style={{ width: 1, height: 16, background: '#d4d4d4', margin: '0 4px' }} />
-      {statPill(
-        `${scopePending} to decide`,
-        scopePending > 0 ? '#92400e' : '#166534',
-        scopePending > 0 ? '#fef3c7' : '#dcfce7',
-        scopePending > 0 ? '#fcd34d' : '#86efac',
-        'pending',
-      )}
-      {statPill(`${scope.decided} decided`, '#3730a3', '#eef2ff', '#d6dcff', 'decided')}
-      <div style={{ flex: 1 }} />
-      <div
-        style={{
-          width: 140,
-          flexShrink: 0,
-          height: 6,
-          background: '#e5e7eb',
-          borderRadius: 9,
-          overflow: 'hidden',
-        }}
-      >
-        <span
-          style={{
-            display: 'block',
-            height: 6,
-            width: `${scopePct}%`,
-            background: scopePct >= 100 ? '#16a34a' : scopePct > 0 ? '#f59e0b' : '#dc2626',
-          }}
-        />
-      </div>
-      <span style={{ fontSize: 12, fontWeight: 600, color: '#262626', whiteSpace: 'nowrap' }}>
-        {scopePct}% complete
-      </span>
-    </div>
-  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
-          while a review list is open (the list carries the stats band) and
-          once the table scrolls (back at the top it returns). */}
-      {immersive || drill ? null : (
+          while a review list is open; the chevron collapses it to a slim
+          summary strip so the table gets the full height. */}
+      {drill || chromeHidden ? null : tilesCollapsed ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '3px 14px',
+            borderBottom: '1px solid #eaeaea',
+            background: '#fafafa',
+            flexShrink: 0,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setTilesCollapsed(false)}
+            title="expand the dashboard tiles"
+            style={{
+              font: 'inherit',
+              border: 'none',
+              background: 'transparent',
+              padding: '2px 4px',
+              fontSize: 12,
+              color: '#525252',
+              cursor: 'pointer',
+              lineHeight: 1,
+            }}
+          >
+            ▾
+          </button>
+          <span style={{ fontSize: 11.5, color: '#525252', whiteSpace: 'nowrap' }}>
+            {colCount} {board.columnMode === 'product' ? 'products' : 'versions'} ·{' '}
+            {heat.totals.total} coverages · {pending} decisions pending · {heat.totals.pct}%
+            normalized
+          </span>
+        </div>
+      ) : (
         <div
           style={{
             display: 'flex',
@@ -326,9 +294,17 @@ export default function ProductGridView({
             flexWrap: 'wrap',
           }}
         >
-          <StatTile label="products in scope" value={String(colCount)} tone="#171717" />
           <StatTile
-            label={`coverage elements across ${heat.rows.length} sections`}
+            label={
+              board.columnMode === 'product'
+                ? `products in scope (${board.scopedVersions} versions)`
+                : 'versions in scope'
+            }
+            value={String(colCount)}
+            tone="#171717"
+          />
+          <StatTile
+            label={`coverages across ${heat.rows.length} sections`}
             value={String(heat.totals.total)}
             tone="#171717"
             onClick={() => openDrill('__all__', 'all')}
@@ -363,41 +339,80 @@ export default function ProductGridView({
             tone={heat.totals.pct >= 100 ? '#16a34a' : heat.totals.pct > 0 ? '#f59e0b' : '#dc2626'}
             bar={heat.totals.pct}
           />
+          <button
+            type="button"
+            onClick={() => setTilesCollapsed(true)}
+            title="collapse the dashboard tiles"
+            style={{
+              font: 'inherit',
+              border: 'none',
+              background: 'transparent',
+              padding: '0 2px',
+              fontSize: 12,
+              color: '#525252',
+              cursor: 'pointer',
+              alignSelf: 'flex-start',
+              lineHeight: 1,
+            }}
+          >
+            ▴
+          </button>
         </div>
       )}
 
       {drill ? (
-        <ProductReviewList
-          // Keyed by drill + filter so a stats-pill click re-arms the filter.
-          key={`${drill}|${drillFilter}`}
-          title={drillRow ? drillRow.component : 'Every model element in scope'}
-          columns={heat.columns}
-          rows={drillRow ? drillRow.reviewRows : allReviewRows}
-          defaultFilter={drillFilter}
-          stats={statsBand}
-          onBack={() => {
-            setDepth(false);
-            setDrill(null);
-          }}
-          onDecide={(row, status, comment) =>
-            onDecide(row.lobId, row.group.component, row.group.key, status, comment)
-          }
-          onScrollDepth={handleScrollDepth}
-          labelOf={labelOf}
-          abbr={abbr}
-          onToggleAbbr={() => setAbbr((a) => !a)}
-        />
+        reviewError ? (
+          <LoadingState message="That view is no longer available — returning to the board…" />
+        ) : !review ? (
+          <LoadingState message={reviewLoading ? 'Loading the review list…' : 'Preparing…'} />
+        ) : (
+          <>
+            {review.truncated > 0 && (
+              <div
+                style={{
+                  padding: '6px 14px',
+                  background: '#fffbeb',
+                  borderBottom: '1px solid #fde68a',
+                  fontSize: 11.5,
+                  color: '#92400e',
+                  flexShrink: 0,
+                }}
+              >
+                Showing the first {review.rows.length.toLocaleString()} of{' '}
+                {review.total.toLocaleString()} rows — narrow the scope or search to see the rest.
+              </div>
+            )}
+            <ProductReviewList
+              // Keyed by drill + filter so a stats-pill click re-arms the filter.
+              key={`${drill}|${drillFilter}`}
+              columns={review.columns}
+              rows={review.rows}
+              selfRow={review.self ?? null}
+              defaultFilter={drillFilter}
+              completePct={review.pct}
+              search={search}
+              onDecide={(row, status, comment) =>
+                onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+              }
+              labelOf={labelOf}
+              abbr={abbr}
+              onToggleAbbr={() => setAbbr((a) => !a)}
+              // Forms drills band the list by what the form contains (anything
+              // beyond coverages groups like the register sections).
+              groupOf={review.groupOf}
+              groupOrder={review.groupOrder}
+              chromeHidden={chromeHidden}
+              onDeepScroll={onDeepScroll}
+            />
+          </>
+        )
       ) : (
         <>
           {/* (2) The heatmap — products angled across the top, components down the side. */}
           <div
             style={{ flex: 1, minHeight: 0, overflow: 'auto', background: '#fff' }}
-            onScroll={(e) =>
-              handleScrollDepth(
-                e.currentTarget.scrollTop,
-                e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
-              )
-            }
+            onScroll={(e) => onGridScroll(e.currentTarget)}
+            onWheel={(e) => onGridWheel(e.currentTarget, e.deltaY)}
           >
             <div style={{ minWidth: '100%', width: 'max-content' }}>
               <div
@@ -427,7 +442,7 @@ export default function ProductGridView({
                     gap: 8,
                   }}
                 >
-                  <span>Model component</span>
+                  <span>Products</span>
                   <button
                     type="button"
                     onClick={() => setAbbr((a) => !a)}
@@ -451,11 +466,38 @@ export default function ProductGridView({
                   >
                     {abbr ? '⌄' : '⌃'}
                   </button>
+                  {chromeHidden && (
+                    <button
+                      type="button"
+                      onClick={() => onDeepScroll?.(false)}
+                      title="show the filters and dashboard again"
+                      style={{
+                        font: 'inherit',
+                        fontSize: 9.5,
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        color: '#525252',
+                        background: '#fff',
+                        border: '1px solid #d4d4d4',
+                        borderRadius: 5,
+                        padding: '2px 7px',
+                        cursor: 'pointer',
+                        textTransform: 'none',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      ▾ filters
+                    </button>
+                  )}
                 </div>
-                {heat.columns.map((v) => (
+                {columns.map((v) => (
                   <div
                     key={v.id}
-                    title={`${v.segmentName} › ${v.lobName} › ${v.productName} · ${v.name}`}
+                    title={
+                      v.members > 1
+                        ? `${v.segmentName} › ${v.lobName} › ${v.productName} — ${v.members} versions`
+                        : `${v.segmentName} › ${v.lobName} › ${v.productName} · ${versionPlaceLabel(v.name)}`
+                    }
                     style={{
                       height: headerH,
                       position: 'relative',
@@ -500,13 +542,14 @@ export default function ProductGridView({
                       }}
                     >
                       {labelOf(v)}
+                      {v.members > 1 ? ` (${v.members})` : ''}
                     </span>
                   </div>
                 ))}
                 <span aria-hidden style={{ alignSelf: 'end' }} />
                 {/* Solid chips ABOVE the angled labels so a leaning product
                     name can never run over these headings. */}
-                {['Elements', 'To decide', 'Progress'].map((h) => (
+                {['Coverages', 'To decide', 'Progress'].map((h) => (
                   <div
                     key={h}
                     style={{
@@ -551,264 +594,89 @@ export default function ProductGridView({
                 </button>
               </div>
 
-              {heat.rows.map((row: HeatRow) => {
-                const rag = RAG_META[row.rag];
-                const rowPending = row.need - row.decided;
+              {/* FORMS-FIRST: the forms register leads the table (core
+                  national / state-required / product-specific sections) —
+                  state-required variations aggregate one row per LOB; every
+                  remaining component stays a plain row below. */}
+              {model && (
+                <SectionBand
+                  label="Forms"
+                  detail={`${model.counts.core} countrywide · ${model.counts.state} state-required · ${model.counts.product} product-specific — open a form for its coverages, coverage parts, endorsements and clauses`}
+                  collapsed={formsCollapsed}
+                  onToggle={() => setFormsCollapsed((c) => !c)}
+                />
+              )}
+              {model && !formsCollapsed && (
+                <FormsSection
+                  model={model}
+                  columns={columns}
+                  grid={grid}
+                  density={density}
+                  notesOpen={notesOpen}
+                  onOpenDrill={(rowKey) => openDrill(`${FORMS_DRILL}${rowKey}`, 'all')}
+                />
+              )}
+              {/* Every remaining model component gets its own collapsible band
+                  — Rating, Pricing, … through Lifecycle — with its element
+                  table beneath it, exactly like the forms register. */}
+              {otherRows.map((row) => {
+                const open = Boolean(openComponents[row.component]);
+                const pending = row.need - row.decided;
                 return (
-                  <div
-                    key={row.component}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: grid,
-                      alignItems: 'stretch',
-                      borderBottom: '1px solid #f1f3f5',
-                      minWidth: '100%',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => openDrill(row.component, 'all')}
-                      title="open this component's review list"
-                      style={{
-                        font: 'inherit',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '10px 12px',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <span style={{ minWidth: 0 }}>
-                        <span
-                          style={{
-                            display: 'block',
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: '#171717',
-                            lineHeight: 1.25,
-                          }}
-                        >
-                          {row.component}
-                        </span>
-                        {/* Coverage counts for the section — the same traffic
-                            light the cells use, so the row reads at a glance. */}
-                        <span
-                          style={{
-                            display: 'block',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            marginTop: 1,
-                            fontVariantNumeric: 'tabular-nums',
-                          }}
-                        >
-                          <span style={{ color: MATCH_META.COMMON.fg }}>{row.common} common</span>
-                          <span style={{ color: '#9ca3af' }}> · </span>
-                          <span style={{ color: MATCH_META.PARTIAL.fg }}>
-                            {row.similar} similar
-                          </span>
-                          <span style={{ color: '#9ca3af' }}> · </span>
-                          <span style={{ color: MATCH_META.UNIQUE.fg }}>{row.unique} unique</span>
-                        </span>
-                      </span>
-                    </button>
-                    {row.cells.map((c) => {
-                      const vis = cellVisual(c);
-                      const na = c.na || c.total === 0;
-                      return (
-                        <button
-                          key={`${row.component}:${c.versionId}`}
-                          type="button"
-                          disabled={na}
-                          title={na ? 'not in this product' : cellTitle(c)}
-                          onClick={() => openDrill(row.component, 'all')}
-                          style={{
-                            font: 'inherit',
-                            borderLeft: '1px solid #e2e8f0',
-                            borderTop: 'none',
-                            borderRight: 'none',
-                            borderBottom: 'none',
-                            background: 'transparent',
-                            padding: 3,
-                            cursor: na ? 'default' : 'pointer',
-                            display: 'flex',
-                          }}
-                        >
-                          <span
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              borderRadius: 5,
-                              background: vis.bg,
-                              color: vis.fg,
-                              minHeight: density === 'rich' ? 38 : 24,
-                              padding: density === 'rich' ? '3px 4px' : 0,
-                              lineHeight: 1.15,
-                            }}
-                          >
-                            {na ? (
-                              <span style={{ fontSize: 11, fontWeight: 700 }}>—</span>
-                            ) : density === 'rich' ? (
-                              <>
-                                <span style={{ fontSize: 13, fontWeight: 700 }}>
-                                  {vis.pending === 0 ? '✓' : vis.pending}
-                                </span>
-                                <span style={{ fontSize: 9.5, fontWeight: 600 }}>
-                                  {vis.pending === 0
-                                    ? `${c.total} elements in`
-                                    : `to decide of ${c.total}`}
-                                </span>
-                                <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.85 }}>
-                                  {c.common}C · {c.similar}S · {c.unique}U
-                                </span>
-                              </>
-                            ) : density === 'medium' ? (
-                              <span style={{ fontSize: 11, fontWeight: 700 }}>
-                                {vis.pending === 0 ? '✓' : `${vis.pending}/${c.need}`}
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: 10.5, fontWeight: 700 }}>
-                                {vis.pending === 0 ? '✓' : vis.pending}
-                              </span>
-                            )}
-                          </span>
-                        </button>
-                      );
-                    })}
-                    <span aria-hidden />
-                    <div
-                      style={{
-                        borderLeft: '1px solid #e2e8f0',
-                        fontSize: 12.5,
-                        fontWeight: 600,
-                        color: '#262626',
-                        fontVariantNumeric: 'tabular-nums',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {row.total}
-                    </div>
-                    <div
-                      style={{
-                        borderLeft: '1px solid #e2e8f0',
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: rowPending > 0 ? '#b45309' : '#16a34a',
-                        fontVariantNumeric: 'tabular-nums',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {rowPending}
-                    </div>
-                    <div
-                      style={{
-                        borderLeft: '1px solid #e2e8f0',
-                        padding: '0 10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 7,
-                      }}
-                    >
-                      <div
-                        style={{
-                          flex: 1,
-                          height: 6,
-                          background: '#e5e7eb',
-                          borderRadius: 9,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: 'block',
-                            height: 6,
-                            width: `${row.pct}%`,
-                            background: rag.bg,
-                          }}
-                        />
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 600,
-                          color: '#262626',
-                          width: 34,
-                          textAlign: 'right',
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
-                      >
-                        {row.pct}%
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        borderLeft: '1px solid #e2e8f0',
-                        padding: '4px 10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {notesOpen ? (
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: row.note ? '#404040' : '#a3a3a3',
-                            lineHeight: 1.35,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {row.note ?? '—'}
-                        </span>
-                      ) : (
-                        row.note && (
-                          <span title={row.note} style={{ fontSize: 12, color: '#737373' }}>
-                            💬
-                          </span>
-                        )
-                      )}
-                    </div>
+                  <div key={row.component} style={{ display: 'contents' }}>
+                    <SectionBand
+                      label={row.component}
+                      detail={`${row.total} coverages · ${row.common} common · ${row.similar} similar · ${row.unique} unique${
+                        pending > 0 ? ` · ${pending} to decide` : ''
+                      } — ${row.pct}% decided`}
+                      collapsed={!open}
+                      onToggle={() =>
+                        setOpenComponents((o) => ({ ...o, [row.component]: !o[row.component] }))
+                      }
+                    />
+                    {open && (
+                      <ComponentElementRows
+                        component={row.component}
+                        scopeQS={scopeQS}
+                        grid={grid}
+                        density={density}
+                        columns={columns}
+                        notesOpen={notesOpen}
+                        onOpen={() => openDrill(row.component, 'all')}
+                      />
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '7px 14px',
-              borderTop: '1px solid #eaeaea',
-              background: '#fafafa',
-              fontSize: 11.5,
-              color: '#374151',
-              flexShrink: 0,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span>
-              cells: <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>■ common</span>{' '}
-              — in every product ·{' '}
-              <span style={{ color: MATCH_META.PARTIAL.fg, fontWeight: 600 }}>■ similar</span> —
-              configured differently ·{' '}
-              <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>■ unique</span> — in
-              1–2 products
-            </span>
-          </div>
+          {!chromeHidden && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                padding: '7px 14px',
+                borderTop: '1px solid #eaeaea',
+                background: '#fafafa',
+                fontSize: 11.5,
+                color: '#374151',
+                flexShrink: 0,
+                flexWrap: 'wrap',
+              }}
+            >
+              <span>
+                cells:{' '}
+                <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>■ common</span> — in
+                every product ·{' '}
+                <span style={{ color: MATCH_META.PARTIAL.fg, fontWeight: 600 }}>■ similar</span> —
+                configured differently ·{' '}
+                <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>■ unique</span> — in
+                1–2 products
+              </span>
+            </div>
+          )}
         </>
       )}
     </div>

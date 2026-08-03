@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
+import ProductModelView from './ProductModelView';
 import {
   Card,
   Chip,
@@ -55,7 +56,7 @@ export default function ProductNodeDetail() {
                   This node doesn&rsquo;t exist (or is no longer part of the product hierarchy).
                 </p>
                 <Link to="/product-models" className="text-[#2563eb] font-medium hover:underline">
-                  Back to Product Models
+                  Back to Products
                 </Link>
               </>
             }
@@ -74,6 +75,12 @@ function NodeDetailBody({ data }: { data: NodeDetailData }) {
   // Contribute the node to the global visited-path trail (what PageHeader does).
   useRegisterCrumb(node.name);
   const caption = levelCaption(levels, node.levelNumber);
+
+  // A PRODUCT (L3) renders the document-shaped model view — Forms decomposed
+  // into coverages / terms / endorsements / clauses, then Rating · Pricing ·
+  // Underwriting Rules · Filings · Lifecycle Behavior, with jurisdictions as
+  // a filter rather than a drill level.
+  if (node.levelNumber === 3) return <ProductModelView id={node.id} />;
 
   return (
     <div>

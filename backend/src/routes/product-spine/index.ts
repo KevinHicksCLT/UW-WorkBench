@@ -12,6 +12,7 @@ import { registerProductTableRoutes } from './table.js';
 import { registerProductNodeRoutes } from './node.js';
 import { registerProductDecisionRoutes } from './decisions.js';
 import { registerProductFrameworkRoutes } from './framework.js';
+import { registerProductBoardRoutes } from './board.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -22,6 +23,11 @@ router.use(requirePermission('product-models'));
 // Review decisions are read/written live — register them BEFORE the response
 // cache so an approval is never served stale (nor a PUT cached).
 registerProductDecisionRoutes(router);
+
+// Board / review / compare merge decision state into their counts, so they
+// also stay ahead of the cache; the expensive part (spine load + element
+// parse) is memoized inside lib/resolvers/productBoard instead.
+registerProductBoardRoutes(router);
 
 router.use(cacheResponses(15_000));
 

@@ -39,7 +39,7 @@ const GROUP_SPECS: readonly GroupSpec[] = [
   },
   { id: 'organization', label: 'Organization', children: [{ key: 'organization' }] },
   { id: 'value-streams', label: 'Value Streams', children: [{ key: 'value-streams' }] },
-  { id: 'product-models', label: 'Product Models', children: [{ key: 'product-models' }] },
+  { id: 'product-models', label: 'Products', children: [{ key: 'product-models' }] },
   { id: 'roles', label: 'Roles', children: [{ key: 'roles' }] },
   { id: 'deliverables', label: 'Deliverables', children: [{ key: 'deliverables' }] },
   { id: 'tasks', label: 'Tasks', children: [{ key: 'tasks' }] },

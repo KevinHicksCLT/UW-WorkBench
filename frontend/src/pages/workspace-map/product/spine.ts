@@ -48,6 +48,9 @@ export interface VersionColumn {
   lobId: string;
   lobName: string;
   segmentName: string;
+  /** Jurisdictions this version covers (countrywide versions list every state
+   *  their filings make them live in) — drives the state filter. */
+  states?: string[];
   /** component name → that component node (with its parsed elements). */
   components: Map<string, { node: SpineNode; elements: ComponentElement[] }>;
 }

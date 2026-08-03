@@ -60,7 +60,7 @@ export const MENU_TREE: readonly MenuNode[] = [
   { key: 'regulations', label: 'Regulations', path: '/regulations' },
   { key: 'tasks', label: 'Tasks', path: '/tasks' },
   { key: 'applications', label: 'Applications', path: '/applications' },
-  { key: 'product-models', label: 'Product Models', path: '/product-models' },
+  { key: 'product-models', label: 'Products', path: '/product-models' },
   { key: 'third-parties', label: 'Third-Parties', path: '/external' },
   { key: 'workspace', label: 'Workspace', path: '/portfolio' },
   { key: 'approvals', label: 'Approvals', path: '/approvals' },

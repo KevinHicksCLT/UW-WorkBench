@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
@@ -11,40 +12,73 @@ import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
 import ProductGridView from './ProductGridView';
-import { decisionKey } from './gridModel';
+import {
+  compareVersions,
+  leanLobOptions,
+  scopeQuery,
+  type BoardPayload,
+  type ComparePayload,
+} from './boardApi';
 import SpineFilterBar, {
   EMPTY_FILTERS,
   normalizeFilters,
-  scopeLobs,
   scopeVersions,
   type SpineFilters,
 } from './SpineFilterBar';
 import { TraceBreadcrumb, ZoomBtn } from './boardChrome';
 import ImpactPanel from '../impact/ImpactPanel';
 import { useImpactGate } from '../impact/useImpactGate';
-import { buildComparison, lobOptions, allVersions } from './spine';
+import { buildComparison, allVersions } from './spine';
 import type {
   ElementGroup,
   LobOption,
   MatchStatus,
   ProductDecision,
   ProductDecisionStatus,
-  SpineTable,
 } from './spine';
 
-// The Products lens of the Workspace — comparison over the REAL product spine.
+// The Products lens of the Workspace — comparison over the REAL product spine,
+// DERIVED SERVER-SIDE (lib/resolvers/productBoard): the board fetches
+// render-ready aggregates from /product-spine/board, the review list fetches
+// one drill at a time from /product-spine/review, and only the ≤5-version
+// detail face downloads element payloads (/product-spine/compare, capped at
+// 12 versions). The client never receives the whole spine again — that design
+// collapsed at 381 versions / 5,789 elements.
+//
 // ONE filtering system drives both faces: the spine sort chain as cascading
-// dropdowns (1 Segment › 2 Line of business › 3 Product offering › 4 Version)
-// — whatever the cascade leaves in scope is what the board shows.
+// dropdowns — whatever the cascade leaves in scope is what the board shows.
 //
 // Two faces, picked automatically by scope size:
 //   • DETAIL — the three-column current → normalize → greenfield board
 //     whenever the scope is 5 or fewer versions.
-//   • GRID — the portfolio board (every scoped version a row, every model
-//     component a column) past the 5-version threshold.
+//   • GRID — the portfolio board past the 5-version threshold.
 
 /** Auto view boundary: ≤ this many versions renders the detail board. */
 export const DETAIL_THRESHOLD = 5;
+
+/**
+ * Fill the viewport from the element's actual top edge — the previous
+ * `calc(100vh - 178px)` guessed the chrome height above the board, and on
+ * real windows the guess ran short: the board's bottom hung below the fold,
+ * the page scrolled, and the table showed one row. Measuring the document
+ * offset makes the board end exactly at the viewport bottom.
+ */
+function useFillHeight(min = 300, bottomGap = 12) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = ref.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      setHeight(Math.max(min, window.innerHeight - top - bottomGap));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [min, bottomGap]);
+  return { ref, height };
+}
 
 export default function ProductBoard({
   lens,
@@ -53,9 +87,29 @@ export default function ProductBoard({
   lens: WorkspaceLens;
   onLens: (l: WorkspaceLens) => void;
 }) {
-  const { data: table, loading, error } = useApi<SpineTable>('/product-spine/table');
-  const lobs: LobOption[] = useMemo(() => (table ? lobOptions(table) : []), [table]);
+  const [rawFilters, setFilters] = useViewState<SpineFilters>(
+    'workspace.product.filters',
+    EMPTY_FILTERS,
+  );
+  // Older sessions persisted a single-version shape — normalize on read.
+  const filters = useMemo(() => normalizeFilters(rawFilters), [rawFilters]);
+  // Bumped after every decision write so the server-derived counts refetch.
+  const [nonce, setNonce] = useState(0);
+  const scopeQS = useMemo(() => scopeQuery(filters, nonce), [filters, nonce]);
+
+  const { data: board, loading, error } = useApi<BoardPayload>(`/product-spine/board?${scopeQS}`);
+
+  // Lean spine (names/ids, no elements) — the filter bar cascade + scoping.
+  const lobs: LobOption[] = useMemo(() => (board ? leanLobOptions(board.spine) : []), [board]);
   const pool = useMemo(() => allVersions(lobs), [lobs]);
+  const versions = useMemo(() => scopeVersions(pool, filters), [pool, filters]);
+  const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
+  // The scope's home LOB: the first scoped version's line. Decisions and the
+  // greenfield label follow it (cross-LOB scopes read "… + other lines").
+  const lob = useMemo(
+    () => (versions.length ? (lobs.find((l) => l.id === versions[0].lobId) ?? null) : null),
+    [versions, lobs],
+  );
 
   // View state persists per session (lib/viewState) so leaving the tab and
   // returning restores the exact scope, view and expansion.
@@ -63,12 +117,7 @@ export default function ProductBoard({
     'workspace.product.view',
     'auto',
   );
-  const [rawFilters, setFilters] = useViewState<SpineFilters>(
-    'workspace.product.filters',
-    EMPTY_FILTERS,
-  );
-  // Older sessions persisted a single-version shape — normalize on read.
-  const filters = useMemo(() => normalizeFilters(rawFilters), [rawFilters]);
+  const [search, setSearch] = useViewState<string>('workspace.product.search', '');
   const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
     'workspace.product.matchFilter',
     null,
@@ -82,21 +131,30 @@ export default function ProductBoard({
   const toggleComponent = (component: string) =>
     setExpandedComponents((c) => ({ ...c, [component]: !c[component] }));
 
-  const versions = useMemo(() => scopeVersions(pool, filters), [pool, filters]);
-  const scopedLobs = useMemo(() => scopeLobs(lobs, filters), [lobs, filters]);
-  // Table scrolled → the board's own chrome rows hide too.
-  const [immersive, setImmersive] = useState(false);
-  const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
-  const comparison = useMemo(() => buildComparison(versions), [versions]);
-  // The scope's home LOB: the first scoped version's line. Decisions and the
-  // greenfield label follow it (cross-LOB scopes read "… + other lines").
-  const lob = useMemo(
-    () => (versions.length ? (lobs.find((l) => l.id === versions[0].lobId) ?? null) : null),
-    [versions, lobs],
+  // Default by scope (grid past the threshold, detail at or under it); the
+  // Detail/Grid selector overrides until the scope changes again.
+  const autoView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
+  const effectiveView = view === 'auto' ? autoView : view;
+
+  // DETAIL face data: full element payloads for the few scoped versions only.
+  const detailIds = useMemo(
+    () =>
+      effectiveView === 'detail' && versions.length > 0 && versions.length <= 12
+        ? versions.map((v) => v.id).join(',')
+        : null,
+    [effectiveView, versions],
   );
+  const { data: compareData, loading: compareLoading } = useApi<ComparePayload>(
+    detailIds ? `/product-spine/compare?ids=${detailIds}&d=${nonce}` : null,
+  );
+  const detailVersions = useMemo(
+    () => (compareData ? compareVersions(compareData) : []),
+    [compareData],
+  );
+  const comparison = useMemo(() => buildComparison(detailVersions), [detailVersions]);
 
   const versionLevelName =
-    table?.levels.find((l) => l.levelNumber === 4)?.name ?? 'Version / Jurisdiction';
+    board?.levels.find((l) => l.levelNumber === 4)?.name ?? 'Version / Jurisdiction';
 
   const { data: decisionRows, refetch: refetchDecisions } = useApi<ProductDecision[]>(
     lob ? `/product-spine/decisions?lobId=${lob.id}` : null,
@@ -106,16 +164,6 @@ export default function ProductBoard({
     for (const d of decisionRows ?? []) m[d.groupKey] = d.status;
     return m;
   }, [decisionRows]);
-
-  // Portfolio-wide decisions — the grid's progress roll-up spans every LOB.
-  const { data: allDecisionRows, refetch: refetchAllDecisions } = useApi<ProductDecision[]>(
-    '/product-spine/decisions',
-  );
-  const decisionMap = useMemo(() => {
-    const m = new Map<string, ProductDecision>();
-    for (const d of allDecisionRows ?? []) if (d.lobId) m.set(decisionKey(d.lobId, d.groupKey), d);
-    return m;
-  }, [allDecisionRows]);
 
   // Every decision routes through the common change-impact gate: the element
   // is assessed against the product spine and the estate (versions carrying
@@ -131,7 +179,7 @@ export default function ProductBoard({
     comment?: string,
   ) => {
     await api.put('/product-spine/decisions', { lobId, component, groupKey, status, comment });
-    refetchAllDecisions();
+    setNonce((n) => n + 1); // server-derived board/review counts refetch
     refetchDecisions();
   };
   const decide = (
@@ -150,7 +198,7 @@ export default function ProductBoard({
           `/product-spine/decisions?lobId=${encodeURIComponent(lobId)}&groupKey=${encodeURIComponent(groupKey)}`,
         )
         .then(() => {
-          refetchAllDecisions();
+          setNonce((n) => n + 1);
           refetchDecisions();
         });
     }
@@ -182,24 +230,31 @@ export default function ProductBoard({
   // A different scope starts collapsed again — change-only, undefined while
   // the spine loads so the loading→loaded transition never counts.
   const scopeKey = useMemo(
-    () => (table ? versions.map((v) => v.id).join('+') : undefined),
-    [table, versions],
+    () => (board ? versions.map((v) => v.id).join('+') : undefined),
+    [board, versions],
   );
+  const [, setSearchParams] = useSearchParams();
   useOnChange(scopeKey, () => {
     setExpandedComponents({});
     setMatchFilter(null);
     setSelected(null);
-    // A new scope re-arms the default: detail ≤5 versions, grid past that.
+    // A new scope re-arms the default: detail ≤5 versions, grid past that —
+    // and drops any open drill, whose row set belonged to the old scope.
     setView('auto');
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('pmDrill');
+      return next;
+    });
   });
-
-  // Default by scope (grid past the threshold, detail at or under it); the
-  // Detail/Grid selector overrides until the scope changes again.
-  const autoView: 'detail' | 'grid' = versions.length > DETAIL_THRESHOLD ? 'grid' : 'detail';
-  const effectiveView = view === 'auto' ? autoView : view;
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeComponent = selected ? selected.component : null;
+  const fill = useFillHeight();
+  // Deep-scrolling the grid hides everything above the table (lens tabs +
+  // filter bar + dashboard strip) — the table gets the whole viewport; it all
+  // returns the moment the grid scrolls back to the top.
+  const [chromeHidden, setChromeHidden] = useState(false);
 
   // Fit-to-frame per scope width.
   const fittedFor = useRef<string | null>(null);
@@ -217,7 +272,7 @@ export default function ProductBoard({
     fittedFor.current = fitKey;
     const fit = Math.min(1, (scroller.clientWidth - 8) / naturalW);
     setZoom(Math.max(READABLE_FIT_MIN, Math.round(fit * 100) / 100));
-  }, [fitKey, effectiveView]);
+  }, [fitKey, effectiveView, compareData]);
 
   const specs: EdgeSpec[] = useMemo(() => {
     const out: EdgeSpec[] = [];
@@ -326,8 +381,9 @@ export default function ProductBoard({
   const pads = useRowAlignment(canvasRef, fitKey, alignRows, zoom);
   const edges = useEdges(canvasRef, specs, zoom, `${JSON.stringify(pads)}|${effectiveView}`);
 
-  if (loading) return <LoadingState message="Loading the product spine…" />;
+  if (loading && !board) return <LoadingState message="Loading the product board…" />;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (!board) return <ErrorMessage>The product board returned nothing.</ErrorMessage>;
 
   const lensBar = (
     <LensBar lens={lens} onLens={onLens} boards={[]} boardId={null} onBoard={() => undefined} />
@@ -339,10 +395,12 @@ export default function ProductBoard({
         lobs={lobs}
         filters={filters}
         onChange={setFilters}
-        scopeCount={versions.length}
-        totalCount={pool.length}
+        search={search}
+        onSearch={setSearch}
       />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexShrink: 0 }}
+      >
         <span style={{ fontSize: 11, color: '#525252' }}>View</span>
         <div
           style={{
@@ -400,20 +458,19 @@ export default function ProductBoard({
   if (effectiveView === 'grid')
     return (
       <div
+        ref={fill.ref}
         style={{
           display: 'flex',
           flexDirection: 'column',
-          height: 'calc(100vh - 178px)',
+          height: fill.height ?? 'calc(100vh - 178px)',
           // Low floor on purpose: a 480px floor pushed the board past the fold
           // on half-height windows, and with the wheel captured by the inner
           // scroller the clipped bottom was unreachable (scroll bug).
           minHeight: 300,
         }}
       >
-        {/* Scrolled into the table, every chrome row hides — scroll back to
-            the top and it all returns. */}
-        {!immersive && lensBar}
-        {!immersive && filterRow}
+        {!chromeHidden && lensBar}
+        {!chromeHidden && filterRow}
         <div
           style={{
             border: '1px solid #eaeaea',
@@ -428,29 +485,41 @@ export default function ProductBoard({
           }}
         >
           <ProductGridView
-            lobs={scopedLobs}
-            decisions={decisionMap}
+            board={board}
+            scopeQS={scopeQS}
             onDecide={decide}
-            onImmersive={setImmersive}
+            search={search}
+            chromeHidden={chromeHidden}
+            onDeepScroll={setChromeHidden}
           />
         </div>
         <ImpactPanel gate={gate} />
       </div>
     );
 
+  if (compareLoading || (detailIds && !compareData))
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {lensBar}
+        {filterRow}
+        <LoadingState message="Loading the detail comparison…" />
+      </div>
+    );
+
   return (
     <div
+      ref={fill.ref}
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 178px)',
+        height: fill.height ?? 'calc(100vh - 178px)',
         minHeight: 300,
       }}
     >
       {lensBar}
       {filterRow}
       {selected && lob && (
-        <TraceBreadcrumb group={selected} versionCount={versions.length} lobName={lob.name} />
+        <TraceBreadcrumb group={selected} versionCount={detailVersions.length} lobName={lob.name} />
       )}
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
@@ -482,7 +551,7 @@ export default function ProductBoard({
             <ProductComparePanel
               title={crossLob ? `${lob?.name ?? ''} + other lines` : (lob?.name ?? '')}
               versionLevelName={versionLevelName}
-              versions={versions}
+              versions={detailVersions}
               comparison={comparison}
               matchFilter={matchFilter}
               onMatchFilter={(s) => {
@@ -497,20 +566,23 @@ export default function ProductBoard({
             />
             <ProductNormalizeColumn
               lobName={crossLob ? `${lob?.name ?? ''} + other lines` : (lob?.name ?? '')}
-              versions={versions}
+              versions={detailVersions}
               comparison={comparison}
               matchFilter={matchFilter}
               activeComponent={activeComponent}
               lobId={lob?.id ?? ''}
               decisions={decisions}
-              onResolved={refetchDecisions}
+              onResolved={() => {
+                setNonce((n) => n + 1);
+                refetchDecisions();
+              }}
               rowPads={pads.nz}
               expandedComponents={expandedComponents}
               onToggleComponent={toggleComponent}
             />
             <ProductGreenfieldColumn
               lobName={lob?.name ?? ''}
-              versions={versions}
+              versions={detailVersions}
               comparison={comparison}
               matchFilter={matchFilter}
               decisions={decisions}
