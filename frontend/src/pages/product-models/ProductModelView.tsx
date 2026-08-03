@@ -101,6 +101,64 @@ const SECTIONS: { key: SectionKey; name: string; hint: string }[] = [
 
 const SECTION_PARAM = 'section';
 
+// Full jurisdiction names — the filter must read as PLACES, never as forms.
+const STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  DC: 'District of Columbia',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+};
+
+const stateLabel = (code: string) =>
+  STATE_NAMES[code] ? `${STATE_NAMES[code]} (${code})` : `US-${code}`;
+
 function isSectionKey(v: string | null): v is SectionKey {
   return SECTIONS.some((s) => s.key === v);
 }
@@ -292,6 +350,14 @@ export default function ProductModelView({ id }: { id: string }) {
   if (!data) return null;
   const { product, ancestors, countrywide, model, stateOverlays, generations } = data;
 
+  // The jurisdiction filter lists EVERY place the product is written — the
+  // countrywide core's states plus the states whose regulator forces a
+  // deviation. It filters by PLACE; forms live inside the sections.
+  const deviating = new Set(stateOverlays.map((o) => o.state));
+  const allJurisdictions = [...new Set([...countrywide.states, ...deviating])].sort((a, b) =>
+    stateLabel(a).localeCompare(stateLabel(b)),
+  );
+
   // Cross-filtering: with a jurisdiction picked, only the generations that
   // reach that state stay pickable; the jurisdiction list is always the
   // selected generation's coverage. Switching to a generation that doesn't
@@ -340,8 +406,8 @@ export default function ProductModelView({ id }: { id: string }) {
           </span>
         )}
         <span className="text-xs text-[#525252]">
-          <span className="font-semibold">Written in:</span> {countrywide.states.length || '—'}{' '}
-          jurisdiction{countrywide.states.length === 1 ? '' : 's'}
+          <span className="font-semibold">Written in:</span> {allJurisdictions.length || '—'}{' '}
+          jurisdiction{allJurisdictions.length === 1 ? '' : 's'}
         </span>
         {/* Version and jurisdiction are TWO SEPARATE FILTERS (the document's
             separation), and they filter each other: the version pick re-fetches
@@ -367,7 +433,7 @@ export default function ProductModelView({ id }: { id: string }) {
             </select>
           </label>
         )}
-        {(stateOverlays.length > 0 || countrywide.states.length > 0) && (
+        {allJurisdictions.length > 0 && (
           <label className="flex items-center gap-2 text-xs text-[#525252]">
             <span className="font-semibold">Jurisdiction:</span>
             <select
@@ -375,10 +441,11 @@ export default function ProductModelView({ id }: { id: string }) {
               onChange={(e) => setParam('state', e.target.value || null)}
               className="border border-[#d4d4d4] rounded-md px-2 py-1 text-xs bg-white"
             >
-              <option value="">Countrywide core — {countrywide.states.length} jurisdictions</option>
-              {stateOverlays.map((o) => (
-                <option key={o.state} value={o.state}>
-                  US-{o.state} — own state form{o.status ? ` · ${o.status}` : ''}
+              <option value="">All jurisdictions ({allJurisdictions.length})</option>
+              {allJurisdictions.map((s) => (
+                <option key={s} value={s}>
+                  {stateLabel(s)}
+                  {deviating.has(s) ? ' · deviates from core' : ''}
                 </option>
               ))}
             </select>
@@ -386,7 +453,13 @@ export default function ProductModelView({ id }: { id: string }) {
         )}
         {overlay && (
           <span className="text-[11px] font-medium text-amber-800 bg-amber-100 rounded px-2 py-0.5">
-            {activeVersion || 'core'} + US-{overlay.state}&rsquo;s deviations
+            {stateLabel(overlay.state)} deviates — showing the {activeVersion || 'core'} model plus
+            its state changes
+          </span>
+        )}
+        {state && !overlay && (
+          <span className="text-[11px] font-medium text-[#525252] bg-[#f5f5f5] rounded px-2 py-0.5">
+            {stateLabel(state)} runs the countrywide core unchanged
           </span>
         )}
       </div>
@@ -415,10 +488,12 @@ export default function ProductModelView({ id }: { id: string }) {
           unit="model components"
           totals={
             overlay
-              ? `US-${overlay.state} — the core model plus this state's own-form deviations`
-              : stateOverlays.length > 0
-                ? `${stateOverlays.length} jurisdiction${stateOverlays.length === 1 ? '' : 's'} with an own state form: ${stateOverlays.map((o) => o.state).join(', ')}`
-                : 'every covered jurisdiction runs the countrywide core'
+              ? `${stateLabel(overlay.state)} — the core model plus this state's deviations`
+              : state
+                ? `${stateLabel(state)} runs the countrywide core unchanged`
+                : stateOverlays.length > 0
+                  ? `${stateOverlays.length} of ${allJurisdictions.length} jurisdictions deviate from the core: ${stateOverlays.map((o) => o.state).join(', ')}`
+                  : 'every covered jurisdiction runs the countrywide core'
           }
         />
       </div>
