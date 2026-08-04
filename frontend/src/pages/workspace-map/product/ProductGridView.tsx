@@ -110,6 +110,7 @@ export default function ProductGridView({
     groupKey: string,
     status: ProductDecisionStatus | null,
     comment?: string,
+    meta?: { elementName?: string; componentNodeIds?: string[] },
   ) => Promise<void>;
   /** Free-text search from the spine filter bar — narrows the register rows
    *  and the drill review list. */
@@ -403,7 +404,12 @@ export default function ProductGridView({
               completePct={review.pct}
               search={search}
               onDecide={(row, status, comment) =>
-                onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+                // The element's NAME must travel with the decision — without it
+                // the impact walker assesses the whole component (every version
+                // in the LOB) instead of the one element being decided.
+                onDecide(row.lobId, row.group.component, row.group.key, status, comment, {
+                  elementName: row.group.name,
+                })
               }
               labelOf={labelOf}
               abbr={abbr}

@@ -269,28 +269,63 @@ export async function assessProduct(
     });
   }
 
-  // Same-named component in other lines of business.
-  const compIds = comps.map((c) => c.id);
-  const crossLob = await prisma.productNode.count({
-    where: {
-      companyId,
-      productLevelType: { levelNumber: 5 },
-      displayValue: { equals: subject.component, mode: 'insensitive' },
-      ...(compIds.length ? { id: { notIn: compIds } } : {}),
-    },
-  });
-  if (crossLob) {
-    impacts.push({
-      severity: 'LOW',
-      domain: 'product',
-      category: 'products',
-      entityType: 'ProductNode',
-      entityId: null,
-      entityName: `${crossLob} other line${crossLob === 1 ? '' : 's'} of business model${crossLob === 1 ? 's' : ''} this too`,
-      description:
-        'The same component exists in other lines of business. Deciding differently here would create two standards for the same thing.',
-      count: crossLob,
+  // Cross-LOB overlap — scoped to what is actually being decided. With a
+  // named element, count the OTHER LOBs carrying that same element (a state
+  // endorsement decided in one line rarely exists elsewhere — the count must
+  // say so, not repeat the component-wide figure on every report).
+  let crossLob = 0;
+  if (wantedElement) {
+    const spine = await loadSpine(companyId);
+    for (const l of spine.lobs) {
+      if (l.id === lob.id) continue;
+      const carries = l.versions.some((v) => {
+        const comp = v.components.get(subject.component);
+        return (
+          !!comp &&
+          comp.elements.some((e) => {
+            const n = norm(e.element);
+            return n === wantedElement || n.includes(wantedElement) || wantedElement.includes(n);
+          })
+        );
+      });
+      if (carries) crossLob += 1;
+    }
+    if (crossLob) {
+      impacts.push({
+        severity: 'LOW',
+        domain: 'product',
+        category: 'products',
+        entityType: 'ProductNode',
+        entityId: null,
+        entityName: `${crossLob} other line${crossLob === 1 ? '' : 's'} of business carr${crossLob === 1 ? 'ies' : 'y'} this element too`,
+        description:
+          'The same element appears in other lines of business. Deciding differently here would create two standards for the same thing.',
+        count: crossLob,
+      });
+    }
+  } else {
+    const compIds = comps.map((c) => c.id);
+    crossLob = await prisma.productNode.count({
+      where: {
+        companyId,
+        productLevelType: { levelNumber: 5 },
+        displayValue: { equals: subject.component, mode: 'insensitive' },
+        ...(compIds.length ? { id: { notIn: compIds } } : {}),
+      },
     });
+    if (crossLob) {
+      impacts.push({
+        severity: 'LOW',
+        domain: 'product',
+        category: 'products',
+        entityType: 'ProductNode',
+        entityId: null,
+        entityName: `${crossLob} other line${crossLob === 1 ? '' : 's'} of business model${crossLob === 1 ? 's' : ''} this too`,
+        description:
+          'The same component exists in other lines of business. Deciding differently here would create two standards for the same thing.',
+        count: crossLob,
+      });
+    }
   }
 
   impacts.push({
@@ -300,7 +335,9 @@ export async function assessProduct(
     entityType: 'ProductNode',
     entityId: lob.id,
     entityName: label ?? `${subject.component} · ${lob.displayValue}`,
-    description: `Scope of this check: ${versions.length} product version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}, ${comps.length} with a ${subject.component} component.`,
+    description: subject.elementName
+      ? `Scope of this check: “${subject.elementName}” in the ${subject.component} component — carried by ${carriers.size} of ${versions.length} product version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}.`
+      : `Scope of this check: ${versions.length} product version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}, ${comps.length} with a ${subject.component} component.`,
   });
 
   return buildReport(

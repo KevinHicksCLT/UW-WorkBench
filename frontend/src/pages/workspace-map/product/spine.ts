@@ -35,6 +35,10 @@ export interface ComponentElement {
   description: string | null;
   livesIn: string | null;
   format: string | null;
+  /** Enriched state-mandate detail (backend enrich-state-mandates.ts) — the
+   *  specific requirements the state imposes, with its statutory citation. */
+  mandate?: string | null;
+  mandateCitation?: string | null;
 }
 
 /** A version column: one L4 node with its product/LOB ancestry flattened. */
@@ -176,6 +180,8 @@ export function elementsOf(node: SpineNode): ComponentElement[] {
       description: typeof e.description === 'string' ? e.description : null,
       livesIn: typeof e.livesIn === 'string' ? e.livesIn : null,
       format: typeof e.format === 'string' ? e.format : null,
+      mandate: typeof e.mandate === 'string' ? e.mandate : null,
+      mandateCitation: typeof e.mandateCitation === 'string' ? e.mandateCitation : null,
     }))
     .filter((e) => e.element.length > 0);
 }

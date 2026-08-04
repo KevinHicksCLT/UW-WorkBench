@@ -359,15 +359,37 @@ function ElementDetailModal({
                         color: el ? '#262626' : '#525252',
                         lineHeight: 1.45,
                         fontStyle: inherited ? 'italic' : undefined,
+                        minWidth: 0,
                       }}
                     >
-                      {el
-                        ? (el.description ?? el.element)
-                        : inherited
-                          ? v.members > 1
-                            ? 'Carried in this product — narrow the scope to one product for per-version detail.'
-                            : 'Carried via the countrywide base form — the state form amends it without dropping this coverage.'
-                          : 'not carried'}
+                      {el ? (
+                        // The row shows the ACTUAL mandate for its state when
+                        // enriched detail exists — the header strip stays the
+                        // brief overview.
+                        <>
+                          {el.mandate ?? el.description ?? el.element}
+                          {el.mandate && el.mandateCitation && (
+                            <span
+                              style={{
+                                display: 'block',
+                                marginTop: 2,
+                                fontSize: 10.5,
+                                color: '#92400e',
+                              }}
+                            >
+                              Source: {el.mandateCitation}
+                            </span>
+                          )}
+                        </>
+                      ) : inherited ? (
+                        v.members > 1 ? (
+                          'Carried in this product — narrow the scope to one product for per-version detail.'
+                        ) : (
+                          'Carried via the countrywide base form — the state form amends it without dropping this coverage.'
+                        )
+                      ) : (
+                        'not carried'
+                      )}
                     </span>
                   </div>
                 );

@@ -121,6 +121,10 @@ function ScoreCard({ score }: { score: DecisionScore }) {
             </span>
           ))}
         </div>
+        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 5 }}>
+          Derived from carriage, in-force exposure and this assessment — review with your
+          underwriting team before applying.
+        </div>
       </div>
     </div>
   );
@@ -458,42 +462,53 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
             Cancel
           </button>
           {productDecision ? (
-            // The three board decisions, made from the report itself. The
-            // score's recommended action wears a ring.
+            // The three board decisions, made from the report itself. They
+            // unlock — and the recommended one earns its star — only once the
+            // FULL analysis (graph walk + AI deep-dive) has landed.
             (
               [
                 ['HELD', 'Retain', '#0f766e'],
                 ['APPROVED', 'Standardize', '#4f46e5'],
                 ['RETIRED', 'Retire', '#dc2626'],
               ] as const
-            ).map(([key, label, tone]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  gate.confirm(key).catch(() => {
-                    /* surfaced via gate.state.error */
-                  });
-                }}
-                disabled={s.busy || s.loading}
-                title={recommendedKey === key ? 'Recommended by the decision score' : undefined}
-                style={{
-                  font: 'inherit',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '6px 16px',
-                  borderRadius: 7,
-                  border: 'none',
-                  background: tone,
-                  color: '#fff',
-                  cursor: s.busy || s.loading ? 'default' : 'pointer',
-                  opacity: s.busy || s.loading ? 0.6 : 1,
-                  boxShadow: recommendedKey === key ? `0 0 0 2.5px ${tone}55` : undefined,
-                }}
-              >
-                {s.busy ? 'Applying…' : recommendedKey === key ? `★ ${label}` : label}
-              </button>
-            ))
+            ).map(([key, label, tone]) => {
+              const starred = !scanning && recommendedKey === key;
+              const locked = s.busy || scanning;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    gate.confirm(key).catch(() => {
+                      /* surfaced via gate.state.error */
+                    });
+                  }}
+                  disabled={locked}
+                  title={
+                    scanning
+                      ? 'Available once the impact analysis completes'
+                      : starred
+                        ? 'Recommended by the decision score'
+                        : undefined
+                  }
+                  style={{
+                    font: 'inherit',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: '6px 16px',
+                    borderRadius: 7,
+                    border: 'none',
+                    background: tone,
+                    color: '#fff',
+                    cursor: locked ? 'default' : 'pointer',
+                    opacity: locked ? 0.5 : 1,
+                    boxShadow: starred ? `0 0 0 2.5px ${tone}55` : undefined,
+                  }}
+                >
+                  {s.busy ? 'Applying…' : starred ? `${label} ★` : label}
+                </button>
+              );
+            })
           ) : (
             <button
               type="button"
