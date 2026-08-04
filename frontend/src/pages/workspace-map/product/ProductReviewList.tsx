@@ -322,7 +322,13 @@ function ElementDetailModal({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {columns.map((v, i) => {
-                const el = row.group.perVersion[v.id];
+                // Folded product columns can't join perVersion by column id —
+                // fall back to the group's representative element so a
+                // carrying product still shows the actual text (state groups
+                // are per-state now, so the representative IS that state's).
+                const direct = row.group.perVersion[v.id];
+                const rep = Object.values(row.group.perVersion).find(Boolean) ?? null;
+                const el = direct ?? (row.presence[i] && v.members > 1 ? rep : null);
                 // Covered but not defined here = inherited from the product's
                 // countrywide form (never "not carried" — that contradicts the
                 // board's green cells).
@@ -382,11 +388,7 @@ function ElementDetailModal({
                           )}
                         </>
                       ) : inherited ? (
-                        v.members > 1 ? (
-                          'Carried in this product — narrow the scope to one product for per-version detail.'
-                        ) : (
-                          'Carried via the countrywide base form — the state form amends it without dropping this coverage.'
-                        )
+                        'Carried via the countrywide base form — the state form amends it without dropping this coverage.'
                       ) : (
                         'not carried'
                       )}

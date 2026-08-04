@@ -5,6 +5,8 @@
 // a jurisdiction-blind name signature, so what is common to every version,
 // what only some versions carry, and what is unique stands out.
 
+import { STATE_NAMES } from '../../../lib/usStates';
+
 export interface SpineLevel {
   levelNumber: number;
   dbValue: string;
@@ -258,6 +260,20 @@ export function versionTokensOf(versions: VersionColumn[]): Set<string> {
   return tokens;
 }
 
+/** Jurisdiction detected from an ELEMENT name ("CA state-mandated endorsement
+ *  set" → CA). Mirrors backend productBoard.elementStateOf: state elements
+ *  group PER STATE because the jurisdiction-blind signature strips state
+ *  codes (they are version tokens) and would fold every state's set into one
+ *  cross-state group. */
+export function elementStateOf(name: string): string | null {
+  const lead = /^([A-Z]{2})\s/.exec(name)?.[1];
+  if (lead && STATE_NAMES[lead]) return lead;
+  for (const [code, full] of Object.entries(STATE_NAMES)) {
+    if (name.includes(full) || new RegExp(`(?:—|–|-)\\s*${code}\\b`).test(name)) return code;
+  }
+  return null;
+}
+
 /** The component row axis: spine order of first appearance across versions. */
 function componentAxis(versions: VersionColumn[]): string[] {
   const seen = new Set<string>();
@@ -296,7 +312,11 @@ export function buildComparison(versions: VersionColumn[]): Comparison {
       comp.elements.forEach((el, i) => {
         rawCount += 1;
         const sig = elementSignature(el.element, tokens) || `#${i}`;
-        const key = `${component}::${sig}`;
+        // State-specific elements group PER STATE (matches the backend key —
+        // persisted decisions join on it). Stateless keys keep the historic
+        // format.
+        const st = elementStateOf(el.element);
+        const key = `${component}::${st ? `${st}::` : ''}${sig}`;
         let g = groups.get(key);
         if (!g) {
           g = {
