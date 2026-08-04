@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { DOMAIN_HEX } from '../viz/model';
 import { SkeletonLoader } from './ui';
-import { TABS, TAB_LABELS, tabCount, type Payload, type Tab } from './inspector/types';
+import { TABS, TAB_LABELS, type Payload, type Tab } from './inspector/types';
 import { OverviewTab, GovernancePanel } from './inspector/OverviewTab';
 import { WorkTab } from './inspector/WorkTab';
 import { TasksTab, RolesTab, AppsTab, DeliverablesTab } from './inspector/entityTabs';
@@ -287,7 +287,6 @@ export default function Inspector({
       {data && !loading && (
         <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 border-b border-[#eaeaea] overflow-x-auto">
           {visibleTabs.map((t) => {
-            const n = tabCount(data, t);
             const active = tab === t;
             return (
               <button
@@ -301,15 +300,6 @@ export default function Inspector({
                 }
               >
                 {TAB_LABELS[t]}
-                {n != null && (
-                  <span
-                    className={
-                      'ml-1 tabular-nums ' + (active ? 'text-[#1d4ed8]' : 'text-[#a3a3a3]')
-                    }
-                  >
-                    ({n})
-                  </span>
-                )}
               </button>
             );
           })}
