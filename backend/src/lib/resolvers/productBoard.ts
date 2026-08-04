@@ -22,6 +22,10 @@ export interface SpineElement {
   description: string | null;
   livesIn: string | null;
   format: string | null;
+  /** Enriched state-mandate detail (scripts/enrich-state-mandates.ts) — the
+   *  specific requirements the state imposes, with its statutory citation. */
+  mandate?: string | null;
+  mandateCitation?: string | null;
 }
 
 export interface SpineComponent {
@@ -203,6 +207,74 @@ export function decisionKey(lobId: string, groupKey: string): string {
   return `${lobId}::${groupKey}`;
 }
 
+export const STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  DC: 'District of Columbia',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+};
+
+/** Jurisdiction detected from an ELEMENT name ("CA state-mandated endorsement
+ *  set" → CA, "State policy form — Michigan" → MI). Used to keep state-
+ *  specific elements grouped PER STATE: the jurisdiction-blind signature
+ *  strips state codes (they are version tokens), which would otherwise fold
+ *  every state's mandated form set into one cross-state group. */
+export function elementStateOf(name: string): string | null {
+  const lead = /^([A-Z]{2})\s/.exec(name)?.[1];
+  if (lead && STATE_NAMES[lead]) return lead;
+  for (const [code, full] of Object.entries(STATE_NAMES)) {
+    if (name.includes(full) || new RegExp(`(?:—|–|-)\\s*${code}\\b`).test(name)) return code;
+  }
+  return null;
+}
+
 // The 'Product Taxonomy' model component is hidden from every product view
 // (same rule as routes/product-spine/helpers.ts — the rows stay in the DB).
 const HIDDEN_COMPONENT = 'Product Taxonomy';
@@ -266,7 +338,11 @@ export function buildComparison(versions: SpineVersion[]): Comparison {
       comp.elements.forEach((el, i) => {
         rawCount += 1;
         const sig = elementSignature(el.element, tokens) || `#${i}`;
-        const key = `${component}::${sig}`;
+        // State-specific elements group PER STATE — "CA state-mandated
+        // endorsement set" must never fold with Florida's. Stateless keys
+        // keep the historic format so persisted decisions still match.
+        const st = elementStateOf(el.element);
+        const key = `${component}::${st ? `${st}::` : ''}${sig}`;
         let g = groups.get(key);
         if (!g) {
           g = { key, component, name: el.element, status: 'SINGLE', perVersion: {}, presentIn: 0 };
@@ -280,10 +356,12 @@ export function buildComparison(versions: SpineVersion[]): Comparison {
     }
     const list = [...groups.values()];
     for (const g of list) {
+      // One commonality rule at every level: COMMON = carried by all,
+      // PARTIAL = carried by more than half, UNIQUE = half or fewer.
       if (single) g.status = 'SINGLE';
       else if (g.presentIn === versions.length) g.status = 'COMMON';
-      else if (g.presentIn <= 2) g.status = 'UNIQUE';
-      else g.status = 'PARTIAL';
+      else if (g.presentIn * 2 > versions.length) g.status = 'PARTIAL';
+      else g.status = 'UNIQUE';
       if (g.status === 'PARTIAL' || g.status === 'UNIQUE') reviewCount += 1;
     }
     normalizedCount += list.length;
@@ -444,16 +522,16 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
         if (productsInLob > 1) {
           const carrying = new Set([...covered].map((vid) => productOf.get(vid) ?? vid)).size;
           if (carrying === productsInLob) g.status = 'COMMON';
-          else if (carrying <= 2) g.status = 'UNIQUE';
-          else g.status = 'PARTIAL';
+          else if (carrying * 2 > productsInLob) g.status = 'PARTIAL';
+          else g.status = 'UNIQUE';
         } else if (lob.versions.length === 1) {
           g.status = 'SINGLE';
         } else {
           // Single-product scope: commonality reads across the product's own
           // state/version editions (with countrywide coverage extended).
           if (covered.size === lob.versions.length) g.status = 'COMMON';
-          else if (covered.size <= 2) g.status = 'UNIQUE';
-          else g.status = 'PARTIAL';
+          else if (covered.size * 2 > lob.versions.length) g.status = 'PARTIAL';
+          else g.status = 'UNIQUE';
         }
       }
     }
@@ -596,6 +674,8 @@ export function parseElements(attributes: unknown): SpineElement[] {
       description: typeof rec.description === 'string' ? rec.description : null,
       livesIn: typeof rec.livesIn === 'string' ? rec.livesIn : null,
       format: typeof rec.format === 'string' ? rec.format : null,
+      mandate: typeof rec.mandate === 'string' ? rec.mandate : null,
+      mandateCitation: typeof rec.mandateCitation === 'string' ? rec.mandateCitation : null,
     });
   }
   return out;

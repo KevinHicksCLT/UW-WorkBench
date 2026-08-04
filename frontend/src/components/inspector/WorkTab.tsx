@@ -16,15 +16,30 @@ import type { AfterFn, Payload, PlanRow, TiedPlan } from './types';
 // ── Deliverable chain payload (mirrors GET /inspector/:nodeId/chain) ─────────
 type ChainRole = { roleId: string; name: string; relation: string };
 type ChainApp = { appId: string; name: string; usageType: string };
+type ChainVerify = { actor: string | null; steps: string[]; passWhen: string | null };
+type ChainSubTask = {
+  n: number;
+  action: string;
+  actor: string | null;
+  steps: string[];
+  doneWhen: string | null;
+  apps: string[];
+  artifacts: string[];
+  verify: ChainVerify | null;
+  defined: boolean;
+};
 type ChainTask = {
   taskId: string;
   name: string;
   roles: ChainRole[];
   applications: ChainApp[];
+  subTasks: ChainSubTask[];
+  dependsOn: { taskId: string; name: string }[];
   checklist: PlanRow[];
   testing: PlanRow[];
   standards: TiedPlan[];
   regulations: TiedPlan[];
+  children: ChainTask[];
 };
 type ChainDeliv = {
   deliverableId: string;
@@ -150,7 +165,6 @@ function DelivChain({
 }) {
   const [open, setOpen] = useState(true);
   const kids = d.tasks.length;
-  const pct = d.rollup.total ? Math.round((100 * d.rollup.defined) / d.rollup.total) : null;
   return (
     <div
       className="rounded-lg bg-[#e9f7ef] border border-[#cbead9]"
@@ -187,24 +201,6 @@ function DelivChain({
         <span className="text-[12.5px] font-bold text-[#196f3d] flex-1 min-w-0 truncate">
           {d.title}
         </span>
-        {pct !== null && (
-          <span
-            className={
-              'text-[9px] px-1.5 py-px rounded-full flex-shrink-0 ' +
-              (pct === 100
-                ? 'bg-white text-[#196f3d] border border-[#cbead9]'
-                : 'bg-[#fdf3e0] text-[#8a5a12]')
-            }
-            title="Checklist + testing keys defined across this deliverable's tasks"
-          >
-            {d.rollup.defined} of {d.rollup.total} verified
-          </span>
-        )}
-        {d.tasks.length > 0 && (
-          <span className="text-[9px] text-[#5a8a6f]">
-            {d.tasks.length} task{d.tasks.length === 1 ? '' : 's'}
-          </span>
-        )}
         <LinkOut onClick={() => onNav('/deliverables')} />
         {edit && d.linkId && <DetachBtn onClick={() => onDetach(d.linkId!)} />}
       </div>
@@ -245,7 +241,6 @@ function PlanBlock({
 }) {
   const specific = rows.filter((r) => !r.generic);
   if (specific.length === 0) return null;
-  const defined = specific.filter((r) => r.defined).length;
   return (
     <div
       className="rounded-md mt-1.5"
@@ -258,13 +253,120 @@ function PlanBlock({
         >
           {label}
         </span>
-        <span className="text-[9px]" style={{ color: accent }}>
-          {defined}/{specific.length}
-        </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
         {specific.map((r, i) => (
           <ChainPlanLine key={`s${i}`} r={r} num={i + 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// The task's declared inputs — it cannot complete until these tasks have.
+function DependsOnRow({ deps }: { deps: { taskId: string; name: string }[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1 rounded-md bg-[#fdf8ef] border border-[#ecdcc0] px-2 py-1.5">
+      <span className="text-[8px] font-bold uppercase tracking-wide text-[#b45309]">
+        Depends on
+      </span>
+      {deps.map((d) => (
+        <span
+          key={d.taskId}
+          className="text-[10px] font-medium rounded px-1.5 py-px bg-white text-[#92600e] border border-[#ecdcc0]"
+        >
+          {d.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// One structured AAA sub-task: Actor · Action · Application chips, the steps,
+// and a DoD box that folds the paired verification in (testing lives WITH the
+// definition of done, not in a separate block).
+function SubTaskCard({ s }: { s: ChainSubTask }) {
+  return (
+    <div className="rounded-md bg-white border border-[#cbead9] px-2 py-1.5">
+      <div className="flex items-start gap-1.5">
+        <span className="text-[10.5px] tabular-nums text-[#6b7785] mt-px flex-shrink-0">
+          {s.n}.
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11.5px] font-medium text-[#171717] leading-snug">{s.action}</div>
+          <div className="flex flex-wrap items-center gap-1 mt-1">
+            {s.actor && (
+              <span className="text-[9px] font-semibold rounded px-1.5 py-px bg-[#e9f7ef] text-[#196f3d] border border-[#cbead9]">
+                {s.actor}
+              </span>
+            )}
+            {(s.artifacts.length ? s.artifacts : s.apps).map((a) => (
+              <span
+                key={a}
+                className="text-[9px] font-semibold rounded px-1.5 py-px bg-[#eef4fe] text-[#1d4ed8] border border-[#cdddf5]"
+              >
+                {a}
+              </span>
+            ))}
+          </div>
+          {s.steps.length > 0 && (
+            <div className="mt-1 flex flex-col gap-0.5">
+              {s.steps.map((st, i) => (
+                <div key={i} className="flex items-start gap-1.5">
+                  <span className="text-[9.5px] tabular-nums text-[#a3a3a3] mt-px flex-shrink-0">
+                    {i + 1})
+                  </span>
+                  <span className="text-[11px] text-[#374151] leading-snug">{st}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {(s.doneWhen || s.verify) && (
+            <div className="mt-1.5 rounded bg-[#f2faf6] border border-[#cbead9] px-1.5 py-1">
+              <span className="text-[8px] font-bold uppercase tracking-wide text-[#196f3d]">
+                Done when
+              </span>
+              {s.doneWhen && (
+                <div className="text-[10.5px] text-[#15603f] leading-snug">
+                  {s.doneWhen.charAt(0).toUpperCase() + s.doneWhen.slice(1)}
+                </div>
+              )}
+              {s.verify && (
+                <div className="mt-0.5 text-[10px] text-[#1d4ed8] leading-snug">
+                  <span className="font-semibold">
+                    Verified{s.verify.actor ? ` by the ${s.verify.actor}` : ''}
+                  </span>
+                  {s.verify.passWhen && <> — pass when {s.verify.passWhen}</>}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// The AAA sub-task block replacing the flat Sub-tasks / Sub-task testing pair.
+function SubTaskBlock({ subTasks }: { subTasks: ChainSubTask[] }) {
+  return (
+    <div
+      className="rounded-md mt-1.5"
+      style={{
+        background: '#f2faf6',
+        border: '1px solid #cbead9',
+        borderLeft: '3px solid #1e9e6a',
+      }}
+    >
+      <div className="flex items-center gap-1.5 px-2 pt-1.5">
+        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border text-[#1e9e6a] border-[#cbead9]">
+          Actions
+        </span>
+        <span className="text-[8.5px] text-[#8ba99a]">actor · action · application</span>
+      </div>
+      <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
+        {subTasks.map((s) => (
+          <SubTaskCard key={s.n} s={s} />
         ))}
       </div>
     </div>
@@ -286,8 +388,6 @@ function TiedBlock({
   border: string;
   items: TiedPlan[];
 }) {
-  const rows = items.flatMap((s) => [...s.checklist, ...s.testing]);
-  const defined = rows.filter((r) => r.defined).length;
   return (
     <div
       className="rounded-md mt-1.5"
@@ -299,9 +399,6 @@ function TiedBlock({
           style={{ color: accent, borderColor: border }}
         >
           {label}
-        </span>
-        <span className="text-[9px]" style={{ color: accent }}>
-          {items.length} · {defined}/{rows.length}
         </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
@@ -325,20 +422,31 @@ function TiedBlock({
   );
 }
 
-function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
+function TaskChain({
+  t,
+  onNav,
+  nested = false,
+}: {
+  t: ChainTask;
+  onNav: (p: string) => void;
+  nested?: boolean;
+}) {
   const openRole = useOpenRole();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!nested);
   const tied = [...t.standards, ...t.regulations];
+  const subTasks = t.subTasks ?? [];
+  const deps = t.dependsOn ?? [];
+  const children = t.children ?? [];
   const checklist = t.checklist.filter((r) => !r.generic);
   const testing = t.testing.filter((r) => !r.generic);
   const kids =
-    t.roles.length + t.applications.length + checklist.length + testing.length + tied.length;
-  const allRows = [
-    ...checklist,
-    ...testing,
-    ...tied.flatMap((x) => [...x.checklist, ...x.testing]),
-  ];
-  const defined = allRows.filter((r) => r.defined).length;
+    t.roles.length +
+    t.applications.length +
+    subTasks.length +
+    checklist.length +
+    testing.length +
+    tied.length +
+    children.length;
   return (
     <div
       className="rounded-lg bg-[#faf8ff] border border-[#ded5f8]"
@@ -363,19 +471,15 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
             <path d="M9 6l6 6-6 6" />
           </svg>
         )}
-        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white text-[#6d28d9] border border-[#ded5f8] flex-shrink-0">
+        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border flex-shrink-0 text-[#6d28d9] border-[#ded5f8]">
           Task
         </span>
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
-        {allRows.length > 0 && (
-          <span className="text-[9px] text-[#7c5db8]">
-            {defined}/{allRows.length}
-          </span>
-        )}
       </button>
       {open && kids > 0 && (
         <div className="px-2.5 pb-2 pl-7 flex flex-col gap-1">
-          {t.roles.length > 0 && <MiniHead>Roles</MiniHead>}
+          {deps.length > 0 && <DependsOnRow deps={deps} />}
+          {t.roles.length > 0 && <MiniHead>Actor</MiniHead>}
           {t.roles.map((r) => (
             <button
               key={r.roleId}
@@ -392,7 +496,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
               </span>
             </button>
           ))}
-          {t.applications.length > 0 && <MiniHead>Applications</MiniHead>}
+          {t.applications.length > 0 && <MiniHead>Application</MiniHead>}
           {t.applications.map((a) => (
             <button
               key={a.appId}
@@ -411,9 +515,20 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
               )}
             </button>
           ))}
+          {/* The L5 is a rollup: its L6 tasks consolidate directly under it,
+              collapsed; standards sit at the very bottom, only if applicable. */}
+          {children.length > 0 && (
+            <>
+              <MiniHead>Tasks</MiniHead>
+              {children.map((c) => (
+                <TaskChain key={c.taskId} t={c} onNav={onNav} nested />
+              ))}
+            </>
+          )}
+          {subTasks.length > 0 && <SubTaskBlock subTasks={subTasks} />}
           {checklist.length > 0 && (
             <PlanBlock
-              label="Sub-tasks"
+              label="Actions"
               accent="#1e9e6a"
               bg="#f2faf6"
               border="#cbead9"
@@ -422,7 +537,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
           )}
           {testing.length > 0 && (
             <PlanBlock
-              label="Sub-task testing"
+              label="Action testing"
               accent="#1d4ed8"
               bg="#f0f5fe"
               border="#cdddf5"

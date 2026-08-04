@@ -133,6 +133,17 @@ export interface BoardPayload {
   scopedVersions: number;
 }
 
+/** The actual state mandate behind a state-required row, with its regulatory
+ *  source (mirrors backend lib/resolvers/productMandates). */
+export interface StateMandate {
+  state: string;
+  stateName: string;
+  mandate: string;
+  citation: string | null;
+  citationUrl: string | null;
+  regulator: string | null;
+}
+
 export interface ReviewPayload {
   columns: BoardColumn[];
   columnMode: 'version' | 'product';
@@ -145,6 +156,8 @@ export interface ReviewPayload {
   self?: ReviewRow | null;
   groupOf?: Record<string, string>;
   groupOrder: string[];
+  /** Row key (`lobId:groupKey`) → the state mandate the row exists to satisfy. */
+  mandates?: Record<string, StateMandate>;
 }
 
 export interface ComparePayload {

@@ -8,6 +8,7 @@ import ProductReviewList, { type ReviewFilter } from './ProductReviewList';
 import { columnLabel, type BoardColumn, type BoardPayload, type ReviewPayload } from './boardApi';
 import ComponentElementRows from './ComponentElementRows';
 import FormsSection from './FormsSection';
+import GoalBanner from './GoalBanner';
 import { SectionBand } from './gridRow';
 import { MATCH_META, type ProductDecisionStatus } from './spine';
 
@@ -109,6 +110,7 @@ export default function ProductGridView({
     groupKey: string,
     status: ProductDecisionStatus | null,
     comment?: string,
+    meta?: { elementName?: string; componentNodeIds?: string[] },
   ) => Promise<void>;
   /** Free-text search from the spine filter bar — narrows the register rows
    *  and the drill review list. */
@@ -244,6 +246,15 @@ export default function ProductGridView({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      {/* (0) North-star strip — the end goal every decision moves toward. */}
+      {!drill && !chromeHidden && (
+        <GoalBanner
+          scopeLabel={`${colCount} ${board.columnMode === 'product' ? 'products' : 'versions'} in scope`}
+          decided={heat.totals.decided}
+          need={heat.totals.need}
+          pct={heat.totals.pct}
+        />
+      )}
       {/* (1) Executive dashboard — pinned like a frozen header row. Hidden
           while a review list is open; the chevron collapses it to a slim
           summary strip so the table gets the full height. */}
@@ -316,13 +327,13 @@ export default function ProductGridView({
             onClick={() => openDrill('__all__', 'auto')}
           />
           <StatTile
-            label={`similar — configured differently (${heat.totals.similar})`}
+            label={`similar — in over half, configured differently (${heat.totals.similar})`}
             value={`${pctOfTotal(heat.totals.similar)}%`}
             tone={MATCH_META.PARTIAL.fg}
             onClick={() => openDrill('__all__', 'similar')}
           />
           <StatTile
-            label={`unique — in 1–2 products (${heat.totals.unique})`}
+            label={`unique — in half or fewer products (${heat.totals.unique})`}
             value={`${pctOfTotal(heat.totals.unique)}%`}
             tone={MATCH_META.UNIQUE.fg}
             onClick={() => openDrill('__all__', 'unique')}
@@ -387,12 +398,18 @@ export default function ProductGridView({
               key={`${drill}|${drillFilter}`}
               columns={review.columns}
               rows={review.rows}
+              mandates={review.mandates}
               selfRow={review.self ?? null}
               defaultFilter={drillFilter}
               completePct={review.pct}
               search={search}
               onDecide={(row, status, comment) =>
-                onDecide(row.lobId, row.group.component, row.group.key, status, comment)
+                // The element's NAME must travel with the decision — without it
+                // the impact walker assesses the whole component (every version
+                // in the LOB) instead of the one element being decided.
+                onDecide(row.lobId, row.group.component, row.group.key, status, comment, {
+                  elementName: row.group.name,
+                })
               }
               labelOf={labelOf}
               abbr={abbr}
@@ -521,9 +538,9 @@ export default function ProductGridView({
                       style={{
                         position: 'absolute',
                         bottom: 8,
-                        // One line over: rise from the column's RIGHT divider
-                        // so the text hangs over its own column of cells.
-                        left: 'calc(100% + 4px)',
+                        // Rise from the column's CENTER so the angled name
+                        // reads centered over its own column of cells.
+                        left: '50%',
                         transformOrigin: 'left bottom',
                         transform: 'rotate(-52deg)',
                         whiteSpace: 'nowrap',

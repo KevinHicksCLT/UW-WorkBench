@@ -5,6 +5,8 @@
 // a jurisdiction-blind name signature, so what is common to every version,
 // what only some versions carry, and what is unique stands out.
 
+import { STATE_NAMES } from '../../../lib/usStates';
+
 export interface SpineLevel {
   levelNumber: number;
   dbValue: string;
@@ -35,6 +37,10 @@ export interface ComponentElement {
   description: string | null;
   livesIn: string | null;
   format: string | null;
+  /** Enriched state-mandate detail (backend enrich-state-mandates.ts) — the
+   *  specific requirements the state imposes, with its statutory citation. */
+  mandate?: string | null;
+  mandateCitation?: string | null;
 }
 
 /** A version column: one L4 node with its product/LOB ancestry flattened. */
@@ -102,9 +108,9 @@ export interface Comparison {
   reviewCount: number;
 }
 
-// Traffic-light semantics: Common = green (in every product in scope),
-// Similar = amber (carried widely but configured differently — pick a target
-// standard), Unique = red (only one or two products carry it).
+// Traffic-light semantics (one rule at every level of the board):
+// Common = green (in every product in scope), Similar = amber (in more than
+// half — pick a target standard), Unique = red (in half or fewer).
 export const MATCH_META: Record<
   MatchStatus,
   { label: string; fg: string; bg: string; border: string; hint: string }
@@ -121,14 +127,14 @@ export const MATCH_META: Record<
     fg: '#92400e',
     bg: '#fef3c7',
     border: '#fcd34d',
-    hint: 'carried by most products but configured differently — choose a target standard',
+    hint: 'in more than half the products in scope but configured differently — choose a target standard',
   },
   UNIQUE: {
     label: 'Unique',
     fg: '#991b1b',
     bg: '#fee2e2',
     border: '#fca5a5',
-    hint: 'in only one or two products in scope',
+    hint: 'in half or fewer of the products in scope',
   },
   SINGLE: {
     label: 'Element',
@@ -176,6 +182,8 @@ export function elementsOf(node: SpineNode): ComponentElement[] {
       description: typeof e.description === 'string' ? e.description : null,
       livesIn: typeof e.livesIn === 'string' ? e.livesIn : null,
       format: typeof e.format === 'string' ? e.format : null,
+      mandate: typeof e.mandate === 'string' ? e.mandate : null,
+      mandateCitation: typeof e.mandateCitation === 'string' ? e.mandateCitation : null,
     }))
     .filter((e) => e.element.length > 0);
 }
@@ -252,6 +260,20 @@ export function versionTokensOf(versions: VersionColumn[]): Set<string> {
   return tokens;
 }
 
+/** Jurisdiction detected from an ELEMENT name ("CA state-mandated endorsement
+ *  set" → CA). Mirrors backend productBoard.elementStateOf: state elements
+ *  group PER STATE because the jurisdiction-blind signature strips state
+ *  codes (they are version tokens) and would fold every state's set into one
+ *  cross-state group. */
+export function elementStateOf(name: string): string | null {
+  const lead = /^([A-Z]{2})\s/.exec(name)?.[1];
+  if (lead && STATE_NAMES[lead]) return lead;
+  for (const [code, full] of Object.entries(STATE_NAMES)) {
+    if (name.includes(full) || new RegExp(`(?:—|–|-)\\s*${code}\\b`).test(name)) return code;
+  }
+  return null;
+}
+
 /** The component row axis: spine order of first appearance across versions. */
 function componentAxis(versions: VersionColumn[]): string[] {
   const seen = new Set<string>();
@@ -290,7 +312,11 @@ export function buildComparison(versions: VersionColumn[]): Comparison {
       comp.elements.forEach((el, i) => {
         rawCount += 1;
         const sig = elementSignature(el.element, tokens) || `#${i}`;
-        const key = `${component}::${sig}`;
+        // State-specific elements group PER STATE (matches the backend key —
+        // persisted decisions join on it). Stateless keys keep the historic
+        // format.
+        const st = elementStateOf(el.element);
+        const key = `${component}::${st ? `${st}::` : ''}${sig}`;
         let g = groups.get(key);
         if (!g) {
           g = {
@@ -311,12 +337,12 @@ export function buildComparison(versions: VersionColumn[]): Comparison {
     }
     const list = [...groups.values()];
     for (const g of list) {
-      // UNIQUE covers one-or-two-product elements (unless that IS every
-      // product in scope); anything wider but not universal is SIMILAR.
+      // One commonality rule at every level: COMMON = carried by all,
+      // PARTIAL = carried by more than half, UNIQUE = half or fewer.
       if (single) g.status = 'SINGLE';
       else if (g.presentIn === versions.length) g.status = 'COMMON';
-      else if (g.presentIn <= 2) g.status = 'UNIQUE';
-      else g.status = 'PARTIAL';
+      else if (g.presentIn * 2 > versions.length) g.status = 'PARTIAL';
+      else g.status = 'UNIQUE';
       if (g.status === 'PARTIAL' || g.status === 'UNIQUE') reviewCount += 1;
     }
     normalizedCount += list.length;

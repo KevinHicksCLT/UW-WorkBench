@@ -12,15 +12,16 @@ export const RAG_META: Record<Rag, { bg: string; label: string }> = {
   red: { bg: '#dc2626', label: 'not started' },
 };
 
-// Cell color = the status mix inside it (traffic light): any Unique element →
-// red, else any Similar → amber, else all-Common → green. The figure inside
-// stays the decision workload (pending count, ✓ when nothing is left).
+// Cell color = the SHARE of common elements inside it (one rule at every
+// level of the board): green = everything common, amber = more than half
+// common, red = half or less common. The figure inside stays the decision
+// workload (pending count, ✓ when nothing is left).
 export function cellVisual(cell: HeatCell): { bg: string; fg: string; pending: number } {
   const pending = cell.need - cell.decided;
   if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#737373', pending: 0 };
-  if (cell.unique > 0) return { bg: '#fecaca', fg: '#7f1d1d', pending };
-  if (cell.similar > 0) return { bg: '#fde68a', fg: '#78350f', pending };
-  return { bg: '#bbf7d0', fg: '#14532d', pending };
+  if (cell.common === cell.total) return { bg: '#bbf7d0', fg: '#14532d', pending };
+  if (cell.common * 2 > cell.total) return { bg: '#fde68a', fg: '#78350f', pending };
+  return { bg: '#fecaca', fg: '#7f1d1d', pending };
 }
 
 export function cellTitle(cell: HeatCell): string {

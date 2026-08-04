@@ -79,6 +79,8 @@ describe('elementsOf', () => {
       livesIn: 'PAS B',
       description: 'd',
       format: 'Excel',
+      mandate: null,
+      mandateCitation: null,
     });
   });
 

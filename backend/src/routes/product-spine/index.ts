@@ -11,6 +11,7 @@ import { cacheResponses } from '../../lib/responseCache.js';
 import { registerProductTableRoutes } from './table.js';
 import { registerProductNodeRoutes } from './node.js';
 import { registerProductDecisionRoutes } from './decisions.js';
+import { registerProductTargetRoutes } from './targets.js';
 import { registerProductFrameworkRoutes } from './framework.js';
 import { registerProductBoardRoutes } from './board.js';
 
@@ -23,6 +24,9 @@ router.use(requirePermission('product-models'));
 // Review decisions are read/written live — register them BEFORE the response
 // cache so an approval is never served stale (nor a PUT cached).
 registerProductDecisionRoutes(router);
+// Named normalized policies — live like decisions (a create/select must never
+// be stale).
+registerProductTargetRoutes(router);
 
 // Board / review / compare merge decision state into their counts, so they
 // also stay ahead of the cache; the expensive part (spine load + element

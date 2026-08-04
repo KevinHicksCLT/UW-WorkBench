@@ -2229,9 +2229,37 @@ model ProductNormalizationDecision {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // The named normalized policy this decision was made toward (nullable —
+  // decisions made with no target selected stay unattached).
+  targetId String?
+  target   ProductNormalizationTarget? @relation(fields: [targetId], references: [id], onDelete: SetNull)
+
   @@unique([lobNodeId, groupKey])
   @@index([companyId])
   @@index([lobNodeId])
+  @@index([targetId])
+}
+
+// A NAMED normalized policy — the consolidated multi-state policy a team is
+// assembling. Created from the board (captures the scope filters, the target
+// version/edition and the jurisdictions it will cover); review decisions carry
+// its id, so the policy accumulates its content and survives across workflows.
+model ProductNormalizationTarget {
+  id           String  @id @default(cuid())
+  tenantId     String
+  companyId    String
+  name         String
+  versionToken String? // target edition label, e.g. "v3"
+  filters      Json? // SpineFilters snapshot the policy was scoped from
+  states       Json? // jurisdictions the normalized policy covers (string[])
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  decisions ProductNormalizationDecision[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
 }
 
 // Board vocabulary — the "DB as source of truth" fix: one reference model

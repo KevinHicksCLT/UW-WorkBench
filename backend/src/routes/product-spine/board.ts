@@ -42,6 +42,7 @@ import {
   splitProductModel,
   type FormsModel,
 } from '../../lib/resolvers/productForms.js';
+import { resolveStateMandates } from '../../lib/resolvers/productMandates.js';
 import {
   parseElements,
   parseStates,
@@ -225,6 +226,12 @@ export function registerProductBoardRoutes(router: Router): void {
 
       const total = rows.length;
       const capped = rows.slice(0, REVIEW_ROW_CAP);
+      // The lowest level shows the ACTUAL state mandate + its regulatory
+      // source, not just a "state-required" flag.
+      const mandates = await resolveStateMandates(
+        inputs.company.id,
+        selfRow ? [...capped, selfRow] : capped,
+      );
       res.json({
         columns: heat.columns,
         columnMode: heat.columnMode,
@@ -235,6 +242,7 @@ export function registerProductBoardRoutes(router: Router): void {
         self: selfRow,
         groupOf,
         groupOrder: ['Form', ...Object.values(CONTENT_LABEL)],
+        mandates,
       });
     } catch (e) {
       next(e);

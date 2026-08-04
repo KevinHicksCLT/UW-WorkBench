@@ -13,15 +13,46 @@ import type { Node, Edge } from '@xyflow/react';
 
 import { MAP_CARD_W, MAP_CARD_H } from '../nodes/MapNode';
 import type {
-  CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData, SubStepNodeData, LeafStepNodeData,
+  CompanyNodeData,
+  CoreNodeData,
+  DivisionNodeData,
+  ValueStreamNodeData,
+  StepNodeData,
+  SubStepNodeData,
+  LeafStepNodeData,
 } from '../nodes/MapNode';
 import { DOMAIN_HEX } from '../model';
-import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from '../model';
+import type {
+  NodeFocusState,
+  DivisionSummary,
+  DivisionFlow,
+  FlowStep,
+  FlowValueStream,
+} from '../model';
 import {
-  catFor, categoriesOf, type Category,
-  COMPANY_H, DOMAIN_TOP_OFFSET, CORE_W, CORE_H, DIV_W, DIV_H, DIV_GAP_X, COL_GAP_X, DIV_TOP_OFFSET,
-  VS_W, VS_H, VS_GAP_X, VS_TOP_OFFSET, STEP_W, STEP_H, STEP_GAP_X, STEP_TOP_OFFSET,
-  SUBSTEP_GAP_Y, SUBSTEP_TOP_OFFSET, LEAF_GAP_Y, LEAF_TOP_OFFSET,
+  catFor,
+  categoriesOf,
+  type Category,
+  COMPANY_H,
+  DOMAIN_TOP_OFFSET,
+  CORE_W,
+  CORE_H,
+  DIV_W,
+  DIV_H,
+  DIV_GAP_X,
+  COL_GAP_X,
+  DIV_TOP_OFFSET,
+  VS_W,
+  VS_H,
+  VS_GAP_X,
+  VS_TOP_OFFSET,
+  STEP_W,
+  STEP_H,
+  STEP_GAP_X,
+  STEP_TOP_OFFSET,
+  SUBSTEP_TOP_OFFSET,
+  LEAF_GAP_Y,
+  LEAF_TOP_OFFSET,
 } from './constants';
 
 export type BuildMapGraphArgs = {
@@ -34,6 +65,7 @@ export type BuildMapGraphArgs = {
   focusedVsId: string | null;
   focusedStepId: string | null;
   focusedSubStepId: string | null;
+  openSubStepIds: string[];
   flowData: DivisionFlow | null;
   valueStreams: FlowValueStream[];
   vsFlowData: DivisionFlow | null;
@@ -44,9 +76,22 @@ export type BuildMapGraphArgs = {
 
 export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: Edge[] } {
   const {
-    displayDivisions, companyName, companyOpen, selectedDomain, level,
-    focusedDivisionId, focusedVsId, focusedStepId, focusedSubStepId,
-    flowData, valueStreams, vsFlowData, steps, applyOrder, domainIdByCat,
+    displayDivisions,
+    companyName,
+    companyOpen,
+    selectedDomain,
+    level,
+    focusedDivisionId,
+    focusedVsId,
+    focusedStepId,
+    focusedSubStepId,
+    openSubStepIds,
+    flowData,
+    valueStreams,
+    vsFlowData,
+    steps,
+    applyOrder,
+    domainIdByCat,
   } = args;
 
   const ns: Node[] = [];
@@ -55,7 +100,7 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
   // Edge palette. Base lines are a visible neutral gray (darker than before so
   // the structure reads); the actively-drilled "selected flow" is drawn in the
   // selected domain's color, thicker and fully opaque.
-  const LINE   = '#9ca3af';                                   // visible neutral line
+  const LINE = '#9ca3af'; // visible neutral line
   const accent = selectedDomain ? (DOMAIN_HEX[selectedDomain] ?? LINE) : LINE;
 
   // Partition divisions by their segment; the API already delivers them in
@@ -71,7 +116,9 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
   // Column center-x values, left→right in segment order.
   const colWidth = DIV_W + COL_GAP_X;
   const colCenterX: Record<Category, number> = {};
-  categories.forEach((c, i) => { colCenterX[c] = colWidth * i; });
+  categories.forEach((c, i) => {
+    colCenterX[c] = colWidth * i;
+  });
   const middleX = (colWidth * Math.max(categories.length - 1, 0)) / 2; // geometric centre of the columns
 
   // ── Company root (always present) ─────────────────────────────────────────
@@ -98,14 +145,21 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
 
     // Domain header node. Selected → expanded (stays visible while drilling);
     // a different domain selected → dimmed; none selected → neutral.
-    const domainFs: NodeFocusState = !selectedDomain ? 'neutral'
-      : isDomainSelected ? 'expanded'
-      : 'dimmed';
+    const domainFs: NodeFocusState = !selectedDomain
+      ? 'neutral'
+      : isDomainSelected
+        ? 'expanded'
+        : 'dimmed';
     ns.push({
       id: `core:${cat}`,
       type: 'coreNode',
       position: { x: coreLeft, y: domainRowY },
-      data: { label: cat, category: cat, focusState: domainFs, pieceIndex: ci } satisfies CoreNodeData,
+      data: {
+        label: cat,
+        category: cat,
+        focusState: domainFs,
+        pieceIndex: ci,
+      } satisfies CoreNodeData,
       draggable: false,
     });
 
@@ -119,7 +173,7 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
       style: {
         stroke: isDomainSelected ? accent : LINE,
         strokeWidth: isDomainSelected ? 2 : 1.25,
-        strokeOpacity: isDomainSelected ? 0.95 : (selectedDomain ? 0.2 : 0.55),
+        strokeOpacity: isDomainSelected ? 0.95 : selectedDomain ? 0.2 : 0.55,
       },
     });
 
@@ -137,9 +191,11 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
       const divX = divRowLeft + di * (DIV_W + DIV_GAP_X);
       const divCenterX = divX + DIV_W / 2;
 
-      const divFs: NodeFocusState = !focusedDivisionId ? 'neutral'
-        : isDivFocused ? 'focused'
-        : 'dimmed';
+      const divFs: NodeFocusState = !focusedDivisionId
+        ? 'neutral'
+        : isDivFocused
+          ? 'focused'
+          : 'dimmed';
 
       ns.push({
         id: div.id,
@@ -164,7 +220,7 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
         style: {
           stroke: isDivFocused ? accent : LINE,
           strokeWidth: isDivFocused ? 2 : 1.25,
-          strokeOpacity: isDivFocused ? 0.95 : (focusedDivisionId ? 0.18 : 0.55),
+          strokeOpacity: isDivFocused ? 0.95 : focusedDivisionId ? 0.18 : 0.55,
         },
       });
 
@@ -179,9 +235,7 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
         valueStreams.forEach((vs, vi) => {
           const vsNodeId = `vs:${vs.id}`;
           const isVsFocused = focusedVsId === vs.id;
-          const vsFs: NodeFocusState = level < 2 ? 'neutral'
-            : isVsFocused ? 'focused'
-            : 'dimmed';
+          const vsFs: NodeFocusState = level < 2 ? 'neutral' : isVsFocused ? 'focused' : 'dimmed';
 
           const vsX = vsRowLeft + vi * (VS_W + VS_GAP_X);
           const vsY = vsRowTop;
@@ -210,7 +264,7 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
             style: {
               stroke: isVsFocused ? accent : LINE,
               strokeWidth: isVsFocused ? 2 : 1.25,
-              strokeOpacity: isVsFocused ? 0.95 : (focusedVsId ? 0.18 : 0.6),
+              strokeOpacity: isVsFocused ? 0.95 : focusedVsId ? 0.18 : 0.6,
             },
           });
 
@@ -232,9 +286,8 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
             steps.forEach((step, si) => {
               const stepNodeId = `step:${step.id}`;
               const isStepFocused = focusedStepId === step.id;
-              const stepFs: NodeFocusState = level < 3 ? 'neutral'
-                : isStepFocused ? 'focused'
-                : 'dimmed';
+              const stepFs: NodeFocusState =
+                level < 3 ? 'neutral' : isStepFocused ? 'focused' : 'dimmed';
 
               const stepX = stepsLeft + si * (STEP_W + STEP_GAP_X);
               const stepY = stepsTop;
@@ -270,49 +323,57 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                 });
               }
 
-              // ── If this step is focused, drop its L5 sub-process column
-              //    DOWN from it (centered under the step card, increasing Y) so
-              //    it doesn't collide with the rest of the L4 row, ordered
-              //    top-to-bottom. ──
+              // ── If this step is focused, its L5 tasks render as an ORDERED
+              //    HORIZONTAL ROW below it (task 1 leftmost) — the process
+              //    reads left-to-right; each L5's generated L6 tasks drop as a
+              //    vertical column beneath it when focused. ──
               if (isStepFocused && step.subSteps.length > 0) {
                 const stepCenterX = stepX + STEP_W / 2;
-                const subLeft = stepCenterX - MAP_CARD_W / 2;
                 const subTop = stepY + STEP_H + SUBSTEP_TOP_OFFSET;
                 const subs = step.subSteps;
+                const totalSubRowWidth = subs.length * MAP_CARD_W + (subs.length - 1) * STEP_GAP_X;
+                const subRowLeft = stepCenterX - totalSubRowWidth / 2;
 
                 subs.forEach((sub, sj) => {
                   const subNodeId = `substep:${sub.id}`;
+                  const isSubOpen = openSubStepIds.includes(sub.id);
                   const isSubFocused = focusedSubStepId === sub.id;
-                  const subFs: NodeFocusState = level < 4 ? 'neutral'
-                    : isSubFocused ? 'focused'
-                    : 'dimmed';
-                  const subY = subTop + sj * (MAP_CARD_H + SUBSTEP_GAP_Y);
+                  const subFs: NodeFocusState =
+                    level < 4 ? 'neutral' : isSubOpen || isSubFocused ? 'focused' : 'dimmed';
+                  const subLeft = subRowLeft + sj * (MAP_CARD_W + STEP_GAP_X);
+                  const subY = subTop;
 
                   ns.push({
                     id: subNodeId,
                     type: 'subStepNode',
                     position: { x: subLeft, y: subY },
-                    data: { step: sub.step, name: sub.name, l5Count: sub.l5.length, focusState: subFs, pieceIndex: sj } satisfies SubStepNodeData,
+                    data: {
+                      step: sub.step,
+                      name: sub.name,
+                      l5Count: sub.l5.length,
+                      focusState: subFs,
+                      pieceIndex: sj,
+                    } satisfies SubStepNodeData,
                     draggable: false,
                   });
 
-                  // Edge: subStep[j-1] → subStep[j] (vertical: bottom → top)
+                  // Edge: subStep[j-1] → subStep[j]. Default bezier like the
+                  // L4 row — smoothstep drew a right-angle fold here.
                   if (sj > 0) {
                     es.push({
                       id: `e:substep${subs[sj - 1].id}->substep${sub.id}`,
                       source: `substep:${subs[sj - 1].id}`,
                       target: subNodeId,
-                      sourceHandle: 'b',
-                      targetHandle: 't',
-                      type: 'smoothstep',
+                      sourceHandle: 'r',
+                      targetHandle: 'l',
                       style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
                     });
                   }
 
-                  // ── If this sub-process is focused, drop its L5 step column
-                  //    DOWN from it, ordered top-to-bottom. (Vestigial: L5 is a
-                  //    leaf so sub.l5 is empty, but kept for completeness.) ──
-                  if (isSubFocused && sub.l5.length > 0) {
+                  // ── An OPEN L5 (clicked; re-click closes) shows its L6 task
+                  //    column beneath it, ordered top-to-bottom. Several
+                  //    columns can be open at once. ──
+                  if (isSubOpen && sub.l5.length > 0) {
                     const subCenterX = subLeft + MAP_CARD_W / 2;
                     const leafLeft = subCenterX - MAP_CARD_W / 2;
                     const leafTop = subY + MAP_CARD_H + LEAF_TOP_OFFSET;
@@ -324,9 +385,13 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                         id: leafNodeId,
                         type: 'leafStepNode',
                         position: { x: leafLeft, y: leafTop + lk * (MAP_CARD_H + LEAF_GAP_Y) },
-                        data: { step: leaf.step, name: leaf.name, focusState: 'neutral', pieceIndex: lk } satisfies LeafStepNodeData,
+                        data: {
+                          step: leaf.step,
+                          name: leaf.name,
+                          focusState: 'neutral',
+                          pieceIndex: lk,
+                        } satisfies LeafStepNodeData,
                         draggable: false,
-                        selectable: false,
                       });
                       // Edge: leaf[k-1] → leaf[k] (vertical: bottom → top)
                       if (lk > 0) {
@@ -355,14 +420,14 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                   }
                 });
 
-                // Edge: step → first sub-process (top → bottom, into the column)
+                // Edge: step → first L5 of the row. Default bezier — smoothstep
+                // drew a right-angle fold across the horizontal offset.
                 es.push({
                   id: `e:${stepNodeId}->substep:${subs[0].id}`,
                   source: stepNodeId,
                   target: `substep:${subs[0].id}`,
                   sourceHandle: 'b',
                   targetHandle: 't',
-                  type: 'smoothstep',
                   style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
                 });
               }

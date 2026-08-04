@@ -6,7 +6,6 @@
 import { memo } from 'react';
 import { type NodeProps } from '@xyflow/react';
 import { DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT } from '../model';
-import { Chip } from '../../components/ui';
 import {
   MAP_CARD_W,
   MAP_CARD_H,
@@ -400,12 +399,6 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
           {sentenceCase(d.name)}
         </span>
       </div>
-      {/* L5 drill affordance */}
-      {!!d.l5Count && (
-        <Chip style={{ fontSize: 9, padding: '2px 6px' }}>
-          {d.l5Count} step{d.l5Count === 1 ? '' : 's'} ›
-        </Chip>
-      )}
       {d.staged && <StagedDot />}
       <EditBadges d={d} />
       <AllHandles />

@@ -12,6 +12,8 @@ import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
 import ProductGridView from './ProductGridView';
+import GoalBanner from './GoalBanner';
+import TargetBar from './TargetBar';
 import {
   compareVersions,
   leanLobOptions,
@@ -118,6 +120,12 @@ export default function ProductBoard({
     'auto',
   );
   const [search, setSearch] = useViewState<string>('workspace.product.search', '');
+  // The ACTIVE named normalized policy — decisions made while selected carry
+  // its id (persisted per session, shared by both faces).
+  const [activeTargetId, setActiveTargetId] = useViewState<string | null>(
+    'workspace.product.target',
+    null,
+  );
   const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
     'workspace.product.matchFilter',
     null,
@@ -178,7 +186,15 @@ export default function ProductBoard({
     status: ProductDecisionStatus,
     comment?: string,
   ) => {
-    await api.put('/product-spine/decisions', { lobId, component, groupKey, status, comment });
+    await api.put('/product-spine/decisions', {
+      lobId,
+      component,
+      groupKey,
+      status,
+      comment,
+      // Fold the decision into the active named policy (when one is selected).
+      ...(activeTargetId ? { targetId: activeTargetId } : {}),
+    });
     setNonce((n) => n + 1); // server-derived board/review counts refetch
     refetchDecisions();
   };
@@ -215,9 +231,17 @@ export default function ProductBoard({
             componentNodeIds: meta?.componentNodeIds,
           },
         },
-        async () => {
+        async (chosen) => {
           try {
-            await applyDecision(lobId, component, groupKey, status, comment);
+            // The panel's footer lets the user pick any of the three actions —
+            // the write honors that pick over the button that opened the gate.
+            await applyDecision(
+              lobId,
+              component,
+              groupKey,
+              (chosen as ProductDecisionStatus | undefined) ?? status,
+              comment,
+            );
           } finally {
             resolve();
           }
@@ -399,8 +423,22 @@ export default function ProductBoard({
         onSearch={setSearch}
       />
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexShrink: 0 }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginLeft: 'auto',
+          flexShrink: 0,
+        }}
       >
+        <TargetBar
+          filters={filters}
+          scopeStates={[...new Set(versions.flatMap((v) => v.states ?? []))]
+            .filter((s): s is string => !!s)
+            .sort()}
+          activeTargetId={activeTargetId}
+          onSelect={setActiveTargetId}
+        />
         <span style={{ fontSize: 11, color: '#525252' }}>View</span>
         <div
           style={{
@@ -506,6 +544,14 @@ export default function ProductBoard({
       </div>
     );
 
+  // North-star figures for the detail face: flagged groups (Similar/Unique)
+  // against the persisted decisions covering them.
+  const flagged = comparison.rows.flatMap((r) =>
+    r.groups.filter((g) => g.status === 'PARTIAL' || g.status === 'UNIQUE'),
+  );
+  const goalDecided = flagged.filter((g) => decisions[g.key]).length;
+  const goalPct = flagged.length === 0 ? 100 : Math.round((goalDecided / flagged.length) * 100);
+
   return (
     <div
       ref={fill.ref}
@@ -518,6 +564,12 @@ export default function ProductBoard({
     >
       {lensBar}
       {filterRow}
+      <GoalBanner
+        scopeLabel={crossLob ? `${lob?.name ?? ''} + other lines` : (lob?.name ?? 'This scope')}
+        decided={goalDecided}
+        need={flagged.length}
+        pct={goalPct}
+      />
       {selected && lob && (
         <TraceBreadcrumb group={selected} versionCount={detailVersions.length} lobName={lob.name} />
       )}
