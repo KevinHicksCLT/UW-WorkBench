@@ -20,6 +20,8 @@ const putSchema = z.object({
   groupKey: z.string().trim().min(1),
   status: z.enum(['APPROVED', 'HELD', 'RETIRED']),
   comment: z.string().trim().max(2000).optional(),
+  // The named normalized policy the decision was made toward (optional).
+  targetId: z.string().trim().min(1).optional(),
 });
 
 export function registerProductDecisionRoutes(router: Router): void {
@@ -94,13 +96,21 @@ export function registerProductDecisionRoutes(router: Router): void {
       const company = await activeCompany(req, { id: true });
       if (!company) return res.status(404).json({ error: 'No company' });
 
-      const { lobId, component, groupKey, status, comment } = parsed.data;
+      const { lobId, component, groupKey, status, comment, targetId } = parsed.data;
       // The LOB node must belong to the tenant's active company (tenant walk).
       const lob = await prisma.productNode.findFirst({
         where: { id: lobId, companyId: company.id },
         select: { id: true },
       });
       if (!lob) return res.status(404).json({ error: 'Unknown LOB node' });
+      // The named policy (when given) must be the tenant's too — 404 otherwise.
+      if (targetId) {
+        const target = await prisma.productNormalizationTarget.findFirst({
+          where: { id: targetId, companyId: company.id },
+          select: { id: true },
+        });
+        if (!target) return res.status(404).json({ error: 'Unknown policy' });
+      }
 
       const saved = await prisma.productNormalizationDecision.upsert({
         where: { lobNodeId_groupKey: { lobNodeId: lobId, groupKey } },
@@ -113,6 +123,7 @@ export function registerProductDecisionRoutes(router: Router): void {
           status,
           comment: comment ?? null,
           decidedBy: req.user.email,
+          targetId: targetId ?? null,
         },
         // An omitted comment keeps the existing note; an empty string clears it.
         update: {
@@ -120,6 +131,7 @@ export function registerProductDecisionRoutes(router: Router): void {
           component,
           decidedBy: req.user.email,
           ...(comment !== undefined ? { comment: comment || null } : {}),
+          ...(targetId !== undefined ? { targetId } : {}),
         },
         select: { groupKey: true, component: true, status: true, comment: true, updatedAt: true },
       });

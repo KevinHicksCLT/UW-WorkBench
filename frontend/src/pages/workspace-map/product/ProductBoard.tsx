@@ -13,6 +13,7 @@ import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
 import ProductGridView from './ProductGridView';
 import GoalBanner from './GoalBanner';
+import TargetBar from './TargetBar';
 import {
   compareVersions,
   leanLobOptions,
@@ -119,6 +120,12 @@ export default function ProductBoard({
     'auto',
   );
   const [search, setSearch] = useViewState<string>('workspace.product.search', '');
+  // The ACTIVE named normalized policy — decisions made while selected carry
+  // its id (persisted per session, shared by both faces).
+  const [activeTargetId, setActiveTargetId] = useViewState<string | null>(
+    'workspace.product.target',
+    null,
+  );
   const [matchFilter, setMatchFilter] = useViewState<MatchStatus | null>(
     'workspace.product.matchFilter',
     null,
@@ -179,7 +186,15 @@ export default function ProductBoard({
     status: ProductDecisionStatus,
     comment?: string,
   ) => {
-    await api.put('/product-spine/decisions', { lobId, component, groupKey, status, comment });
+    await api.put('/product-spine/decisions', {
+      lobId,
+      component,
+      groupKey,
+      status,
+      comment,
+      // Fold the decision into the active named policy (when one is selected).
+      ...(activeTargetId ? { targetId: activeTargetId } : {}),
+    });
     setNonce((n) => n + 1); // server-derived board/review counts refetch
     refetchDecisions();
   };
@@ -408,8 +423,22 @@ export default function ProductBoard({
         onSearch={setSearch}
       />
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexShrink: 0 }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginLeft: 'auto',
+          flexShrink: 0,
+        }}
       >
+        <TargetBar
+          filters={filters}
+          scopeStates={[...new Set(versions.flatMap((v) => v.states ?? []))]
+            .filter((s): s is string => !!s)
+            .sort()}
+          activeTargetId={activeTargetId}
+          onSelect={setActiveTargetId}
+        />
         <span style={{ fontSize: 11, color: '#525252' }}>View</span>
         <div
           style={{

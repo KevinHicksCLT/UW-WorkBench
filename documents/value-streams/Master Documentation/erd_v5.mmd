@@ -977,6 +977,17 @@ erDiagram
     string status_ "APPROVED|HELD|RETIRED"
     string comment "nullable reviewer note left with the decision"
     string decidedBy "nullable"
+    string targetId FK "nullable -> ProductNormalizationTarget"
+  }
+  ProductNormalizationTarget {
+    string status "NAMED normalized policy the review decisions assemble toward"
+    string id PK
+    string companyId FK
+    string name "unique per company"
+    string versionToken "nullable target edition label (v3)"
+    json filters "nullable SpineFilters snapshot the policy was scoped from"
+    json states "nullable jurisdictions the policy covers"
+    string createdBy "nullable"
   }
   WorkspaceVocabulary {
     string status "DB-driven board vocabulary (replaces hardcoded FE constants)"
@@ -1223,6 +1234,8 @@ erDiagram
   ProductLevelType ||--o{ ProductNode : "types"
   ProductNode ||--o{ ProductNode : "parent-of"
   ProductNode ||--o{ ProductNodeClosure : "ancestor"
+  ProductNode ||--o{ ProductNormalizationDecision : "LOB compared"
+  ProductNormalizationTarget ||--o{ ProductNormalizationDecision : "assembles"
   %% work & control
   Company ||--o{ Deliverable : "tracks"
   Company ||--o{ Checklist : "defines"
@@ -1507,6 +1520,7 @@ erDiagram
   style ProductModelAnatomyCategory fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style ProductModelFinding fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style ProductModelNormalizationEntry fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ProductNormalizationTarget fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style CanonicalProductModel fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style WorkTemplate fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
   style WorkTemplateKey fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
