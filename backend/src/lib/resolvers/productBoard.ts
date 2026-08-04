@@ -280,10 +280,12 @@ export function buildComparison(versions: SpineVersion[]): Comparison {
     }
     const list = [...groups.values()];
     for (const g of list) {
+      // One commonality rule at every level: COMMON = carried by all,
+      // PARTIAL = carried by more than half, UNIQUE = half or fewer.
       if (single) g.status = 'SINGLE';
       else if (g.presentIn === versions.length) g.status = 'COMMON';
-      else if (g.presentIn <= 2) g.status = 'UNIQUE';
-      else g.status = 'PARTIAL';
+      else if (g.presentIn * 2 > versions.length) g.status = 'PARTIAL';
+      else g.status = 'UNIQUE';
       if (g.status === 'PARTIAL' || g.status === 'UNIQUE') reviewCount += 1;
     }
     normalizedCount += list.length;
@@ -444,16 +446,16 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
         if (productsInLob > 1) {
           const carrying = new Set([...covered].map((vid) => productOf.get(vid) ?? vid)).size;
           if (carrying === productsInLob) g.status = 'COMMON';
-          else if (carrying <= 2) g.status = 'UNIQUE';
-          else g.status = 'PARTIAL';
+          else if (carrying * 2 > productsInLob) g.status = 'PARTIAL';
+          else g.status = 'UNIQUE';
         } else if (lob.versions.length === 1) {
           g.status = 'SINGLE';
         } else {
           // Single-product scope: commonality reads across the product's own
           // state/version editions (with countrywide coverage extended).
           if (covered.size === lob.versions.length) g.status = 'COMMON';
-          else if (covered.size <= 2) g.status = 'UNIQUE';
-          else g.status = 'PARTIAL';
+          else if (covered.size * 2 > lob.versions.length) g.status = 'PARTIAL';
+          else g.status = 'UNIQUE';
         }
       }
     }

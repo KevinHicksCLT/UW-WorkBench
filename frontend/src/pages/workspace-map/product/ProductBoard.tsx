@@ -12,6 +12,7 @@ import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
 import ProductGridView from './ProductGridView';
+import GoalBanner from './GoalBanner';
 import {
   compareVersions,
   leanLobOptions,
@@ -506,6 +507,14 @@ export default function ProductBoard({
       </div>
     );
 
+  // North-star figures for the detail face: flagged groups (Similar/Unique)
+  // against the persisted decisions covering them.
+  const flagged = comparison.rows.flatMap((r) =>
+    r.groups.filter((g) => g.status === 'PARTIAL' || g.status === 'UNIQUE'),
+  );
+  const goalDecided = flagged.filter((g) => decisions[g.key]).length;
+  const goalPct = flagged.length === 0 ? 100 : Math.round((goalDecided / flagged.length) * 100);
+
   return (
     <div
       ref={fill.ref}
@@ -518,6 +527,12 @@ export default function ProductBoard({
     >
       {lensBar}
       {filterRow}
+      <GoalBanner
+        scopeLabel={crossLob ? `${lob?.name ?? ''} + other lines` : (lob?.name ?? 'This scope')}
+        decided={goalDecided}
+        need={flagged.length}
+        pct={goalPct}
+      />
       {selected && lob && (
         <TraceBreadcrumb group={selected} versionCount={detailVersions.length} lobName={lob.name} />
       )}

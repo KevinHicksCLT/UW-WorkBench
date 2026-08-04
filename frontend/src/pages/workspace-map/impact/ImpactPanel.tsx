@@ -4,7 +4,10 @@ import {
   CHANGE_LABELS,
   DESTRUCTIVE,
   DOMAIN_META,
+  RECOMMENDATION_META,
   SEVERITY_META,
+  type DecisionScore,
+  type GoalProgress,
   type Impact,
   type ImpactSeverity,
 } from './types';
@@ -59,6 +62,118 @@ function SeverityTotals({ impacts }: { impacts: Impact[] }) {
   );
 }
 
+/** The quantified decision aid: one figure that says how confidently the
+ *  evidence points at Standardize / Retain / Retire, with the plain-English
+ *  factors behind it. Rendered only when the report carries a score (product
+ *  decisions). */
+function ScoreCard({ score }: { score: DecisionScore }) {
+  const meta = RECOMMENDATION_META[score.recommendation];
+  return (
+    <div
+      style={{
+        margin: '10px 16px 0',
+        display: 'flex',
+        gap: 14,
+        alignItems: 'stretch',
+        borderRadius: 10,
+        border: `1px solid ${meta.tone}33`,
+        background: '#fff',
+        padding: '10px 14px',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: 96,
+          gap: 3,
+        }}
+      >
+        <span style={{ fontSize: 26, fontWeight: 800, color: meta.tone, lineHeight: 1 }}>
+          {score.value}%
+        </span>
+        <span
+          style={{
+            padding: '2px 10px',
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 700,
+            color: '#fff',
+            background: meta.tone,
+          }}
+        >
+          {meta.label}
+        </span>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+          DECISION SCORE — {score.value}% confidence to {meta.verb}
+        </div>
+        <div style={{ fontSize: 12.5, color: '#171717', lineHeight: 1.45, marginTop: 3 }}>
+          {score.headline}
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 16px', marginTop: 6 }}>
+          {score.factors.map((f) => (
+            <span key={f.label} style={{ fontSize: 11, color: '#525252' }}>
+              <b style={{ color: '#404040' }}>{f.label}:</b> {f.detail}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The north-star strip: the end goal this decision moves toward and how far
+ *  the line of business already is. Decisions are saved automatically, so the
+ *  figure holds across workflows and sessions. */
+function GoalStrip({ goal }: { goal: GoalProgress }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        margin: '0 16px 12px',
+        padding: '7px 12px',
+        borderRadius: 8,
+        background: '#f0f7fb',
+        border: '1px solid #dbeafe',
+      }}
+    >
+      <span aria-hidden style={{ fontSize: 13 }}>
+        🎯
+      </span>
+      <span style={{ fontSize: 11.5, color: '#334155', flex: 1, lineHeight: 1.4 }}>
+        <b style={{ color: LOGO_BLUE }}>End goal:</b> {goal.label}. {goal.lobName} is{' '}
+        <b>{goal.pct}% normalized</b> ({goal.decided} of {goal.need} decisions made) — this decision
+        is saved automatically and counts toward it.
+      </span>
+      <span
+        style={{
+          width: 90,
+          height: 6,
+          borderRadius: 9,
+          background: '#e2e8f0',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            display: 'block',
+            height: 6,
+            width: `${goal.pct}%`,
+            background: LOGO_BLUE,
+          }}
+        />
+      </span>
+    </div>
+  );
+}
+
 /** One knock-on impact domain. Always rendered — an empty card states its
  *  fixed coverage areas and "No impact detected". */
 function DomainCard({ label, areas, items }: { label: string; areas: string; items: Impact[] }) {
@@ -95,10 +210,12 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
             {items.length}
           </span>
         </div>
-        <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>{areas}</div>
+        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1, lineHeight: 1.35 }}>
+          {areas}
+        </div>
       </div>
       {items.length === 0 && (
-        <div style={{ fontSize: 10.5, color: '#a3a3a3' }}>No impact detected.</div>
+        <div style={{ fontSize: 11, color: '#a3a3a3' }}>Checked — no impact found.</div>
       )}
       {items.map((impact, i) => {
         const m = SEVERITY_META[impact.severity];
@@ -117,7 +234,7 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: 600,
                   color: '#171717',
                   lineHeight: 1.3,
@@ -127,7 +244,7 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
               </span>
               <span
                 style={{
-                  fontSize: 8.5,
+                  fontSize: 9,
                   fontWeight: 700,
                   color: m.fg,
                   textTransform: 'uppercase',
@@ -137,10 +254,10 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
                 {m.label}
               </span>
             </div>
-            <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 1 }}>
+            <div style={{ fontSize: 9.5, color: '#94a3b8', marginTop: 1 }}>
               {CATEGORY_LABELS[impact.category] ?? impact.category}
             </div>
-            <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.45, marginTop: 3 }}>
+            <div style={{ fontSize: 11.5, color: '#404040', lineHeight: 1.5, marginTop: 3 }}>
               {impact.description}
             </div>
           </div>
@@ -255,9 +372,10 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           )}
           {report && !scanning && (
             <>
+              {report.score && <ScoreCard score={report.score} />}
               <AiAssessment report={report} />
               {merged.length === 0 ? (
-                <div style={{ padding: '18px 16px', fontSize: 12, color: '#737373' }}>
+                <div style={{ padding: '18px 16px', fontSize: 12.5, color: '#737373' }}>
                   Nothing else in the model touches this — the change is self-contained.
                 </div>
               ) : (
@@ -280,6 +398,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                   ))}
                 </div>
               )}
+              {report.goal && <GoalStrip goal={report.goal} />}
             </>
           )}
           {report && s.error && (

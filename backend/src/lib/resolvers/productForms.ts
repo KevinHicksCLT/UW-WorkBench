@@ -72,7 +72,7 @@ export interface FormsModel {
   byKey: Map<string, FormsDrill>;
 }
 
-const STATE_NAMES: Record<string, string> = {
+export const STATE_NAMES: Record<string, string> = {
   AL: 'Alabama',
   AK: 'Alaska',
   AZ: 'Arizona',

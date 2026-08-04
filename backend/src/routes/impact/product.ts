@@ -5,13 +5,21 @@
 // bridge to systems of record), prior sign-off decisions in the same
 // component, and same-named components in other lines of business.
 import { prisma } from '../../db/prisma.js';
-import { parseStates } from '../../lib/resolvers/productBoard.js';
+import {
+  buildHeatmap,
+  loadDecisions,
+  loadSpine,
+  parseStates,
+  scopeLobs,
+} from '../../lib/resolvers/productBoard.js';
 import {
   buildReport,
   classOf,
   grade,
   pushCapped,
   type ChangeType,
+  type DecisionScore,
+  type GoalProgress,
   type Impact,
   type ImpactReport,
 } from './types.js';
@@ -109,6 +117,7 @@ export async function assessProduct(
       });
     for (const e of relevant) if (e.livesIn) livesIn.add(e.livesIn);
   }
+  const live = [...carriers.values()].filter((c) => c.status === 'Active' || c.status === 'Bound');
   if (carriers.size) {
     const names = [...carriers.values()].map((c) => c.versionName);
     impacts.push({
@@ -117,13 +126,10 @@ export async function assessProduct(
       category: 'products',
       entityType: 'ProductNode',
       entityId: null,
-      entityName: `${carriers.size} of ${versions.length} version${versions.length === 1 ? '' : 's'} carry this`,
-      description: `${names.slice(0, 8).join(', ')}${names.length > 8 ? '…' : ''} — each realigns under this decision.`,
+      entityName: `Included in ${carriers.size} of ${versions.length} product version${versions.length === 1 ? '' : 's'}`,
+      description: `${names.slice(0, 8).join(', ')}${names.length > 8 ? '…' : ''} — each of these products includes this item today and will need to be updated if you proceed.`,
       count: carriers.size,
     });
-    const live = [...carriers.values()].filter(
-      (c) => c.status === 'Active' || c.status === 'Bound',
-    );
     if (live.length && cls === 'destructive') {
       impacts.push({
         severity: 'BREAKING',
@@ -131,8 +137,9 @@ export async function assessProduct(
         category: 'products',
         entityType: 'ProductNode',
         entityId: null,
-        entityName: `${live.length} live version${live.length === 1 ? '' : 's'} (Active/Bound)`,
-        description: 'In-force business carries this element — retiring it changes bound policies.',
+        entityName: `${live.length} version${live.length === 1 ? '' : 's'} with policies in force today`,
+        description:
+          'Customers hold active policies on these versions. Removing this item changes what those customers bought — it cannot simply be switched off.',
         count: live.length,
       });
     }
@@ -152,8 +159,8 @@ export async function assessProduct(
         category: 'products',
         entityType: 'ProductNode',
         entityId: null,
-        entityName: `${states.length} state${states.length === 1 ? '' : 's'} carry this element`,
-        description: `${states.slice(0, 12).join(', ')}${states.length > 12 ? '…' : ''} — every state version realigns.`,
+        entityName: `Sold in ${states.length} state${states.length === 1 ? '' : 's'}`,
+        description: `This item is filed and in use in ${states.slice(0, 12).join(', ')}${states.length > 12 ? '…' : ''}. The change applies in every one of these states.`,
         count: states.length,
       });
       if (cls !== 'adopt') {
@@ -163,9 +170,9 @@ export async function assessProduct(
           category: 'compliance',
           entityType: 'ProductNode',
           entityId: null,
-          entityName: `Filings in ${states.length} state${states.length === 1 ? '' : 's'}`,
+          entityName: `Regulatory filings needed in ${states.length} state${states.length === 1 ? '' : 's'}`,
           description:
-            'Changing a filed element requires form amendments, rate/rule filings and regulatory notices in each state that carries it.',
+            'This item is part of a filed product. Each state needs an amended form filing, updated rates or rules where they apply, and notice to the regulator before the change can take effect.',
           count: states.length,
         });
       }
@@ -198,7 +205,7 @@ export async function assessProduct(
         entityType: 'Application',
         entityId: id,
         entityName: m.name,
-        description: `Holds this element today (${m.where}) — its data model and screens change.`,
+        description: `This system holds the item today (${m.where}). Its screens, rules and stored data need to be updated to match the decision.`,
       }),
       (rest) => ({
         severity: grade('HIGH', cls),
@@ -206,8 +213,8 @@ export async function assessProduct(
         category: 'applications',
         entityType: 'Application',
         entityId: null,
-        entityName: `${rest.length} more source systems`,
-        description: 'Also hold this element.',
+        entityName: `${rest.length} more systems hold this item`,
+        description: 'Each also needs its configuration reviewed against this decision.',
         count: rest.length,
       }),
     );
@@ -221,9 +228,9 @@ export async function assessProduct(
         category: 'applications',
         entityType: 'Application',
         entityId: null,
-        entityName: `${sorCount} system${sorCount === 1 ? '' : 's'} of record hold this element`,
+        entityName: `${sorCount} system${sorCount === 1 ? '' : 's'} of record hold this item`,
         description:
-          'The element sits in their data model — warehouse feeds, extracts and analytics built on it change.',
+          'Reports, data feeds and analytics read this item from these systems. Downstream extracts and dashboards built on it will need re-mapping.',
         count: sorCount,
       });
     }
@@ -236,8 +243,8 @@ export async function assessProduct(
         category: 'applications',
         entityType: 'SourceLocation',
         entityId: null,
-        entityName: `${unmatched.length} source location${unmatched.length === 1 ? '' : 's'} outside the catalog`,
-        description: `Where the element lives today: ${unmatched.slice(0, 4).join(' · ')}${unmatched.length > 4 ? '…' : ''}`,
+        entityName: `${unmatched.length} other place${unmatched.length === 1 ? '' : 's'} this item lives today`,
+        description: `Not matched to the application catalog — check these by hand: ${unmatched.slice(0, 4).join(' · ')}${unmatched.length > 4 ? '…' : ''}`,
         count: unmatched.length,
       });
     }
@@ -255,8 +262,9 @@ export async function assessProduct(
       category: 'products',
       entityType: 'ProductNormalizationDecision',
       entityId: null,
-      entityName: `${priorDecisions} prior decision${priorDecisions === 1 ? '' : 's'} in ${subject.component}`,
-      description: 'Recorded sign-offs in this component — keep the normalization consistent.',
+      entityName: `${priorDecisions} decision${priorDecisions === 1 ? '' : 's'} already made in ${subject.component}`,
+      description:
+        'Your team has already signed off decisions in this area. Check this one follows the same direction so the target model stays consistent.',
       count: priorDecisions,
     });
   }
@@ -278,8 +286,9 @@ export async function assessProduct(
       category: 'products',
       entityType: 'ProductNode',
       entityId: null,
-      entityName: `${crossLob} same-named component${crossLob === 1 ? '' : 's'} in other lines`,
-      description: 'Other LOBs model this component too — a divergent decision splits the model.',
+      entityName: `${crossLob} other line${crossLob === 1 ? '' : 's'} of business model${crossLob === 1 ? 's' : ''} this too`,
+      description:
+        'The same component exists in other lines of business. Deciding differently here would create two standards for the same thing.',
       count: crossLob,
     });
   }
@@ -291,7 +300,7 @@ export async function assessProduct(
     entityType: 'ProductNode',
     entityId: lob.id,
     entityName: label ?? `${subject.component} · ${lob.displayValue}`,
-    description: `${versions.length} version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}, ${comps.length} carrying the ${subject.component} component.`,
+    description: `Scope of this check: ${versions.length} product version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}, ${comps.length} with a ${subject.component} component.`,
   });
 
   return buildReport(
@@ -303,5 +312,107 @@ export async function assessProduct(
     },
     changeType,
     impacts,
+    {
+      score: scoreDecision(impacts, carriers.size, versions.length, live.length),
+      goal: await goalProgress(companyId, lob.id, lob.displayValue),
+    },
   );
+}
+
+/** The quantified decision aid: how confidently the evidence points at one of
+ *  the board's three actions. Carriage is the primary signal (the same >50%
+ *  rule the heat map uses), in-force exposure vetoes Retire, and the report's
+ *  own severity mix tempers confidence. */
+function scoreDecision(
+  impacts: Impact[],
+  carrierCount: number,
+  versionCount: number,
+  liveCount: number,
+): DecisionScore {
+  const carriage = versionCount ? carrierCount / versionCount : 0;
+  const pctCarried = Math.round(carriage * 100);
+  const breaking = impacts.filter((i) => i.severity === 'BREAKING').length;
+  const high = impacts.filter((i) => i.severity === 'HIGH').length;
+  const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(n)));
+
+  let recommendation: DecisionScore['recommendation'];
+  let value: number;
+  let headline: string;
+  if (carriage * 2 > 1) {
+    recommendation = 'STANDARDIZE';
+    value = clamp(55 + carriage * 40 - breaking * 8 - high * 2, 35, 98);
+    headline =
+      carriage === 1
+        ? 'Every product in scope already carries this — fold it into the consolidated multi-state policy.'
+        : 'Most products already carry this — standardize it into the consolidated multi-state policy.';
+  } else if (liveCount === 0) {
+    recommendation = 'RETIRE';
+    value = clamp(55 + (1 - carriage * 2) * 35 - breaking * 8 - high * 2, 35, 95);
+    headline =
+      'Under half the products carry this and no in-force policies depend on it — a strong candidate to drop from the target model.';
+  } else {
+    recommendation = 'RETAIN';
+    value = clamp(45 + liveCount * 6 + breaking * 4, 40, 90);
+    headline =
+      'Under half the products carry this, but live policies depend on it — keep it as a product-specific variant until the in-force business runs off.';
+  }
+  return {
+    value,
+    recommendation,
+    headline,
+    factors: [
+      {
+        label: 'Adoption',
+        detail: `Carried by ${carrierCount} of ${versionCount} product version${versionCount === 1 ? '' : 's'} (${pctCarried}%).`,
+      },
+      {
+        label: 'In-force business',
+        detail: liveCount
+          ? `${liveCount} live version${liveCount === 1 ? '' : 's'} (Active/Bound) carry it today.`
+          : 'No live versions depend on it.',
+      },
+      {
+        label: 'Change risk',
+        detail:
+          breaking + high > 0
+            ? `${breaking} critical and ${high} high impact${breaking + high === 1 ? '' : 's'} found in this assessment.`
+            : 'No critical or high impacts found in this assessment.',
+      },
+    ],
+  };
+}
+
+/** Where the LOB stands against the normalization end goal, so every decision
+ *  panel shows the target the decision moves toward. Decisions are persisted —
+ *  the figure survives leaving and returning across workflows. */
+async function goalProgress(
+  companyId: string,
+  lobId: string,
+  lobName: string,
+): Promise<GoalProgress | undefined> {
+  try {
+    const [spine, decisions] = await Promise.all([loadSpine(companyId), loadDecisions(companyId)]);
+    const lob = spine.lobs.find((l) => l.id === lobId);
+    if (!lob) return undefined;
+    // Same default scope as the board: each product's latest generation only.
+    const scoped = scopeLobs([lob], {
+      segments: [],
+      lobIds: [],
+      offerings: [],
+      states: [],
+      versionTokens: [],
+      versionIds: [],
+    });
+    const heat = buildHeatmap(scoped, decisions);
+    return {
+      label: 'One consolidated multi-state policy per line of business',
+      lobName,
+      decided: heat.totals.decided,
+      need: heat.totals.need,
+      pct: heat.totals.pct,
+    };
+  } catch {
+    // The goal strip is enrichment — never fail the assessment over it.
+    return undefined;
+  }
 }

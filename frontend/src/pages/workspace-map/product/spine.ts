@@ -102,9 +102,9 @@ export interface Comparison {
   reviewCount: number;
 }
 
-// Traffic-light semantics: Common = green (in every product in scope),
-// Similar = amber (carried widely but configured differently — pick a target
-// standard), Unique = red (only one or two products carry it).
+// Traffic-light semantics (one rule at every level of the board):
+// Common = green (in every product in scope), Similar = amber (in more than
+// half — pick a target standard), Unique = red (in half or fewer).
 export const MATCH_META: Record<
   MatchStatus,
   { label: string; fg: string; bg: string; border: string; hint: string }
@@ -121,14 +121,14 @@ export const MATCH_META: Record<
     fg: '#92400e',
     bg: '#fef3c7',
     border: '#fcd34d',
-    hint: 'carried by most products but configured differently — choose a target standard',
+    hint: 'in more than half the products in scope but configured differently — choose a target standard',
   },
   UNIQUE: {
     label: 'Unique',
     fg: '#991b1b',
     bg: '#fee2e2',
     border: '#fca5a5',
-    hint: 'in only one or two products in scope',
+    hint: 'in half or fewer of the products in scope',
   },
   SINGLE: {
     label: 'Element',
@@ -311,12 +311,12 @@ export function buildComparison(versions: VersionColumn[]): Comparison {
     }
     const list = [...groups.values()];
     for (const g of list) {
-      // UNIQUE covers one-or-two-product elements (unless that IS every
-      // product in scope); anything wider but not universal is SIMILAR.
+      // One commonality rule at every level: COMMON = carried by all,
+      // PARTIAL = carried by more than half, UNIQUE = half or fewer.
       if (single) g.status = 'SINGLE';
       else if (g.presentIn === versions.length) g.status = 'COMMON';
-      else if (g.presentIn <= 2) g.status = 'UNIQUE';
-      else g.status = 'PARTIAL';
+      else if (g.presentIn * 2 > versions.length) g.status = 'PARTIAL';
+      else g.status = 'UNIQUE';
       if (g.status === 'PARTIAL' || g.status === 'UNIQUE') reviewCount += 1;
     }
     normalizedCount += list.length;

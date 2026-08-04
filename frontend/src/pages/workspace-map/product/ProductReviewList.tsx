@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { versionPlaceLabel } from '../../../lib/usStates';
 import { MATCH_META, groupCitations, type ProductDecisionStatus } from './spine';
-import type { BoardColumn } from './boardApi';
+import type { BoardColumn, StateMandate } from './boardApi';
 import type { ReviewRow } from './gridModel';
 
 // The Products workspace's drill-down review list — the decision queue.
@@ -32,6 +32,75 @@ const STATUS_LABEL: Record<ProductDecisionStatus, string> = {
 function rowText(r: ReviewRow): string {
   const el = Object.values(r.group.perVersion).find(Boolean);
   return `${r.group.name} ${el?.description ?? ''} ${r.lobName}`.toLowerCase();
+}
+
+/** The ACTUAL state mandate behind a state-required row — what the state
+ *  requires, and the regulatory source it comes from. Compact under the row
+ *  title; full text in the detail modal. */
+function MandateNote({ m, compact }: { m: StateMandate; compact?: boolean }) {
+  const source = [m.citation, m.regulator].filter(Boolean).join(' — ');
+  return (
+    <div
+      style={{
+        marginTop: 3,
+        padding: '4px 8px',
+        borderLeft: '3px solid #f59e0b',
+        borderRadius: 4,
+        background: '#fffbeb',
+      }}
+    >
+      <div
+        style={{
+          fontSize: compact ? 10.5 : 12,
+          color: '#78350f',
+          lineHeight: 1.4,
+          ...(compact
+            ? {
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical' as const,
+                overflow: 'hidden',
+              }
+            : null),
+        }}
+        title={compact ? m.mandate : undefined}
+      >
+        <b style={{ fontWeight: 700 }}>{m.stateName} mandate:</b> {m.mandate}
+      </div>
+      {source && (
+        <div
+          style={{
+            fontSize: compact ? 9.5 : 11,
+            color: '#92400e',
+            marginTop: 2,
+            ...(compact
+              ? {
+                  whiteSpace: 'nowrap' as const,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis' as const,
+                }
+              : null),
+          }}
+          title={compact ? source : undefined}
+        >
+          Source:{' '}
+          {m.citationUrl ? (
+            <a
+              href={m.citationUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{ color: '#92400e', textDecoration: 'underline' }}
+            >
+              {source}
+            </a>
+          ) : (
+            source
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** Retain · Standardize · Retire (or the auto-standardized note) — shared by
@@ -90,10 +159,12 @@ function DecisionActions({
 function ElementDetailModal({
   row,
   columns,
+  mandate,
   onClose,
 }: {
   row: ReviewRow;
   columns: BoardColumn[];
+  mandate?: StateMandate;
   onClose: () => void;
 }) {
   const meta = MATCH_META[row.group.status];
@@ -184,6 +255,23 @@ function ElementDetailModal({
             gap: 12,
           }}
         >
+          {mandate && (
+            <div>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#92400e',
+                  marginBottom: 4,
+                }}
+              >
+                State mandate
+              </div>
+              <MandateNote m={mandate} />
+            </div>
+          )}
           {cites.length > 0 && (
             <div>
               <div
@@ -297,6 +385,7 @@ function ElementDetailModal({
 export default function ProductReviewList({
   columns,
   rows,
+  mandates,
   selfRow = null,
   defaultFilter,
   completePct,
@@ -312,6 +401,8 @@ export default function ProductReviewList({
 }: {
   columns: BoardColumn[];
   rows: ReviewRow[];
+  /** Row key (`lobId:groupKey`) → the actual state mandate behind the row. */
+  mandates?: Record<string, StateMandate>;
   /** Forms drills: the drilled form itself — rendered as the list's TITLE
    *  header (with its own decision controls), never repeated as a table row. */
   selfRow?: ReviewRow | null;
@@ -480,6 +571,7 @@ export default function ProductReviewList({
                 >
                   {selfRow.group.name}
                 </button>
+                {mandates?.[key] && <MandateNote m={mandates[key]} />}
               </div>
               <div style={{ flex: 1 }} />
               <DecisionActions
@@ -754,9 +846,9 @@ export default function ProductReviewList({
                   style={{
                     position: 'absolute',
                     bottom: 6,
-                    // One line over: the label rises from its column's RIGHT
-                    // divider, so the text hangs over its own column of cells.
-                    left: 'calc(100% + 4px)',
+                    // Rise from the column's CENTER so the angled name reads
+                    // centered over its own column of cells (matches the grid).
+                    left: '50%',
                     transformOrigin: 'left bottom',
                     transform: 'rotate(-52deg)',
                     whiteSpace: 'nowrap',
@@ -861,25 +953,28 @@ export default function ProductReviewList({
                       background: r.needsDecision && !r.decision ? '#fffdf7' : '#fff',
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setDetail(r)}
-                      title="open the full coverage detail"
-                      style={{
-                        font: 'inherit',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#00619a',
-                        background: 'none',
-                        border: 'none',
-                        padding: '2px 12px 2px 0',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {r.group.name}
-                    </button>
+                    <div style={{ paddingRight: 12, minWidth: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => setDetail(r)}
+                        title="open the full coverage detail"
+                        style={{
+                          font: 'inherit',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: '#00619a',
+                          background: 'none',
+                          border: 'none',
+                          padding: '2px 0',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {r.group.name}
+                      </button>
+                      {mandates?.[key] && <MandateNote m={mandates[key]} compact />}
+                    </div>
                     {/* Presence blocks carry the status color directly — green
                     common, amber similar, red unique (no separate column). */}
                     {r.presence.map((p, i) => (
@@ -1003,7 +1098,12 @@ export default function ProductReviewList({
       </div>
 
       {detail && (
-        <ElementDetailModal row={detail} columns={columns} onClose={() => setDetail(null)} />
+        <ElementDetailModal
+          row={detail}
+          columns={columns}
+          mandate={mandates?.[rowKey(detail)]}
+          onClose={() => setDetail(null)}
+        />
       )}
     </div>
   );

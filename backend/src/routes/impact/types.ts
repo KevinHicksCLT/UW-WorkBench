@@ -73,18 +73,42 @@ export interface ImpactSubjectOut {
   context: string | null;
 }
 
+/** The quantified decision aid: one 0–100 confidence figure and the action it
+ *  points at, mirroring the board's decision buttons (Standardize · Retain ·
+ *  Retire). Derived from carriage, in-force exposure and the report's own
+ *  severity mix — deterministic and explainable via `factors`. */
+export interface DecisionScore {
+  value: number;
+  recommendation: 'STANDARDIZE' | 'RETAIN' | 'RETIRE';
+  headline: string;
+  factors: { label: string; detail: string }[];
+}
+
+/** Where this decision sits against the normalization end goal — the
+ *  consolidated multi-state policy the LOB is being folded into. */
+export interface GoalProgress {
+  label: string;
+  lobName: string;
+  decided: number;
+  need: number;
+  pct: number;
+}
+
 export interface ImpactReport {
   subject: ImpactSubjectOut;
   changeType: ChangeType;
   changeClass: ChangeClass;
   summary: { breaking: number; high: number; medium: number; low: number; total: number };
   impacts: Impact[];
+  score?: DecisionScore;
+  goal?: GoalProgress;
 }
 
 export function buildReport(
   subject: ImpactSubjectOut,
   changeType: ChangeType,
   impacts: Impact[],
+  extras?: { score?: DecisionScore; goal?: GoalProgress },
 ): ImpactReport {
   const order = (s: ImpactSeverity) => LADDER.indexOf(s);
   const dom = (d: ImpactDomain) => IMPACT_DOMAINS.indexOf(d);
@@ -107,6 +131,8 @@ export function buildReport(
       total: sorted.length,
     },
     impacts: sorted,
+    ...(extras?.score ? { score: extras.score } : {}),
+    ...(extras?.goal ? { goal: extras.goal } : {}),
   };
 }
 
