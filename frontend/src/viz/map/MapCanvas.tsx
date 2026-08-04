@@ -1008,7 +1008,10 @@ function MapCanvasInner({ divisions, companyName, focusVsId, onMoved }: Props) {
       {SHOW_METRICS_SIDEBAR && dashTarget && dashTarget.id && (
         <Inspector
           nodeId={dashTarget.id}
-          startCollapsed
+          // A directly-selected node (an L6 card click) opens the panel on its
+          // Work tab; drill-focus targets keep the collapsed rail.
+          startCollapsed={dashTarget.level !== 'node'}
+          initialTab={dashTarget.level === 'node' ? 'Work' : undefined}
           onRetarget={(id) => setOvStack((s) => [...s, { level: 'node', id }])}
         />
       )}

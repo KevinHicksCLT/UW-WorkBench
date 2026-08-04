@@ -169,6 +169,12 @@ function ElementDetailModal({
 }) {
   const meta = MATCH_META[row.group.status];
   const cites = groupCitations(row.group);
+  // The board's carriage rule: a coverage on the countrywide version COVERS
+  // the product's state-form versions (state forms amend the base policy,
+  // they don't drop its coverages). `presence` is that covered set — the same
+  // one the heat cells and status colors use — so the modal must read it too,
+  // never the raw perVersion map alone.
+  const carried = row.presence.filter(Boolean).length;
   return createPortal(
     <div
       role="presentation"
@@ -225,7 +231,10 @@ function ElementDetailModal({
               {row.group.name}
             </div>
             <div style={{ fontSize: 11.5, color: '#525252', marginTop: 3 }}>
-              {row.lobName} · in {row.group.presentIn} of {columns.length} products in scope
+              {row.lobName} · in {carried} of {columns.length} products in scope
+              {carried > row.group.presentIn
+                ? ' (defined on the countrywide form, carried by every state version)'
+                : ''}
             </div>
           </div>
           <div style={{ flex: 1 }} />
@@ -312,8 +321,13 @@ function ElementDetailModal({
               Per product
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {columns.map((v) => {
+              {columns.map((v, i) => {
                 const el = row.group.perVersion[v.id];
+                // Covered but not defined here = inherited from the product's
+                // countrywide form (never "not carried" — that contradicts the
+                // board's green cells).
+                const inherited = !el && row.presence[i];
+                const on = !!el || inherited;
                 return (
                   <div
                     key={v.id}
@@ -322,7 +336,7 @@ function ElementDetailModal({
                       gap: 10,
                       alignItems: 'flex-start',
                       border: '1px solid #f1f3f5',
-                      borderLeft: `3px solid ${el ? '#16a34a' : '#e5e7eb'}`,
+                      borderLeft: `3px solid ${on ? '#16a34a' : '#e5e7eb'}`,
                       borderRadius: 7,
                       padding: '6px 10px',
                       background: el ? '#fff' : '#fafafa',
@@ -332,7 +346,7 @@ function ElementDetailModal({
                       style={{
                         fontSize: 12,
                         fontWeight: 600,
-                        color: el ? '#171717' : '#525252',
+                        color: on ? '#171717' : '#525252',
                         width: 250,
                         flexShrink: 0,
                       }}
@@ -344,9 +358,16 @@ function ElementDetailModal({
                         fontSize: 12,
                         color: el ? '#262626' : '#525252',
                         lineHeight: 1.45,
+                        fontStyle: inherited ? 'italic' : undefined,
                       }}
                     >
-                      {el ? (el.description ?? el.element) : 'not carried'}
+                      {el
+                        ? (el.description ?? el.element)
+                        : inherited
+                          ? v.members > 1
+                            ? 'Carried in this product — narrow the scope to one product for per-version detail.'
+                            : 'Carried via the countrywide base form — the state form amends it without dropping this coverage.'
+                          : 'not carried'}
                     </span>
                   </div>
                 );

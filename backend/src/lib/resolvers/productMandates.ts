@@ -98,7 +98,11 @@ export async function resolveStateMandates(
       fallbackByState.get(state) ??
       null;
     const stateName = STATE_NAMES[state] ?? reg?.jurisdiction.name ?? state;
+    // Enriched detail first (any carrying element may hold it), then the
+    // element's researched description, then the register's obligation text.
+    const enriched = Object.values(r.group.perVersion).find((el) => el?.mandate?.trim());
     const mandate =
+      enriched?.mandate?.trim() ||
       rep?.description?.trim() ||
       reg?.requirement ||
       `${stateName} requires this form for the product line.`;
@@ -106,7 +110,7 @@ export async function resolveStateMandates(
       state,
       stateName,
       mandate,
-      citation: reg?.citation ?? null,
+      citation: enriched?.mandateCitation?.trim() || reg?.citation || null,
       citationUrl: reg?.citationUrl ?? null,
       regulator: reg?.jurisdiction.regulatorName ?? null,
     };

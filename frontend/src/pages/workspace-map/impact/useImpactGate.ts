@@ -18,21 +18,28 @@ export interface ImpactGateState {
 
 export interface ImpactGate {
   state: ImpactGateState | null;
-  run: (request: ImpactRequest, proceed: () => void | Promise<void>, onCancel?: () => void) => void;
+  /** `proceed` may receive the decision the user picked IN the panel (product
+   *  decisions offer Retain · Standardize · Retire there) — callers that only
+   *  have one pending action simply ignore the argument. */
+  run: (
+    request: ImpactRequest,
+    proceed: (chosen?: string) => void | Promise<void>,
+    onCancel?: () => void,
+  ) => void;
   cancel: () => void;
-  confirm: () => Promise<void>;
+  confirm: (chosen?: string) => Promise<void>;
 }
 
 export function useImpactGate(): ImpactGate {
   const [state, setState] = useState<ImpactGateState | null>(null);
-  const proceedRef = useRef<(() => void | Promise<void>) | null>(null);
+  const proceedRef = useRef<((chosen?: string) => void | Promise<void>) | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
   // Guards a stale assessment response from resurrecting a cancelled panel.
   const seqRef = useRef(0);
 
   const run = (
     request: ImpactRequest,
-    proceed: () => void | Promise<void>,
+    proceed: (chosen?: string) => void | Promise<void>,
     onCancel?: () => void,
   ) => {
     const seq = ++seqRef.current;
@@ -67,12 +74,12 @@ export function useImpactGate(): ImpactGate {
     setState(null);
   };
 
-  const confirm = async () => {
+  const confirm = async (chosen?: string) => {
     const proceed = proceedRef.current;
     if (!proceed) return;
     setState((s) => (s ? { ...s, busy: true, error: '' } : s));
     try {
-      await proceed();
+      await proceed(chosen);
       seqRef.current += 1;
       proceedRef.current = null;
       cancelRef.current = null;

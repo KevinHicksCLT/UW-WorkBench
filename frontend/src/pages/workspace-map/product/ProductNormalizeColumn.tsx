@@ -227,12 +227,12 @@ function ReviewActions({
           componentNodeIds,
         },
       },
-      async () => {
+      async (chosen) => {
         await api.put('/product-spine/decisions', {
           lobId,
           component: group.component,
           groupKey: group.key,
-          status,
+          status: chosen ?? status,
         });
         onResolved();
         setOpen(false);

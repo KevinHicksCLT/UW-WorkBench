@@ -216,9 +216,17 @@ export default function ProductBoard({
             componentNodeIds: meta?.componentNodeIds,
           },
         },
-        async () => {
+        async (chosen) => {
           try {
-            await applyDecision(lobId, component, groupKey, status, comment);
+            // The panel's footer lets the user pick any of the three actions —
+            // the write honors that pick over the button that opened the gate.
+            await applyDecision(
+              lobId,
+              component,
+              groupKey,
+              (chosen as ProductDecisionStatus | undefined) ?? status,
+              comment,
+            );
           } finally {
             resolve();
           }

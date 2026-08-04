@@ -165,7 +165,6 @@ function DelivChain({
 }) {
   const [open, setOpen] = useState(true);
   const kids = d.tasks.length;
-  const pct = d.rollup.total ? Math.round((100 * d.rollup.defined) / d.rollup.total) : null;
   return (
     <div
       className="rounded-lg bg-[#e9f7ef] border border-[#cbead9]"
@@ -202,24 +201,6 @@ function DelivChain({
         <span className="text-[12.5px] font-bold text-[#196f3d] flex-1 min-w-0 truncate">
           {d.title}
         </span>
-        {pct !== null && (
-          <span
-            className={
-              'text-[9px] px-1.5 py-px rounded-full flex-shrink-0 ' +
-              (pct === 100
-                ? 'bg-white text-[#196f3d] border border-[#cbead9]'
-                : 'bg-[#fdf3e0] text-[#8a5a12]')
-            }
-            title="Checklist + testing keys defined across this deliverable's tasks"
-          >
-            {d.rollup.defined} of {d.rollup.total} verified
-          </span>
-        )}
-        {d.tasks.length > 0 && (
-          <span className="text-[9px] text-[#5a8a6f]">
-            {d.tasks.length} task{d.tasks.length === 1 ? '' : 's'}
-          </span>
-        )}
         <LinkOut onClick={() => onNav('/deliverables')} />
         {edit && d.linkId && <DetachBtn onClick={() => onDetach(d.linkId!)} />}
       </div>
@@ -260,7 +241,6 @@ function PlanBlock({
 }) {
   const specific = rows.filter((r) => !r.generic);
   if (specific.length === 0) return null;
-  const defined = specific.filter((r) => r.defined).length;
   return (
     <div
       className="rounded-md mt-1.5"
@@ -272,9 +252,6 @@ function PlanBlock({
           style={{ color: accent, borderColor: border }}
         >
           {label}
-        </span>
-        <span className="text-[9px]" style={{ color: accent }}>
-          {defined}/{specific.length}
         </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
@@ -372,7 +349,6 @@ function SubTaskCard({ s }: { s: ChainSubTask }) {
 
 // The AAA sub-task block replacing the flat Sub-tasks / Sub-task testing pair.
 function SubTaskBlock({ subTasks }: { subTasks: ChainSubTask[] }) {
-  const defined = subTasks.filter((s) => s.defined).length;
   return (
     <div
       className="rounded-md mt-1.5"
@@ -385,9 +361,6 @@ function SubTaskBlock({ subTasks }: { subTasks: ChainSubTask[] }) {
       <div className="flex items-center gap-1.5 px-2 pt-1.5">
         <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border text-[#1e9e6a] border-[#cbead9]">
           Actions
-        </span>
-        <span className="text-[9px] text-[#1e9e6a]">
-          {defined}/{subTasks.length}
         </span>
         <span className="text-[8.5px] text-[#8ba99a]">actor · action · application</span>
       </div>
@@ -415,8 +388,6 @@ function TiedBlock({
   border: string;
   items: TiedPlan[];
 }) {
-  const rows = items.flatMap((s) => [...s.checklist, ...s.testing]);
-  const defined = rows.filter((r) => r.defined).length;
   return (
     <div
       className="rounded-md mt-1.5"
@@ -428,9 +399,6 @@ function TiedBlock({
           style={{ color: accent, borderColor: border }}
         >
           {label}
-        </span>
-        <span className="text-[9px]" style={{ color: accent }}>
-          {items.length} · {defined}/{rows.length}
         </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
@@ -479,14 +447,6 @@ function TaskChain({
     testing.length +
     tied.length +
     children.length;
-  const allRows = [
-    ...checklist,
-    ...testing,
-    ...tied.flatMap((x) => [...x.checklist, ...x.testing]),
-  ];
-  const total = allRows.length + subTasks.length;
-  const defined =
-    allRows.filter((r) => r.defined).length + subTasks.filter((s) => s.defined).length;
   return (
     <div
       className="rounded-lg bg-[#faf8ff] border border-[#ded5f8]"
@@ -515,11 +475,6 @@ function TaskChain({
           Task
         </span>
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
-        {total > 0 && (
-          <span className="text-[9px] text-[#7c5db8]">
-            {defined}/{total}
-          </span>
-        )}
       </button>
       {open && kids > 0 && (
         <div className="px-2.5 pb-2 pl-7 flex flex-col gap-1">
@@ -564,7 +519,7 @@ function TaskChain({
               collapsed; standards sit at the very bottom, only if applicable. */}
           {children.length > 0 && (
             <>
-              <MiniHead>Tasks · {children.length}</MiniHead>
+              <MiniHead>Tasks</MiniHead>
               {children.map((c) => (
                 <TaskChain key={c.taskId} t={c} onNav={onNav} nested />
               ))}

@@ -36,6 +36,7 @@ export default function Inspector({
   onRetarget,
   accent,
   startCollapsed,
+  initialTab,
 }: {
   nodeId: string;
   onClose?: () => void;
@@ -44,6 +45,8 @@ export default function Inspector({
   accent?: string;
   // Map opens collapsed (rail) so the canvas isn't covered; List opens expanded.
   startCollapsed?: boolean;
+  // Tab to land on when the target changes (e.g. an L6 map click -> Work).
+  initialTab?: Tab;
 }) {
   const navigate = useNavigate();
   const [data, setData] = useState<Payload | null>(null);
@@ -78,8 +81,10 @@ export default function Inspector({
 
   useEffect(() => load(), [load]);
   useEffect(() => {
-    setTab('Overview');
+    setTab(initialTab ?? 'Overview');
     setEdit(false);
+    // An explicitly-targeted node (not startCollapsed) opens the panel.
+    if (!startCollapsed) setCollapsed(false);
   }, [nodeId]);
 
   const showToast = (msg: string, sub: string, undo?: () => void) => {

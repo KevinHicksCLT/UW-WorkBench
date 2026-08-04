@@ -106,12 +106,12 @@ export default function ProductCellModal({
           componentNodeIds: node ? [node.id] : undefined,
         },
       },
-      async () => {
+      async (chosen) => {
         await api.put('/product-spine/decisions', {
           lobId,
           component: group.component,
           groupKey: group.key,
-          status,
+          status: chosen ?? status,
         });
         refetch();
       },

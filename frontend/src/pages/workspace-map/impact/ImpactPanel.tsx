@@ -276,6 +276,14 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   if (!s) return null;
   const verb = CHANGE_LABELS[s.request.changeType];
   const destructive = DESTRUCTIVE.has(s.request.changeType);
+  // Product decisions: the panel IS the decision point — the footer offers
+  // Retain · Standardize · Retire directly (no verb tag, no generic Proceed).
+  const productDecision = s.request.subject.kind === 'product-element';
+  const recommendedKey =
+    report?.score &&
+    ({ STANDARDIZE: 'APPROVED', RETAIN: 'HELD', RETIRE: 'RETIRED' } as const)[
+      report.score.recommendation
+    ];
   const subjectName = report?.subject.name ?? s.request.label ?? 'this change';
   // One scan phase covers both the graph walk and the AI deep-dive — the
   // report view appears only when the full analysis is in.
@@ -329,18 +337,20 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
             <span style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', flex: 1 }}>
               {subjectName}
             </span>
-            <span
-              style={{
-                padding: '2px 9px',
-                borderRadius: 999,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: '#fff',
-                background: destructive ? '#dc2626' : LOGO_BLUE,
-              }}
-            >
-              {verb}
-            </span>
+            {!productDecision && (
+              <span
+                style={{
+                  padding: '2px 9px',
+                  borderRadius: 999,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  color: '#fff',
+                  background: destructive ? '#dc2626' : LOGO_BLUE,
+                }}
+              >
+                {verb}
+              </span>
+            )}
           </div>
           {report?.subject.context && (
             <div style={{ fontSize: 11, color: '#737373', marginTop: 2 }}>
@@ -447,29 +457,68 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           >
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              gate.confirm().catch(() => {
-                /* surfaced via gate.state.error */
-              });
-            }}
-            disabled={s.busy || s.loading}
-            style={{
-              font: 'inherit',
-              fontSize: 12,
-              fontWeight: 700,
-              padding: '6px 16px',
-              borderRadius: 7,
-              border: 'none',
-              background: destructive ? '#dc2626' : LOGO_BLUE,
-              color: '#fff',
-              cursor: s.busy || s.loading ? 'default' : 'pointer',
-              opacity: s.busy || s.loading ? 0.6 : 1,
-            }}
-          >
-            {s.busy ? 'Applying…' : 'Proceed'}
-          </button>
+          {productDecision ? (
+            // The three board decisions, made from the report itself. The
+            // score's recommended action wears a ring.
+            (
+              [
+                ['HELD', 'Retain', '#0f766e'],
+                ['APPROVED', 'Standardize', '#4f46e5'],
+                ['RETIRED', 'Retire', '#dc2626'],
+              ] as const
+            ).map(([key, label, tone]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  gate.confirm(key).catch(() => {
+                    /* surfaced via gate.state.error */
+                  });
+                }}
+                disabled={s.busy || s.loading}
+                title={recommendedKey === key ? 'Recommended by the decision score' : undefined}
+                style={{
+                  font: 'inherit',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '6px 16px',
+                  borderRadius: 7,
+                  border: 'none',
+                  background: tone,
+                  color: '#fff',
+                  cursor: s.busy || s.loading ? 'default' : 'pointer',
+                  opacity: s.busy || s.loading ? 0.6 : 1,
+                  boxShadow: recommendedKey === key ? `0 0 0 2.5px ${tone}55` : undefined,
+                }}
+              >
+                {s.busy ? 'Applying…' : recommendedKey === key ? `★ ${label}` : label}
+              </button>
+            ))
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                gate.confirm().catch(() => {
+                  /* surfaced via gate.state.error */
+                });
+              }}
+              disabled={s.busy || s.loading}
+              style={{
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '6px 16px',
+                borderRadius: 7,
+                border: 'none',
+                background: destructive ? '#dc2626' : LOGO_BLUE,
+                color: '#fff',
+                cursor: s.busy || s.loading ? 'default' : 'pointer',
+                opacity: s.busy || s.loading ? 0.6 : 1,
+              }}
+            >
+              {s.busy ? 'Applying…' : 'Proceed'}
+            </button>
+          )}
         </div>
       </div>
     </div>,

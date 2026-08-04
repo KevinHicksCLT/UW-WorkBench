@@ -22,6 +22,10 @@ export interface SpineElement {
   description: string | null;
   livesIn: string | null;
   format: string | null;
+  /** Enriched state-mandate detail (scripts/enrich-state-mandates.ts) — the
+   *  specific requirements the state imposes, with its statutory citation. */
+  mandate?: string | null;
+  mandateCitation?: string | null;
 }
 
 export interface SpineComponent {
@@ -598,6 +602,8 @@ export function parseElements(attributes: unknown): SpineElement[] {
       description: typeof rec.description === 'string' ? rec.description : null,
       livesIn: typeof rec.livesIn === 'string' ? rec.livesIn : null,
       format: typeof rec.format === 'string' ? rec.format : null,
+      mandate: typeof rec.mandate === 'string' ? rec.mandate : null,
+      mandateCitation: typeof rec.mandateCitation === 'string' ? rec.mandateCitation : null,
     });
   }
   return out;
