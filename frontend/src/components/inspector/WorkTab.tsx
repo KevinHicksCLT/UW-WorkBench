@@ -350,7 +350,9 @@ function SubTaskCard({ s }: { s: ChainSubTask }) {
                 Done when
               </span>
               {s.doneWhen && (
-                <div className="text-[10.5px] text-[#15603f] leading-snug">{s.doneWhen}</div>
+                <div className="text-[10.5px] text-[#15603f] leading-snug">
+                  {s.doneWhen.charAt(0).toUpperCase() + s.doneWhen.slice(1)}
+                </div>
               )}
               {s.verify && (
                 <div className="mt-0.5 text-[10px] text-[#1d4ed8] leading-snug">

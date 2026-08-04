@@ -35,6 +35,12 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
     'explorer.map.subStep',
     null,
   );
+  // L5 cards whose L6 column is open — a toggle SET, so several columns can
+  // be open at once; re-clicking an L5 closes its column.
+  const [openSubStepIds, setOpenSubStepIds] = useViewState<string[]>(
+    'explorer.map.openSubSteps',
+    [],
+  );
 
   // API data
   const [flowData, setFlowData] = useState<DivisionFlow | null>(null);
@@ -78,6 +84,7 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
     setVsFlowData(null);
     setFocusedStepId(null);
     setFocusedSubStepId(null);
+    setOpenSubStepIds([]);
   }, []);
 
   // Click handlers
@@ -168,15 +175,19 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
   // as a left-to-right flow below. Toggles back to the sub-process row (L3 focus).
   const onSubStepClick = useCallback(
     (subId: string) => {
-      if (focusedSubStepId === subId && level === 4) {
-        setLevel(3);
-        setFocusedSubStepId(null);
+      if (openSubStepIds.includes(subId)) {
+        // Re-click closes this L5's column; others stay open.
+        const rest = openSubStepIds.filter((id) => id !== subId);
+        setOpenSubStepIds(rest);
+        if (focusedSubStepId === subId) setFocusedSubStepId(rest[rest.length - 1] ?? null);
+        if (!rest.length) setLevel(3);
         return;
       }
+      setOpenSubStepIds([...openSubStepIds, subId]);
       setLevel(4);
       setFocusedSubStepId(subId);
     },
-    [focusedSubStepId, level],
+    [openSubStepIds, focusedSubStepId],
   );
 
   // Deep-link focus: jump straight to a value stream (company → domain → division
@@ -239,6 +250,7 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
     setVsFlowData(null);
     setFocusedStepId(null);
     setFocusedSubStepId(null);
+    setOpenSubStepIds([]);
   }, []);
   const crumbToL1 = useCallback(() => {
     if (level >= 2) {
@@ -247,6 +259,7 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
       setVsFlowData(null);
       setFocusedStepId(null);
       setFocusedSubStepId(null);
+      setOpenSubStepIds([]);
     }
   }, [level]);
   const crumbToL2 = useCallback(() => {
@@ -254,12 +267,14 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
       setLevel(2);
       setFocusedStepId(null);
       setFocusedSubStepId(null);
+      setOpenSubStepIds([]);
     }
   }, [level]);
   const crumbToL3 = useCallback(() => {
     if (level >= 4) {
       setLevel(3);
       setFocusedSubStepId(null);
+      setOpenSubStepIds([]);
     }
   }, [level]);
   // Back to the domains row (clears the selected domain + everything below).
@@ -276,6 +291,7 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
     focusedVsId,
     focusedStepId,
     focusedSubStepId,
+    openSubStepIds,
     flowData,
     flowLoading,
     vsFlowData,

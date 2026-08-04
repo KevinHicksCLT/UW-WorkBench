@@ -65,6 +65,7 @@ export type BuildMapGraphArgs = {
   focusedVsId: string | null;
   focusedStepId: string | null;
   focusedSubStepId: string | null;
+  openSubStepIds: string[];
   flowData: DivisionFlow | null;
   valueStreams: FlowValueStream[];
   vsFlowData: DivisionFlow | null;
@@ -84,6 +85,7 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
     focusedVsId,
     focusedStepId,
     focusedSubStepId,
+    openSubStepIds,
     flowData,
     valueStreams,
     vsFlowData,
@@ -334,9 +336,10 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
 
                 subs.forEach((sub, sj) => {
                   const subNodeId = `substep:${sub.id}`;
+                  const isSubOpen = openSubStepIds.includes(sub.id);
                   const isSubFocused = focusedSubStepId === sub.id;
                   const subFs: NodeFocusState =
-                    level < 4 ? 'neutral' : isSubFocused ? 'focused' : 'dimmed';
+                    level < 4 ? 'neutral' : isSubOpen || isSubFocused ? 'focused' : 'dimmed';
                   const subLeft = subRowLeft + sj * (MAP_CARD_W + STEP_GAP_X);
                   const subY = subTop;
 
@@ -367,10 +370,10 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                     });
                   }
 
-                  // ── EVERY L5 shows its generated L6 task column beneath it,
-                  //    ordered top-to-bottom — the L6 grouping is the point of
-                  //    the view, so it is always visible, not click-gated. ──
-                  if (sub.l5.length > 0) {
+                  // ── An OPEN L5 (clicked; re-click closes) shows its L6 task
+                  //    column beneath it, ordered top-to-bottom. Several
+                  //    columns can be open at once. ──
+                  if (isSubOpen && sub.l5.length > 0) {
                     const subCenterX = subLeft + MAP_CARD_W / 2;
                     const leafLeft = subCenterX - MAP_CARD_W / 2;
                     const leafTop = subY + MAP_CARD_H + LEAF_TOP_OFFSET;
