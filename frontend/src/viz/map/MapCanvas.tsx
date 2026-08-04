@@ -863,10 +863,21 @@ function MapCanvasInner({ divisions, companyName, focusVsId, onMoved }: Props) {
         onStepClick(node.id.replace(/^step:/, ''));
       } else if (node.type === 'subStepNode') {
         onSubStepClick(node.id.replace(/^substep:/, ''));
+      } else if (node.type === 'leafStepNode') {
+        // L6 task → open its Actor / Application / Actions detail in the
+        // right inspector without moving the canvas.
+        setOvStack((s) => [...s, { level: 'node', id: node.id.replace(/^leaf:/, '') }]);
       }
-      // leafStepNode (L5) is display-only (non-interactive)
     },
-    [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick],
+    [
+      onCompanyClick,
+      onDomainClick,
+      onDivisionClick,
+      onVsClick,
+      onStepClick,
+      onSubStepClick,
+      setOvStack,
+    ],
   );
 
   // ── Dashboard drill-down ────────────────────────────────────────────────────

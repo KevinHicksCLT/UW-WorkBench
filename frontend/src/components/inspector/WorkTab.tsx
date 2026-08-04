@@ -382,7 +382,7 @@ function SubTaskBlock({ subTasks }: { subTasks: ChainSubTask[] }) {
     >
       <div className="flex items-center gap-1.5 px-2 pt-1.5">
         <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border text-[#1e9e6a] border-[#cbead9]">
-          Sub-tasks
+          Actions
         </span>
         <span className="text-[9px] text-[#1e9e6a]">
           {defined}/{subTasks.length}
@@ -532,7 +532,7 @@ function TaskChain({
       {open && kids > 0 && (
         <div className="px-2.5 pb-2 pl-7 flex flex-col gap-1">
           {deps.length > 0 && <DependsOnRow deps={deps} />}
-          {t.roles.length > 0 && <MiniHead>Roles</MiniHead>}
+          {t.roles.length > 0 && <MiniHead>Actor</MiniHead>}
           {t.roles.map((r) => (
             <button
               key={r.roleId}
@@ -549,7 +549,7 @@ function TaskChain({
               </span>
             </button>
           ))}
-          {t.applications.length > 0 && <MiniHead>Applications</MiniHead>}
+          {t.applications.length > 0 && <MiniHead>Application</MiniHead>}
           {t.applications.map((a) => (
             <button
               key={a.appId}
@@ -571,7 +571,7 @@ function TaskChain({
           {subTasks.length > 0 && <SubTaskBlock subTasks={subTasks} />}
           {checklist.length > 0 && (
             <PlanBlock
-              label="Sub-tasks"
+              label="Actions"
               accent="#1e9e6a"
               bg="#f2faf6"
               border="#cbead9"
@@ -580,7 +580,7 @@ function TaskChain({
           )}
           {testing.length > 0 && (
             <PlanBlock
-              label="Sub-task testing"
+              label="Action testing"
               accent="#1d4ed8"
               bg="#f0f5fe"
               border="#cdddf5"

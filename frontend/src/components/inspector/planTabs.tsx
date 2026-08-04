@@ -68,7 +68,7 @@ function PlanRollupSummary({
 }: {
   data: Payload;
   onNav: (p: string) => void;
-  kind: 'Sub-task' | 'Sub-task testing';
+  kind: 'Action' | 'Action testing';
 }) {
   const r = data.planRollup;
   if (!r || !r.total)
@@ -115,11 +115,11 @@ export function ChecklistTab({
   edit: boolean;
   after: AfterFn;
 }) {
-  if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Sub-task" />;
+  if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Action" />;
   const rows = specificRows(data.plan?.checklist ?? []);
   return (
     <div>
-      {!rows.length && <Empty text="No sub-tasks recorded yet — add them in the Work library." />}
+      {!rows.length && <Empty text="No actions recorded yet — add them in the Work library." />}
       <PlanLines rows={rows} />
       <EditInLibrary nodeId={data.id} onNav={onNav} />
     </div>
@@ -135,7 +135,7 @@ export function TestingTab({
   edit: boolean;
   after: AfterFn;
 }) {
-  if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Sub-task testing" />;
+  if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Action testing" />;
   const plan = data.plan;
   const rows = specificRows(plan?.testing ?? []);
   const tied = [...(plan?.standards ?? []), ...(plan?.regulations ?? [])];
@@ -143,7 +143,7 @@ export function TestingTab({
   return (
     <div>
       {!rows.length && (
-        <Empty text="No sub-task tests recorded yet — add them in the Work library." />
+        <Empty text="No action tests recorded yet — add them in the Work library." />
       )}
       <PlanLines rows={rows} />
       {tied.length > 0 && (
