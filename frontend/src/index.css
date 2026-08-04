@@ -1,0 +1,713 @@
+/* Geist Sans via Google Fonts CDN — closest open proxy for Vercel's typeface */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+  font-family:
+    'Inter',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  /* OpenType features: contextual alternates + disambiguation ligatures */
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+}
+
+body {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  /* Vercel primary text: near-black #171717 */
+  color: #171717;
+  background: #ffffff;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px; /* prevents iOS Safari zoom-on-focus */
+}
+@media (min-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 0.875rem;
+  }
+}
+
+.safe-pt {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-pl {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-pr {
+  padding-right: env(safe-area-inset-right);
+}
+.safe-px {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Tabular numerics — always apply to data values */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  /* ─── Base card primitives ──────────────────────────────────────────────────
+     Vercel card: white bg, hairline 1px #eaeaea border, barely-there shadow.
+     Radius: rounded-lg (8px). No heavy drop shadows — borders do the work.  */
+  .card {
+    @apply bg-white rounded-lg border border-[#eaeaea] p-3 sm:p-4;
+    box-shadow: theme('boxShadow.card');
+  }
+  .card-elevated {
+    @apply bg-white rounded-lg border border-[#eaeaea];
+    box-shadow: theme('boxShadow.float');
+  }
+  /* Inspector / sidebar sub-card — tighter */
+  .lens-card {
+    @apply rounded-md border border-[#eaeaea] bg-white p-3;
+  }
+
+  /* ─── Table scroll wrapper ─────────────────────────────────────────────── */
+  .table-scroll {
+    @apply -mx-4 sm:mx-0 overflow-x-auto;
+  }
+  .table-scroll > table {
+    @apply min-w-[640px] mx-4 sm:mx-0;
+  }
+
+  /* ─── Buttons ──────────────────────────────────────────────────────────────
+     Vercel primary CTA: solid black bg, white text.
+     Vercel secondary: white + hairline border.                               */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-md text-sm font-medium transition-all duration-150;
+  }
+  .btn-primary {
+    @apply btn bg-[#171717] text-white hover:bg-[#000000] active:bg-[#000000]
+           disabled:bg-[#d4d4d4] disabled:text-[#a3a3a3] disabled:cursor-not-allowed;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+  .btn-secondary {
+    @apply btn bg-white border border-[#eaeaea] text-[#171717]
+           hover:border-[#d4d4d4] hover:bg-[#fafafa]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .btn-ghost {
+    @apply btn text-[#525252] hover:bg-[#fafafa] hover:text-[#171717];
+  }
+
+  /* ─── Form primitives ──────────────────────────────────────────────────── */
+  .input {
+    @apply block w-full rounded-md border border-[#eaeaea] px-3 py-2 text-sm
+           bg-white text-[#171717] placeholder-[#a3a3a3]
+           focus:outline-none focus:border-[#0070f3] focus:ring-2 focus:ring-[rgba(0,112,243,0.20)]
+           transition-colors duration-150;
+  }
+  .label {
+    @apply block text-[11px] font-semibold text-[#525252] uppercase tracking-[0.08em] mb-1.5;
+  }
+
+  /* ─── Status pills ──────────────────────────────────────────────────────── */
+  .pill {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .pill-green {
+    @apply pill bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0];
+  }
+  .pill-amber {
+    @apply pill bg-[#fffbeb] text-[#b45309] border border-[#fde68a];
+  }
+  .pill-red {
+    @apply pill bg-[#fff1f2] text-[#be123c] border border-[#fecdd3];
+  }
+  .pill-slate {
+    @apply pill bg-[#fafafa] text-[#525252] border border-[#eaeaea];
+  }
+  /* Stage badge pill — neutral dark style */
+  .pill-blue {
+    @apply pill bg-[#fafafa] text-[#171717] border border-[#eaeaea];
+  }
+
+  /* ─── Chips (smaller than pills — used inline in tables / nodes) ─────── */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium;
+  }
+  .chip-soft {
+    @apply chip bg-[#fafafa] text-[#525252] border border-[#eaeaea];
+  }
+
+  /* ─── Domain semantic tags ──────────────────────────────────────────────────
+     Vercel spec: small, subtle chips. Teal / violet / indigo with 50/200/700
+     bg/border/text — understated, never big fills.                           */
+  .chip-domain-core {
+    @apply chip bg-[#f0fdfa] text-[#0f766e] border border-[#99f6e4];
+  }
+  .chip-domain-it {
+    @apply chip bg-[#eef2ff] text-[#4338ca] border border-[#c7d2fe];
+  }
+  .chip-domain-corp {
+    @apply chip bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe];
+  }
+
+  /* ─── Domain tag classes (next-agent spec) ──────────────────────────────────
+     .tag-core / .tag-corp / .tag-it — small subtle chips matching Vercel aesthetic.
+     Use these on any inline domain attribution tag.                           */
+  .tag-core {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium
+           bg-[#eef3ff] text-[#1d4ed8] border border-[#c3d7fb];
+  }
+  .tag-corp {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium
+           bg-[#fff7ed] text-[#b45309] border border-[#fdd9a8];
+  }
+  .tag-it {
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium
+           bg-[#ecfdf7] text-[#0f766e] border border-[#a7e8d8];
+  }
+
+  /* ─── Domain dot indicators (tiny 6px filled dots) ─────────────────────────
+     Use for inline list items, table rows, sparklines — smallest scannable encoding. */
+  .dot-core {
+    @apply inline-block w-1.5 h-1.5 rounded-full bg-[#0d9488] flex-shrink-0;
+  }
+  .dot-corp {
+    @apply inline-block w-1.5 h-1.5 rounded-full bg-[#7c3aed] flex-shrink-0;
+  }
+  .dot-it {
+    @apply inline-block w-1.5 h-1.5 rounded-full bg-[#4f46e5] flex-shrink-0;
+  }
+
+  /* ─── Value-delta semantic chips (gain / loss / overlap) ─────────────────── */
+  .chip-gain {
+    @apply chip bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0];
+  }
+  .chip-loss {
+    @apply chip bg-[#fff1f2] text-[#be123c] border border-[#fecdd3];
+  }
+  .chip-overlap {
+    @apply chip bg-[#fffbeb] text-[#b45309] border border-[#fde68a];
+  }
+
+  .dot-gain {
+    @apply inline-block w-2 h-2 rounded-full bg-[#10b981];
+  }
+  .dot-loss {
+    @apply inline-block w-2 h-2 rounded-full bg-[#f43f5e];
+  }
+  .dot-overlap {
+    @apply inline-block w-2 h-2 rounded-full bg-[#f59e0b];
+  }
+
+  /* Callout strip — insight bar in the Inspector */
+  .callout-gain {
+    @apply flex items-start gap-2 rounded-md bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-[12px] text-[#047857];
+  }
+  .callout-loss {
+    @apply flex items-start gap-2 rounded-md bg-[#fff1f2] border border-[#fecdd3] px-3 py-2 text-[12px] text-[#be123c];
+  }
+  .callout-overlap {
+    @apply flex items-start gap-2 rounded-md bg-[#fffbeb] border border-[#fde68a] px-3 py-2 text-[12px] text-[#b45309];
+  }
+
+  /* ─── Inspector typography helpers ─────────────────────────────────────── */
+  .lens-eyebrow {
+    @apply flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1;
+  }
+
+  /* ─── Gradient text ─────────────────────────────────────────────────────── */
+  .gradient-text {
+    @apply text-[#171717];
+    letter-spacing: -0.025em;
+  }
+
+  /* ─── Drill affordances ─────────────────────────────────────────────────── */
+  .drill-row {
+    @apply w-full flex items-center gap-2 text-left text-sm text-[#171717]
+           rounded-md px-1.5 py-1 -mx-1.5 transition-colors duration-150 hover:bg-[#fafafa];
+  }
+  .drill-row:disabled {
+    @apply text-[#a3a3a3] cursor-default hover:bg-transparent;
+  }
+  .drill-chev {
+    @apply ml-auto flex-shrink-0 text-[#a3a3a3] text-base leading-none transition-colors;
+  }
+  .drill-row:hover .drill-chev {
+    @apply text-[#171717];
+  }
+  .drill-row:disabled .drill-chev {
+    @apply text-transparent;
+  }
+
+  /* ─── Skeleton shimmer ─────────────────────────────────────────────────── */
+  .skeleton {
+    @apply rounded-md bg-[#f5f5f5];
+    background-image: linear-gradient(90deg, #f5f5f5 0px, #eeeeee 200px, #f5f5f5 400px);
+    background-size: 800px 100%;
+    @apply animate-shimmer;
+  }
+
+  /* ─── Divider ──────────────────────────────────────────────────────────── */
+  .divider {
+    @apply border-t border-[#eaeaea] my-3;
+  }
+
+  /* ─── Stage progress bar ────────────────────────────────────────────────── */
+  .stage-pip {
+    @apply h-1 rounded-full transition-colors duration-150 flex-1 min-w-[20px];
+  }
+  .stage-pip-filled {
+    @apply bg-[#171717];
+  }
+  .stage-pip-empty {
+    @apply bg-[#e5e5e5];
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PROCESS-FLOW STEP CARDS
+     ═══════════════════════════════════════════════════════════════════════════
+     Clean bordered cards in a horizontal row with thin connector lines.
+     Used for value-stream step-by-step process visualization.
+
+     Usage:
+       <div class="flow-track">
+         <div class="flow-step">…</div>
+         <div class="flow-connector" aria-hidden="true" />
+         <div class="flow-step flow-step-active">…</div>
+       </div>
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  /* Horizontal container — items sit in a row with connector wires between. */
+  .flow-track {
+    @apply flex items-center gap-0;
+  }
+
+  /* Individual step card */
+  .flow-step {
+    @apply relative flex flex-col gap-1 rounded-lg border border-[#eaeaea] bg-white
+           px-4 py-3 text-sm text-[#171717] min-w-[140px]
+           transition-all duration-150;
+    box-shadow: theme('boxShadow.card');
+  }
+  .flow-step:hover {
+    @apply border-[#d4d4d4];
+    box-shadow: theme('boxShadow.float');
+  }
+
+  /* Active / selected step — solid black border, subtle lift */
+  .flow-step-active {
+    @apply border-[#171717];
+    box-shadow: theme('boxShadow.float');
+  }
+
+  /* Thin hairline connector between steps — arrow implied by the right-point. */
+  .flow-connector {
+    @apply flex-shrink-0 flex items-center;
+    width: 32px;
+    height: 1px;
+    background: #d4d4d4;
+    position: relative;
+  }
+  /* Arrowhead on the connector */
+  .flow-connector::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid #d4d4d4;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+  }
+
+  /* Step index label — small muted number in the top-left */
+  .flow-step-index {
+    @apply text-[10px] font-semibold text-[#a3a3a3] uppercase tracking-[0.08em] mb-0.5;
+  }
+
+  /* Step title */
+  .flow-step-title {
+    @apply text-sm font-semibold text-[#171717] leading-snug;
+  }
+
+  /* Step sublabel / owner */
+  .flow-step-sub {
+    @apply text-[11px] text-[#666666] leading-snug;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PROGRESSIVE-FOCUS STATE SYSTEM
+     ═══════════════════════════════════════════════════════════════════════════
+     Vercel-clean: smooth opacity/blur recession at 200ms. Monochrome.
+
+     Three mutually exclusive node states (apply to ReactFlow node wrappers):
+       .node-dimmed   — siblings/ancestors that recede
+       .node-focused  — the selected/active node
+       .node-expanded — the open parent level
+
+     Content-level blur/dim for progressive-zoom (apply to content wrappers):
+       .is-blurred    — unfocused content: blur + dim + no-interact
+       .is-focused    — focused content: full opacity, no filter
+       .is-dimmed     — dim only (no blur): fades to background
+
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  /* IS-BLURRED: unfocused canvas regions / sibling content during zoom.
+     Blur 3px is enough to signal "background" without destroying readability.
+     pointer-events:none prevents accidental interaction. */
+  .is-blurred {
+    filter: blur(3px);
+    opacity: 0.45;
+    pointer-events: none;
+    transition:
+      filter 200ms ease,
+      opacity 200ms ease;
+  }
+
+  /* IS-FOCUSED: the subject — full fidelity, no filter. */
+  .is-focused {
+    filter: none;
+    opacity: 1;
+    pointer-events: auto;
+    transition:
+      filter 200ms ease,
+      opacity 200ms ease;
+  }
+
+  /* IS-DIMMED: receded but still legible, no blur (for text-heavy content). */
+  .is-dimmed {
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+
+  /* NODE STATES — ReactFlow node wrappers */
+
+  /* Context-dimmed: receded siblings. Grayscale pulls color so domain hues don't fight. */
+  .node-dimmed {
+    opacity: 0.35;
+    filter: grayscale(30%);
+    transform: scale(0.97);
+    transition:
+      opacity 200ms ease,
+      filter 200ms ease,
+      transform 200ms ease;
+  }
+
+  /* Focused/active node: full opacity, clean Vercel focus ring (0070f3). */
+  .node-focused {
+    opacity: 1;
+    filter: none;
+    transform: scale(1.02);
+    box-shadow:
+      0 0 0 2px rgba(0, 112, 243, 0.3),
+      0 8px 24px rgba(0, 0, 0, 0.1),
+      0 1px 3px rgba(0, 0, 0, 0.06);
+    transition:
+      opacity 200ms ease,
+      filter 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  /* Expanded/parent: open level — above context, below focused subject. */
+  .node-expanded {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.04);
+    outline: 1.5px solid rgba(0, 0, 0, 0.15);
+    outline-offset: 2px;
+    transition:
+      opacity 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  /* Default/neutral: no focus active */
+  .node-neutral {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+    transition:
+      opacity 200ms ease,
+      filter 200ms ease,
+      transform 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  /* Reduced-motion override */
+  @media (prefers-reduced-motion: reduce) {
+    .node-dimmed,
+    .node-focused,
+    .node-expanded,
+    .node-neutral,
+    .is-blurred,
+    .is-focused,
+    .is-dimmed {
+      transition: none;
+      animation: none;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PIECE-TYPE SYSTEM
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  .piece-app {
+    @apply bg-[#faf5ff] border border-[#e9d5ff] rounded-xl;
+    box-shadow: theme('boxShadow.card');
+  }
+  .piece-app:hover {
+    @apply border-[#d8b4fe];
+    box-shadow: theme('boxShadow.float');
+  }
+
+  .piece-kpi {
+    @apply bg-[#fffbeb] border border-[#fde68a] rounded-xl;
+    box-shadow: theme('boxShadow.card');
+  }
+  .piece-kpi:hover {
+    @apply border-[#fcd34d];
+    box-shadow: theme('boxShadow.float');
+  }
+
+  .piece-arrive {
+    @apply animate-piece-arrive;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PARTICIPATION ENCODING
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  .part-lead {
+    @apply chip border bg-[#f0fdfa] text-[#0f766e] border-[#99f6e4];
+  }
+  .part-core {
+    @apply chip border bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe];
+  }
+  .part-control {
+    @apply chip border bg-[#fffbeb] text-[#b45309] border-[#fde68a];
+  }
+  .part-oversight {
+    @apply chip border bg-[#fafafa] text-[#525252] border-[#eaeaea];
+  }
+  .part-support {
+    @apply chip border bg-[#fafafa] text-[#a3a3a3] border-[#eaeaea];
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     ROLLUP BADGE SYSTEM
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  .rollup-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums;
+  }
+  .rollup-app {
+    @apply rollup-badge bg-[#faf5ff] text-[#7e22ce] border border-[#e9d5ff];
+  }
+  .rollup-kpi {
+    @apply rollup-badge bg-[#fffbeb] text-[#b45309] border border-[#fde68a];
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     APPLICATION / TCO TREATMENT
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  .tco-low {
+    @apply chip border bg-[#faf5ff] text-[#7e22ce] border-[#e9d5ff];
+  }
+  .tco-mid {
+    @apply chip border bg-[#ede9fe] text-[#6d28d9] border-[#c4b5fd];
+  }
+  .tco-high {
+    @apply chip border border-[#7e22ce];
+    background: #7e22ce;
+    color: #ffffff;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     ORG-CHART EDGE STYLES
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  .org-edge-reports path {
+    stroke: #4ade80 !important;
+    stroke-width: 1.5px !important;
+    stroke-dasharray: none !important;
+    stroke-opacity: 0.7 !important;
+  }
+
+  .org-edge-matrix path {
+    stroke: #d4d4d4 !important;
+    stroke-width: 1.25px !important;
+    stroke-dasharray: 4 3 !important;
+    stroke-opacity: 0.65 !important;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     BREADCRUMB / ORIENTATION STRIP
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  .focus-breadcrumb-bar {
+    @apply flex items-center gap-1 flex-wrap px-3 py-2 rounded-lg;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid #eaeaea;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Active breadcrumb chip — subtle dark treatment */
+  .focus-crumb-active {
+    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-semibold
+           bg-[#171717] text-white;
+  }
+
+  /* Ancestor chip — muted, clickable */
+  .focus-crumb-ancestor {
+    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm
+           text-[#666666] hover:bg-[#fafafa] hover:text-[#171717] transition-colors duration-150 cursor-pointer;
+  }
+}
+
+/* ─── Map stage: node-position transition for gap-open animation ─────────── */
+/* Scoped to .rf-stage--map so it does not affect DrillCanvas / OrgTreeCanvas. */
+/* React Flow sets node position via inline transform: translate() on .react-flow__node,
+   so changing a node's `position` between renders auto-tweens the gap open.   */
+.rf-stage--map .react-flow__node {
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* The actively-dragged card must track the cursor 1:1 — the gap-open tween above
+   would otherwise make it lag behind the pointer and land drops in the wrong slot. */
+.rf-stage--map .react-flow__node.dragging {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-stage--map .react-flow__node {
+    transition: none;
+  }
+}
+
+/* ─── Map edit badges: the +/× controls on editable cards are hover-only ── */
+.map-edit-badge {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.react-flow__node:hover .map-edit-badge,
+.map-edit-badge:hover,
+.map-edit-badge:focus-visible {
+  opacity: 1;
+}
+/* Forgiving hit area: an invisible halo around the small circle so fast or
+   slightly-off pointer paths still land on the button instead of the canvas
+   or a neighboring card. */
+.map-edit-badge::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+}
+/* NB: the "+" badge straddles the sibling gutter. In edit mode the canvases
+   assign each editable card a DESCENDING zIndex along its row, so a card
+   always paints above its following sibling — the badge stays hoverable and
+   clickable no matter which direction the pointer approaches from. (A :hover
+   z-raise was tried instead and races fast pointer paths — don't reintroduce.) */
+/* While the map below is in edit mode, the floating view/lens controls stop
+   intercepting the canvas — cards panned underneath them (top of the pane)
+   would otherwise have dead, unclickable +/× badges. Click Done to get the
+   controls back. */
+.map-float-controls:has(~ * .rf-stage--edit) {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* ─── React Flow theme overrides (scoped to .rf-stage wrapper) ─────────── */
+.rf-stage .react-flow__attribution {
+  display: none;
+}
+.rf-stage .react-flow__background {
+  color: #e5e5e5;
+}
+.rf-stage .react-flow__node {
+  cursor: pointer;
+}
+.rf-stage .react-flow__node.nopan {
+  cursor: pointer;
+}
+/* Pan-grab cursor on the empty canvas only in edit mode — in the read-only view
+   the map reads as a static diagram (default cursor), as it did before edit mode. */
+.rf-stage--map .react-flow__pane {
+  cursor: default;
+}
+.rf-stage--map.rf-stage--edit .react-flow__pane {
+  cursor: grab;
+}
+.rf-stage--map.rf-stage--edit .react-flow__pane.dragging {
+  cursor: grabbing;
+}
+.rf-stage .react-flow__edge-path {
+  stroke-width: 1.25px;
+  stroke: #9ca3af;
+}
+.rf-stage .react-flow__controls {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eaeaea;
+}
+.rf-stage .react-flow__controls-button {
+  background: #ffffff;
+  border-bottom: 1px solid #eaeaea;
+  color: #525252;
+  width: 28px;
+  height: 28px;
+}
+.rf-stage .react-flow__controls-button:hover {
+  background: #fafafa;
+}
+.rf-stage .react-flow__minimap {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+}
+
+/* Application Rationalization board — connection handles are hidden until the
+   board is in edit mode (the canvas gets the `.board-editing` class). */
+.react-flow__handle.board-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+.board-editing .react-flow__handle.board-handle {
+  opacity: 1;
+  pointer-events: all;
+  width: 10px;
+  height: 10px;
+  background: #4f46e5;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px #c7d2fe;
+}
+.board-editing .react-flow__edge {
+  cursor: pointer;
+}
