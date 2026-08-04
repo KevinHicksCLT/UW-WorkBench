@@ -469,7 +469,6 @@ function TaskChain({
   const subTasks = t.subTasks ?? [];
   const deps = t.dependsOn ?? [];
   const children = t.children ?? [];
-  const isVerify = /^verify\b/i.test(t.name);
   const checklist = t.checklist.filter((r) => !r.generic);
   const testing = t.testing.filter((r) => !r.generic);
   const kids =
@@ -512,17 +511,8 @@ function TaskChain({
             <path d="M9 6l6 6-6 6" />
           </svg>
         )}
-        <span
-          className={
-            'text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border flex-shrink-0 ' +
-            (nested
-              ? isVerify
-                ? 'text-[#1d4ed8] border-[#cdddf5]'
-                : 'text-[#92600e] border-[#ecdcc0]'
-              : 'text-[#6d28d9] border-[#ded5f8]')
-          }
-        >
-          {nested ? (isVerify ? 'Verification' : 'Supporting task') : 'Task'}
+        <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white border flex-shrink-0 text-[#6d28d9] border-[#ded5f8]">
+          Task
         </span>
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
         {total > 0 && (
@@ -570,6 +560,16 @@ function TaskChain({
               )}
             </button>
           ))}
+          {/* The L5 is a rollup: its L6 tasks consolidate directly under it,
+              collapsed; standards sit at the very bottom, only if applicable. */}
+          {children.length > 0 && (
+            <>
+              <MiniHead>Tasks · {children.length}</MiniHead>
+              {children.map((c) => (
+                <TaskChain key={c.taskId} t={c} onNav={onNav} nested />
+              ))}
+            </>
+          )}
           {subTasks.length > 0 && <SubTaskBlock subTasks={subTasks} />}
           {checklist.length > 0 && (
             <PlanBlock
@@ -606,14 +606,6 @@ function TaskChain({
               border="#f2cdd8"
               items={t.regulations}
             />
-          )}
-          {children.length > 0 && (
-            <>
-              <MiniHead>Supporting tasks · {children.length}</MiniHead>
-              {children.map((c) => (
-                <TaskChain key={c.taskId} t={c} onNav={onNav} nested />
-              ))}
-            </>
           )}
         </div>
       )}
