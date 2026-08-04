@@ -354,7 +354,8 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                     draggable: false,
                   });
 
-                  // Edge: subStep[j-1] → subStep[j] (horizontal: right → left)
+                  // Edge: subStep[j-1] → subStep[j]. Default bezier like the
+                  // L4 row — smoothstep drew a right-angle fold here.
                   if (sj > 0) {
                     es.push({
                       id: `e:substep${subs[sj - 1].id}->substep${sub.id}`,
@@ -362,14 +363,14 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                       target: subNodeId,
                       sourceHandle: 'r',
                       targetHandle: 'l',
-                      type: 'smoothstep',
                       style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
                     });
                   }
 
-                  // ── Focused L5 → its generated L6 task column drops DOWN,
-                  //    ordered top-to-bottom. ──
-                  if (isSubFocused && sub.l5.length > 0) {
+                  // ── EVERY L5 shows its generated L6 task column beneath it,
+                  //    ordered top-to-bottom — the L6 grouping is the point of
+                  //    the view, so it is always visible, not click-gated. ──
+                  if (sub.l5.length > 0) {
                     const subCenterX = subLeft + MAP_CARD_W / 2;
                     const leafLeft = subCenterX - MAP_CARD_W / 2;
                     const leafTop = subY + MAP_CARD_H + LEAF_TOP_OFFSET;
@@ -416,14 +417,14 @@ export function buildMapGraph(args: BuildMapGraphArgs): { nodes: Node[]; edges: 
                   }
                 });
 
-                // Edge: step → first sub-process (top → bottom, into the column)
+                // Edge: step → first L5 of the row. Default bezier — smoothstep
+                // drew a right-angle fold across the horizontal offset.
                 es.push({
                   id: `e:${stepNodeId}->substep:${subs[0].id}`,
                   source: stepNodeId,
                   target: `substep:${subs[0].id}`,
                   sourceHandle: 'b',
                   targetHandle: 't',
-                  type: 'smoothstep',
                   style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
                 });
               }
