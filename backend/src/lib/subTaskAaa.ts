@@ -133,7 +133,12 @@ export function parseAaaSubTasks(
     const action = m[2].trim();
     const body = parseBody(row.value);
     const text = `${action}\n${body.steps.join('\n')}`;
-    const apps = appNames.filter((a) => new RegExp(`\\b${a}\\b`, 'i').test(text));
+    // Escape the name — catalog apps carry parentheses and slashes
+    // ("Amazon Web Services (AWS)", "Okta / IAM Platform") that would
+    // otherwise break the match and hide the app from the action's chips.
+    const apps = appNames.filter((a) =>
+      new RegExp(`(^|\\W)${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|\\W)`, 'i').test(text),
+    );
     // Steps carry the concrete artifact ("Open the spec in Confluence");
     // action titles state the outcome — prefer the former. One chip per app so
     // an authoring-tool → container path reads whole ("document → Word",

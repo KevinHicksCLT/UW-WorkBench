@@ -1,3 +1,8 @@
+// SUPERSEDED — DO NOT RUN. Review rejected blanket keyword linking: AWS is
+// assigned SURGICALLY, only where a user actually works in AWS, with the
+// service called out (AWS IAM, AWS VPC, AWS Organizations …) and in-AWS
+// steps. See scripts/aws-candidates.json + scripts/aws-rewrites.json and the
+// runbook. Original (superseded) approach below for reference.
 // Cloud grounding — review caught that cloud work references Terraform/Okta
 // but never the hyperscaler itself: no AWS (or any cloud platform) existed in
 // the application catalog, so landing zones, accounts, VPCs and guardrails
