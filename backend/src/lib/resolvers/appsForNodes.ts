@@ -2,6 +2,7 @@
 // junction (usageType = performed | memorialized). Replaces the legacy app-name
 // matching + full-table loads.
 import { prisma } from '../../db/prisma.js';
+import { inChunks } from '../inChunks.js';
 
 export interface NodeAppEntry {
   id: string;
@@ -14,12 +15,22 @@ export async function appsForNodes(nodeIds: string[]): Promise<Map<string, NodeA
   const ids = [...new Set(nodeIds.filter(Boolean))];
   const out = new Map<string, NodeAppEntry[]>();
   if (!ids.length) return out;
-  const rows = await prisma.nodeAppUsage.findMany({
-    where: { processNodeId: { in: ids } },
-    select: { processNodeId: true, usageType: true, application: { select: { id: true, name: true } } },
-  });
+  const rows = await inChunks(ids, (chunk) =>
+    prisma.nodeAppUsage.findMany({
+      where: { processNodeId: { in: chunk } },
+      select: {
+        processNodeId: true,
+        usageType: true,
+        application: { select: { id: true, name: true } },
+      },
+    }),
+  );
   for (const r of rows) {
-    const entry: NodeAppEntry = { id: r.application.id, name: r.application.name, usageType: r.usageType };
+    const entry: NodeAppEntry = {
+      id: r.application.id,
+      name: r.application.name,
+      usageType: r.usageType,
+    };
     const list = out.get(r.processNodeId);
     if (list) list.push(entry);
     else out.set(r.processNodeId, [entry]);

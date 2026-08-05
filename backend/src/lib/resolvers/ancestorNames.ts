@@ -9,6 +9,7 @@
 // resolved from the Owner role homed on the node → role.orgUnit (L2 = division,
 // L3 = department; both populate now that the Department tier is restored).
 import { prisma } from '../../db/prisma.js';
+import { inChunks } from '../inChunks.js';
 
 export interface AncestorNames {
   valueStreamId: string | null;
@@ -41,7 +42,14 @@ export interface StreamAncestry {
  * (process L2) + domain (process L1) — e.g. the Org table's role-participation
  * column. Skips the l3/l4 resolution and the entire org-derived
  * division/department block (an extra NodeRole query + an OrgUnitClosure+OrgUnit
- * join), which the full resolver computes and those callers discard. Two queries.
+ * join), which the full resolver computes and those callers discard.
+ *
+ * ONE query. The callers batch big — the Org table resolves every role-linked node
+ * of the company (~42k on ABC Insurance) — so this cannot be a pair of Prisma
+ * `{ in: ids }` reads: the id list is bound one variable per element and Postgres
+ * caps a prepared statement at 32,767 (see lib/inChunks.ts). Raw SQL binds the ids
+ * as a single `text[]` and pivots the L1/L2 ancestors DB-side, which also drops the
+ * ~130k intermediate closure rows that the two-query form pulled into memory.
  */
 export async function streamAncestry(nodeIds: string[]): Promise<Map<string, StreamAncestry>> {
   const out = new Map<string, StreamAncestry>();
@@ -49,29 +57,30 @@ export async function streamAncestry(nodeIds: string[]): Promise<Map<string, Str
   if (!ids.length) return out;
   for (const id of ids) out.set(id, { valueStreamId: null, valueStreamName: null, domain: null });
 
-  const edges = await prisma.processNodeClosure.findMany({
-    where: { descendantId: { in: ids } },
-    select: { ancestorId: true, descendantId: true },
-  });
-  const ancestorIds = [...new Set(edges.map((e) => e.ancestorId))];
-  const ancestors = await prisma.processNode.findMany({
-    where: { id: { in: ancestorIds }, processLevelType: { levelNumber: { in: [1, 2] } } },
-    select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
-  });
-  const ancById = new Map(
-    ancestors.map(
-      (a) => [a.id, { name: a.displayValue, level: a.processLevelType.levelNumber }] as const,
-    ),
-  );
-  for (const e of edges) {
-    const anc = ancById.get(e.ancestorId);
-    if (!anc) continue;
-    const rec = out.get(e.descendantId)!;
-    if (anc.level === 1) rec.domain = anc.name;
-    else if (anc.level === 2) {
-      rec.valueStreamId = e.ancestorId;
-      rec.valueStreamName = anc.name;
-    }
+  const rows = await prisma.$queryRaw<
+    {
+      id: string;
+      valueStreamId: string | null;
+      valueStreamName: string | null;
+      domain: string | null;
+    }[]
+  >`
+    SELECT c."descendantId" AS id,
+      (array_agg(anc.id           ) FILTER (WHERE plt."levelNumber" = 2))[1] AS "valueStreamId",
+      (array_agg(anc."displayValue") FILTER (WHERE plt."levelNumber" = 2))[1] AS "valueStreamName",
+      (array_agg(anc."displayValue") FILTER (WHERE plt."levelNumber" = 1))[1] AS "domain"
+    FROM public."ProcessNodeClosure" c
+    JOIN public."ProcessNode" anc ON anc.id = c."ancestorId"
+    JOIN public."ProcessLevelType" plt ON plt.id = anc."processLevelTypeId"
+    WHERE c."descendantId" = ANY(${ids}::text[]) AND plt."levelNumber" IN (1, 2)
+    GROUP BY 1`;
+
+  for (const r of rows) {
+    const rec = out.get(r.id);
+    if (!rec) continue;
+    rec.valueStreamId = r.valueStreamId;
+    rec.valueStreamName = r.valueStreamName;
+    rec.domain = r.domain;
   }
   return out;
 }
@@ -82,14 +91,18 @@ export async function ancestorNames(nodeIds: string[]): Promise<Map<string, Ance
 
   // Round 1: kick off both chains' first query together (see resolveFromRound1).
   const [edges, owners] = await Promise.all([
-    prisma.processNodeClosure.findMany({
-      where: { descendantId: { in: ids } },
-      select: { ancestorId: true, descendantId: true },
-    }),
-    prisma.nodeRole.findMany({
-      where: { processNodeId: { in: ids }, role_: 'Owner', role: { orgUnitId: { not: null } } },
-      select: { processNodeId: true, role: { select: { orgUnitId: true } } },
-    }),
+    inChunks(ids, (chunk) =>
+      prisma.processNodeClosure.findMany({
+        where: { descendantId: { in: chunk } },
+        select: { ancestorId: true, descendantId: true },
+      }),
+    ),
+    inChunks(ids, (chunk) =>
+      prisma.nodeRole.findMany({
+        where: { processNodeId: { in: chunk }, role_: 'Owner', role: { orgUnitId: { not: null } } },
+        select: { processNodeId: true, role: { select: { orgUnitId: true } } },
+      }),
+    ),
   ]);
   return resolveFromRound1(ids, edges, owners);
 }
@@ -194,15 +207,23 @@ async function resolveFromRound1(
   // Round 2: each chain's second query, again in parallel.
   type OrgEdge = { ancestorId: string; descendantId: string };
   const [ancestors, orgEdges] = await Promise.all([
-    prisma.processNode.findMany({
-      where: { id: { in: ancestorIds } },
-      select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
-    }),
+    inChunks(ancestorIds, (chunk) =>
+      prisma.processNode.findMany({
+        where: { id: { in: chunk } },
+        select: {
+          id: true,
+          displayValue: true,
+          processLevelType: { select: { levelNumber: true } },
+        },
+      }),
+    ),
     orgUnitIds.length
-      ? prisma.orgUnitClosure.findMany({
-          where: { descendantId: { in: orgUnitIds } },
-          select: { ancestorId: true, descendantId: true },
-        })
+      ? inChunks(orgUnitIds, (chunk) =>
+          prisma.orgUnitClosure.findMany({
+            where: { descendantId: { in: chunk } },
+            select: { ancestorId: true, descendantId: true },
+          }),
+        )
       : Promise.resolve([] as OrgEdge[]),
   ]);
 
@@ -236,10 +257,12 @@ async function resolveFromRound1(
   // Org-side division/department (Round 3: the org ancestors' names).
   if (orgEdges.length) {
     const orgAncIds = [...new Set(orgEdges.map((e) => e.ancestorId))];
-    const orgAncestors = await prisma.orgUnit.findMany({
-      where: { id: { in: orgAncIds } },
-      select: { id: true, displayValue: true, orgLevelType: { select: { levelNumber: true } } },
-    });
+    const orgAncestors = await inChunks(orgAncIds, (chunk) =>
+      prisma.orgUnit.findMany({
+        where: { id: { in: chunk } },
+        select: { id: true, displayValue: true, orgLevelType: { select: { levelNumber: true } } },
+      }),
+    );
     const orgAncById = new Map(
       orgAncestors.map(
         (a) => [a.id, { name: a.displayValue, level: a.orgLevelType.levelNumber }] as const,

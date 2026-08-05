@@ -11,6 +11,7 @@
  * fan-out never carries duplicated org strings.
  */
 import { prisma } from '../../db/prisma.js';
+import { inChunks } from '../inChunks.js';
 
 /** A role's home org unit (division or department) + its parent's name. */
 export interface RoleOrgUnitRef {
@@ -33,30 +34,34 @@ export interface NodeRoleEntry {
 async function fetchNodeRoles(nodeIds: string[]) {
   const ids = [...new Set(nodeIds.filter(Boolean))];
   if (!ids.length) return [];
-  return prisma.nodeRole.findMany({
-    where: { processNodeId: { in: ids } },
-    select: {
-      processNodeId: true,
-      role_: true,
-      ownerLevel: true,
-      validationStatus: true,
-      role: { select: { id: true, displayValue: true } },
-    },
-  });
+  return inChunks(ids, (chunk) =>
+    prisma.nodeRole.findMany({
+      where: { processNodeId: { in: chunk } },
+      select: {
+        processNodeId: true,
+        role_: true,
+        ownerLevel: true,
+        validationStatus: true,
+        role: { select: { id: true, displayValue: true } },
+      },
+    }),
+  );
 }
 
 /** One batched read of the distinct roles' home org units. */
 async function orgUnitsByRole(roleIds: string[]): Promise<Map<string, RoleOrgUnitRef | null>> {
   if (!roleIds.length) return new Map();
-  const roles = await prisma.role.findMany({
-    where: { id: { in: roleIds } },
-    select: {
-      id: true,
-      orgUnit: {
-        select: { id: true, displayValue: true, parent: { select: { displayValue: true } } },
+  const roles = await inChunks(roleIds, (chunk) =>
+    prisma.role.findMany({
+      where: { id: { in: chunk } },
+      select: {
+        id: true,
+        orgUnit: {
+          select: { id: true, displayValue: true, parent: { select: { displayValue: true } } },
+        },
       },
-    },
-  });
+    }),
+  );
   return new Map(roles.map((r) => [r.id, r.orgUnit]));
 }
 
