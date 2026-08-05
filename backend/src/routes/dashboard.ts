@@ -386,6 +386,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       domains,
       subProcesses,
       deliverables,
+      leafTasks,
     } = counts;
 
     res.json({
@@ -408,9 +409,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         metrics,
         scenarios,
         processSteps: steps,
-        // Each L5 task carries ~one deliverable; deliverables and tasks both = steps grain.
         deliverables,
-        tasks: steps,
+        // Canonical task figure: EXECUTABLE tasks (isTask leaves — all L6s
+        // plus never-decomposed L5s) so the tile matches the Tasks tab.
+        tasks: leafTasks,
         subProcesses,
         ioItems: counts.ioItems,
         externalParties: counts.externalParties,

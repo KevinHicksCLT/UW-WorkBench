@@ -111,7 +111,11 @@ async function loadDeliverables(companyId: string, pageArgs: PageArgs) {
 // assembly iterates only the page's base rows, and the default take covers the
 // whole company anyway.
 async function loadTasks(companyId: string, pageArgs: PageArgs) {
-  const taskWhere = { companyId, isTask: true };
+  // Canonical task grain: EXECUTABLE tasks — isTask leaves (all L6s plus
+  // never-decomposed L5s). L5s that were decomposed are groupings, not rows
+  // here; this keeps the tab, the dashboard tile, and structureCounts.leafTasks
+  // in agreement.
+  const taskWhere = { companyId, isTask: true, children: { none: { isTask: true } } };
   const [baseTasks, roleLinks, delivLinks, nodeStds, nodeRegs, testLinks, loc] = await Promise.all([
     prisma.processNode.findMany({
       where: taskWhere,
