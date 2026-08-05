@@ -25,6 +25,12 @@ export interface StructureCounts {
   valueStreams: number; // = process L2
   subProcesses: number; // = process L4
   steps: number; // = process L5 tasks
+  tasksL6: number; // = process L6 tasks (the AAA rollout's generated task layer)
+  // The canonical "tasks" figure: EXECUTABLE tasks = isTask nodes with no
+  // isTask children (all L6s, plus L5s that were never decomposed). Every
+  // screen that headlines a task count reads THIS, so the dashboard tile,
+  // the Tasks tab, and the TOC totals agree.
+  leafTasks: number;
   ioItems: number; // legacy tile — deliverables stand in (1/task)
   externalParties: number;
   // ── New keys for the reworked dashboard/explorer ──
@@ -67,10 +73,22 @@ export async function structureCounts(companyId: string): Promise<StructureCount
     metrics,
     scenarios,
     externalParties,
+    leafTasks,
   ] = await Promise.all([
-    prisma.processNode.groupBy({ by: ['processLevelTypeId'], where: { companyId }, _count: { _all: true } }),
-    prisma.orgUnit.groupBy({ by: ['orgLevelTypeId'], where: { companyId }, _count: { _all: true } }),
-    prisma.processLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
+    prisma.processNode.groupBy({
+      by: ['processLevelTypeId'],
+      where: { companyId },
+      _count: { _all: true },
+    }),
+    prisma.orgUnit.groupBy({
+      by: ['orgLevelTypeId'],
+      where: { companyId },
+      _count: { _all: true },
+    }),
+    prisma.processLevelType.findMany({
+      where: { companyId },
+      select: { id: true, levelNumber: true },
+    }),
     prisma.orgLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
     prisma.role.count({ where: { companyId } }),
     prisma.application.count({ where: { companyId } }),
@@ -81,6 +99,9 @@ export async function structureCounts(companyId: string): Promise<StructureCount
     prisma.metric.count({ where: { companyId } }),
     prisma.scenario.count({ where: { companyId } }),
     prisma.externalParty.count({ where: { companyId } }),
+    prisma.processNode.count({
+      where: { companyId, isTask: true, children: { none: { isTask: true } } },
+    }),
   ]);
 
   // level-type id → levelNumber, then sum the groupBy counts per level.
@@ -102,6 +123,7 @@ export async function structureCounts(companyId: string): Promise<StructureCount
   const processAreas = pByLevel.get(3) ?? 0;
   const subProcesses = pByLevel.get(4) ?? 0;
   const steps = pByLevel.get(5) ?? 0;
+  const tasksL6 = pByLevel.get(6) ?? 0;
 
   const value: StructureCounts = {
     segments,
@@ -110,6 +132,8 @@ export async function structureCounts(companyId: string): Promise<StructureCount
     processAreas,
     subProcesses,
     steps,
+    tasksL6,
+    leafTasks,
     divisions: oByLevel.get(2) ?? 0,
     departments: oByLevel.get(3) ?? 0, // OrgUnit L3 (Department tier)
     roles,

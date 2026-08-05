@@ -147,6 +147,16 @@ export function registerTreeFlowRoutes(router: Router): void {
         { excludeSelf: true, maxDepth: 3 },
       );
 
+      // Full process totals INCLUDING the L6 task layer (depth 4) — the TOC's
+      // "N processes" headline counts everything beneath each value stream,
+      // not just the levels the tree renders.
+      const totals = await prisma.processNodeClosure.groupBy({
+        by: ['ancestorId'],
+        where: { ancestorId: { in: divisions.map((d) => d.id) }, depth: { in: [1, 2, 3, 4] } },
+        _count: { _all: true },
+      });
+      const processTotal = new Map(totals.map((t) => [t.ancestorId, t._count._all]));
+
       res.json({
         company: { id: company.id, name: company.name },
         divisions: divisions.map((d) => {
@@ -162,6 +172,7 @@ export function registerTreeFlowRoutes(router: Router): void {
             id: d.id,
             name: d.displayValue,
             higherCategory: d.parent?.displayValue ?? null,
+            processes: processTotal.get(d.id) ?? 0,
             roles: 0,
             valueStreams: l3.map((area) => ({
               id: area.id,

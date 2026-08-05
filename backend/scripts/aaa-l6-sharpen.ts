@@ -16,7 +16,7 @@ if (!streams.length) {
   console.error('usage: aaa-l6-sharpen.ts <l2Id> [...]');
   process.exit(1);
 }
-const CONCURRENCY = 8;
+const CONCURRENCY = Number(process.env.SHARPEN_CONCURRENCY ?? 8);
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!, maxRetries: 3 });
 
 const GENERIC_DOD =

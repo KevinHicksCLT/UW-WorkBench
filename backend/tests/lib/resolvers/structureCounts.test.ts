@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const prismaMock = vi.hoisted(() => ({
-  processNode: { groupBy: vi.fn() },
+  processNode: { groupBy: vi.fn(), count: vi.fn() },
   orgUnit: { groupBy: vi.fn() },
   processLevelType: { findMany: vi.fn() },
   orgLevelType: { findMany: vi.fn() },
@@ -19,9 +19,13 @@ const prismaMock = vi.hoisted(() => ({
 }));
 vi.mock('../../../src/db/prisma.js', () => ({ prisma: prismaMock }));
 
-import { invalidateStructureCounts, structureCounts } from '../../../src/lib/resolvers/structureCounts.js';
+import {
+  invalidateStructureCounts,
+  structureCounts,
+} from '../../../src/lib/resolvers/structureCounts.js';
 
 function primeMocks() {
+  prismaMock.processNode.count.mockResolvedValue(3811);
   prismaMock.processNode.groupBy.mockResolvedValue([
     { processLevelTypeId: 'p1', _count: { _all: 3 } },
     { processLevelTypeId: 'p2', _count: { _all: 17 } },
@@ -76,6 +80,8 @@ describe('structureCounts', () => {
       processAreas: 135,
       subProcesses: 867,
       steps: 3811,
+      tasksL6: 0,
+      leafTasks: 3811,
       divisions: 9,
       departments: 31,
       roles: 200,
