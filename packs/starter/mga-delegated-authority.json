@@ -1,0 +1,86 @@
+{
+  "packFormat": 1,
+  "name": "MGA Delegated Authority Starter",
+  "slug": "mga-delegated-authority",
+  "version": "1.0.0",
+  "description": "Starter estate for an MGA / coverholder operating model: small-commercial GL and BOP appetite with tight authority ceilings, a roofing-operations guideline, and delegable grant templates sized for program business (attach a bordereaux schedule before activating delegation).",
+  "author": "UW Workbench community",
+  "license": "Apache-2.0",
+  "lobs": ["GL", "BOP"],
+  "appetiteStatements": [
+    {
+      "ref": "AS-301",
+      "stance": "TARGET",
+      "lob": "BOP",
+      "segment": "Main-street small commercial",
+      "naicsCodes": "4451,7225,8121",
+      "geographies": "TX,OK,AR,LA",
+      "tivMax": 5000000,
+      "capacityLimit": 50000000,
+      "rationale": "Program sweet spot: main-street retail, restaurants, and personal services under $5M TIV in the program states."
+    },
+    {
+      "ref": "AS-302",
+      "stance": "REFER",
+      "lob": "GL",
+      "segment": "Artisan contractors",
+      "naicsCodes": "2382,2383",
+      "geographies": "TX,OK",
+      "rationale": "Artisan contractor GL is writable but every risk needs a loss-run review before binding under the program."
+    },
+    {
+      "ref": "AS-303",
+      "stance": "DECLINE",
+      "lob": "GL",
+      "segment": "Roofing contractors",
+      "naicsCodes": "2381",
+      "rationale": "Roofing operations excluded from the delegated program per the capacity provider's binding authority agreement."
+    }
+  ],
+  "guidelineRules": [
+    {
+      "ref": "GR-3001",
+      "name": "Roofing operations share cap",
+      "kind": "DECISION_TABLE",
+      "definition": {
+        "rows": [
+          {
+            "when": { "roofingPct": { "op": "gt", "value": 40 } },
+            "outcome": "DECLINE",
+            "note": "Over 40% roofing operations is outside the program"
+          },
+          {
+            "when": { "roofingPct": { "op": "gt", "value": 15 } },
+            "outcome": "REFER",
+            "note": "15-40% roofing share needs program-manager sign-off"
+          }
+        ]
+      },
+      "inputsSchema": { "roofingPct": "number" }
+    }
+  ],
+  "authorityGrantTemplates": [
+    {
+      "ref": "AG-77",
+      "roleLabel": "Underwriter",
+      "premiumMax": 75000,
+      "tivMax": 5000000,
+      "lobs": "BOP,GL",
+      "territories": "TX,OK,AR,LA",
+      "delegable": true
+    },
+    {
+      "ref": "AG-78",
+      "roleLabel": "Chief Underwriting Officer",
+      "premiumMax": 250000,
+      "tivMax": 10000000,
+      "lobs": "BOP,GL",
+      "territories": "TX,OK,AR,LA",
+      "delegable": false
+    }
+  ],
+  "enrichmentSources": [
+    { "name": "Geocoding Provider", "kind": "GEOCODE", "costClass": "FREE", "ttlHours": 8760 },
+    { "name": "Sanctions Screening (OFAC/UN/EU)", "kind": "SANCTIONS", "costClass": "LOW", "ttlHours": 24 }
+  ]
+}

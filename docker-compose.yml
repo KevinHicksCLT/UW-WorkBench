@@ -1,0 +1,21 @@
+# One command to a running database: docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: uw-workbench-db
+    environment:
+      POSTGRES_USER: uw
+      POSTGRES_PASSWORD: uw
+      POSTGRES_DB: uw_workbench
+    ports:
+      - "5433:5432"
+    volumes:
+      - uw_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uw -d uw_workbench"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  uw_pgdata:

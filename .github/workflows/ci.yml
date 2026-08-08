@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Prisma generate
+        run: npx prisma generate
+        working-directory: server
+      - name: Typecheck (server + web)
+        run: npm run typecheck
+      - name: Unit tests (deterministic engine)
+        run: npm test
+      - name: Validate content packs against pack.schema.json
+        run: node scripts/validate-packs.mjs
+      - name: Build web
+        run: npm run build --workspace @uw-workbench/web
+
+  smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: uw
+          POSTGRES_PASSWORD: uw
+          POSTGRES_DB: uw_workbench
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U uw" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://uw:uw@localhost:5432/uw_workbench
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Migrate
+        run: npx prisma migrate deploy
+        working-directory: server
+      - name: Generate client
+        run: npx prisma generate
+        working-directory: server
+      - name: Full-lifecycle smoke (signup → intake → decision → bind → MCP)
+        run: node scripts/smoke.mjs

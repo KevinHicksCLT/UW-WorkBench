@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/KevinHicksCLT/uw-workbench/main/packs/pack.schema.json",
+  "title": "UW Workbench Content Pack",
+  "description": "A versioned, portable bundle of underwriting content — appetite statements, guideline rules, authority grant templates, and enrichment sources — shareable across any UW Workbench install. Authority templates reference roles by label and resolve against the importing company's Roles catalog (authority is data bound to roles, never user ids).",
+  "type": "object",
+  "required": ["packFormat", "name", "slug", "version", "description", "author", "lobs"],
+  "properties": {
+    "packFormat": { "const": 1 },
+    "name": { "type": "string", "minLength": 3, "maxLength": 80 },
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]{3,60}$" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "description": { "type": "string", "minLength": 10, "maxLength": 500 },
+    "author": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "license": { "type": "string", "default": "Apache-2.0" },
+    "lobs": { "type": "array", "minItems": 1, "items": { "enum": ["CP", "EB", "GL", "BOP", "OM", "XS", "WC"] } },
+    "appetiteStatements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "stance", "lob", "rationale"],
+        "properties": {
+          "ref": { "type": "string", "pattern": "^AS-\\d{3}$" },
+          "stance": { "enum": ["TARGET", "ACCEPTABLE", "REFER", "DECLINE"] },
+          "lob": { "enum": ["CP", "EB", "GL", "BOP", "OM", "XS", "WC"] },
+          "segment": { "type": "string" },
+          "naicsCodes": { "type": "string", "pattern": "^\\d{4,6}(,\\s*\\d{4,6})*$" },
+          "geographies": { "type": "string", "maxLength": 200 },
+          "tivMax": { "type": "number", "exclusiveMinimum": 0 },
+          "capacityLimit": { "type": "number", "exclusiveMinimum": 0 },
+          "rationale": { "type": "string", "minLength": 20 }
+        }
+      }
+    },
+    "guidelineRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "name", "definition"],
+        "properties": {
+          "ref": { "type": "string", "pattern": "^GR-\\d{4}$" },
+          "name": { "type": "string", "minLength": 3 },
+          "kind": { "enum": ["DECISION_TABLE", "EXPRESSION"], "default": "DECISION_TABLE" },
+          "definition": {
+            "type": "object",
+            "required": ["rows"],
+            "properties": { "rows": { "type": "array", "minItems": 1 } }
+          },
+          "inputsSchema": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    },
+    "authorityGrantTemplates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "roleLabel", "premiumMax", "tivMax", "lobs", "territories"],
+        "properties": {
+          "ref": { "type": "string", "pattern": "^AG-\\d{2,3}$" },
+          "roleLabel": { "type": "string", "minLength": 2 },
+          "premiumMax": { "type": "number", "exclusiveMinimum": 0 },
+          "tivMax": { "type": "number", "exclusiveMinimum": 0 },
+          "lineSize": { "type": "number", "exclusiveMinimum": 0 },
+          "lobs": { "type": "string", "minLength": 2 },
+          "territories": { "type": "string", "minLength": 1 },
+          "delegable": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "enrichmentSources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2 },
+          "kind": { "enum": ["HAZARD", "FIRMOGRAPHIC", "GEOCODE", "CAT_MODEL", "LOSS_HISTORY", "SANCTIONS"] },
+          "costClass": { "enum": ["FREE", "LOW", "MEDIUM", "HIGH"], "default": "LOW" },
+          "ttlHours": { "type": "integer", "minimum": 1, "default": 720 },
+          "jurisdictions": { "type": "string" }
+        }
+      }
+    }
+  }
+}

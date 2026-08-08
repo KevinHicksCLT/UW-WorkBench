@@ -1,0 +1,95 @@
+{
+  "packFormat": 1,
+  "name": "Commercial Property Starter",
+  "slug": "commercial-property-starter",
+  "version": "1.0.0",
+  "description": "A decision-ready commercial property underwriting estate: Southeast-flavored appetite (target warehousing, refer ammonia refrigeration, decline coastal cat retail), a flood-sublimit guideline rule, and a three-seat authority ladder (Underwriter, Senior Underwriter, CUO). Fork it, reshape it to your book, share it back.",
+  "author": "UW Workbench community",
+  "license": "Apache-2.0",
+  "lobs": ["CP", "EB", "BOP"],
+  "appetiteStatements": [
+    {
+      "ref": "AS-114",
+      "stance": "TARGET",
+      "lob": "CP",
+      "segment": "Warehousing & Storage",
+      "naicsCodes": "4931",
+      "geographies": "SC,NC,GA,FL,TN",
+      "tivMax": 75000000,
+      "capacityLimit": 250000000,
+      "rationale": "Target class: sprinklered warehousing and distribution in the Southeast; historically profitable with disciplined flood sublimits."
+    },
+    {
+      "ref": "AS-201",
+      "stance": "REFER",
+      "lob": "EB",
+      "segment": "Ammonia refrigeration",
+      "naicsCodes": "4931",
+      "geographies": "SC,NC,GA,FL",
+      "tivMax": 50000000,
+      "rationale": "Equipment breakdown with ammonia refrigeration systems requires specialty engineering review before quoting."
+    },
+    {
+      "ref": "AS-090",
+      "stance": "DECLINE",
+      "lob": "BOP",
+      "segment": "Coastal retail",
+      "naicsCodes": "4531",
+      "geographies": "FL",
+      "rationale": "Coastal Florida BOP retail exceeds catastrophe aggregation tolerance for a starting book; revisit with reinsurance support."
+    }
+  ],
+  "guidelineRules": [
+    {
+      "ref": "GR-2201",
+      "name": "CP flood sublimit floor",
+      "kind": "DECISION_TABLE",
+      "definition": {
+        "rows": [
+          {
+            "when": { "floodZone": "AE", "sublimit": { "op": "lt", "value": 250000 } },
+            "outcome": "REFER",
+            "note": "AE flood exposure requires >= $250k sublimit or senior referral"
+          },
+          { "when": { "floodZone": "AE" }, "outcome": "PASS", "note": "AE with adequate sublimit" }
+        ]
+      },
+      "inputsSchema": { "floodZone": "string", "sublimit": "number" }
+    }
+  ],
+  "authorityGrantTemplates": [
+    {
+      "ref": "AG-10",
+      "roleLabel": "Underwriter",
+      "premiumMax": 150000,
+      "tivMax": 15000000,
+      "lobs": "CP,BOP",
+      "territories": "SC,NC,GA,TN",
+      "delegable": false
+    },
+    {
+      "ref": "AG-31",
+      "roleLabel": "Senior Underwriter",
+      "premiumMax": 500000,
+      "tivMax": 40000000,
+      "lobs": "CP,EB,BOP",
+      "territories": "SC,NC,GA,TN,FL",
+      "delegable": false
+    },
+    {
+      "ref": "AG-12",
+      "roleLabel": "Chief Underwriting Officer",
+      "premiumMax": 2000000,
+      "tivMax": 150000000,
+      "lobs": "CP,EB,GL,BOP,XS",
+      "territories": "US",
+      "delegable": false
+    }
+  ],
+  "enrichmentSources": [
+    { "name": "FEMA Flood Zone Lookup", "kind": "CAT_MODEL", "costClass": "FREE", "ttlHours": 8760 },
+    { "name": "Firmographics Provider", "kind": "FIRMOGRAPHIC", "costClass": "LOW", "ttlHours": 2160 },
+    { "name": "Property Hazard Provider", "kind": "HAZARD", "costClass": "MEDIUM", "ttlHours": 720 },
+    { "name": "Sanctions Screening (OFAC/UN/EU)", "kind": "SANCTIONS", "costClass": "LOW", "ttlHours": 24 }
+  ]
+}
