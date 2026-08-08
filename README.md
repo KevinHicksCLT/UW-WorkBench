@@ -5,7 +5,7 @@ submission → clearance → enrichment → triage → desk decision → authori
 referral → quote → bind spine, on an append-only governance event log shared
 by humans and AI agents.
 
-This application was extracted from the Capgemini Transformation Bridge
+This application was extracted from the Transformation Bridge
 platform, where it first shipped as the `/uw-workbench` module. The 19 UW
 entities, the `/uw` API (invariants INV-1..7, ADR-02/03), the MCP agent
 surface, the deterministic decision engine, and the seven frontend surfaces
