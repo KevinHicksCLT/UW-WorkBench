@@ -28,6 +28,7 @@ import { seedPortfolio } from './portfolio.js';
 import { seedRegulations } from './seedRegulations.js';
 import { seedFederalRegs } from './seedFederalRegs.js';
 import { seedStandards } from './seedStandards.js';
+import { seedForms } from './seedForms.js';
 import { seedPermissions } from './seedPermissions.js';
 import { seedApprovalPolicies } from './seedApprovalPolicies.js';
 import { seedAnatomyCatalog } from './seedAnatomyCatalog.js';
@@ -217,6 +218,7 @@ async function main() {
   await run('regulations', () => seedRegulations(prisma, { ...ctx, refs }));
   await run('federalRegs', () => seedFederalRegs(prisma, { ...ctx, refs }));
   await run('standards', () => seedStandards(prisma, { ...ctx, refs }));
+  await run('forms', () => seedForms(prisma, ctx));
   // Runs AFTER the org spine exists: demo users + kevin are homed to L1 OrgUnits.
   await run('permissions', () => seedPermissions(prisma, ctx));
   await run('approvalPolicies', () => seedApprovalPolicies(prisma, { tenantId: ctx.tenantId }));
