@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Change Impact Assessment — LLD</title>
+<style>
+  :root {
+    --bg: #f6f8fa;
+    --surface: #ffffff;
+    --ink: #1a2129;
+    --muted: #5b6b7a;
+    --line: #dde5ea;
+    --accent: #0070AD;
+    --accent-soft: #e3f0f7;
+    --code-bg: #f0f4f7;
+    --crit-fg: #991b1b; --crit-bg: #fef2f2; --crit-bd: #fecaca;
+    --high-fg: #9a3412; --high-bg: #fff7ed; --high-bd: #fed7aa;
+    --med-fg:  #92400e; --med-bg:  #fffbeb; --med-bd:  #fde68a;
+    --low-fg:  #374151; --low-bg:  #f9fafb; --low-bd:  #e5e7eb;
+    --mono: ui-monospace, "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1418; --surface: #151f27; --ink: #dfe7ec; --muted: #8fa1af;
+      --line: #24313c; --accent: #4aa8dc; --accent-soft: #12293a; --code-bg: #101a21;
+      --crit-fg: #f0a8a8; --crit-bg: #2a1516; --crit-bd: #572626;
+      --high-fg: #f0bc8f; --high-bg: #291a10; --high-bd: #57381d;
+      --med-fg:  #e8cc85; --med-bg:  #262010; --med-bd:  #55461f;
+      --low-fg:  #b9c4cd; --low-bg:  #18222a; --low-bd:  #2c3a45;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1418; --surface: #151f27; --ink: #dfe7ec; --muted: #8fa1af;
+    --line: #24313c; --accent: #4aa8dc; --accent-soft: #12293a; --code-bg: #101a21;
+    --crit-fg: #f0a8a8; --crit-bg: #2a1516; --crit-bd: #572626;
+    --high-fg: #f0bc8f; --high-bg: #291a10; --high-bd: #57381d;
+    --med-fg:  #e8cc85; --med-bg:  #262010; --med-bd:  #55461f;
+    --low-fg:  #b9c4cd; --low-bg:  #18222a; --low-bd:  #2c3a45;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f8fa; --surface: #ffffff; --ink: #1a2129; --muted: #5b6b7a;
+    --line: #dde5ea; --accent: #0070AD; --accent-soft: #e3f0f7; --code-bg: #f0f4f7;
+    --crit-fg: #991b1b; --crit-bg: #fef2f2; --crit-bd: #fecaca;
+    --high-fg: #9a3412; --high-bg: #fff7ed; --high-bd: #fed7aa;
+    --med-fg:  #92400e; --med-bg:  #fffbeb; --med-bd:  #fde68a;
+    --low-fg:  #374151; --low-bg:  #f9fafb; --low-bd:  #e5e7eb;
+  }
+  html { background: var(--bg); }
+  body {
+    font: 15px/1.65 "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--ink); background: var(--bg);
+    margin: 0; padding: 0 20px 80px;
+  }
+  main { max-width: 920px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin: 40px 0 6px;
+  }
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 6px; text-wrap: balance; }
+  .subtitle { color: var(--muted); font-size: 15.5px; max-width: 62ch; margin: 0 0 10px; }
+  .meta { font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+  h2 {
+    font-size: 21px; font-weight: 700; letter-spacing: -0.01em;
+    margin: 52px 0 4px; padding-top: 18px; border-top: 1px solid var(--line);
+    text-wrap: balance;
+  }
+  h2 .no { color: var(--accent); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 30px 0 4px; }
+  h4 { font-size: 13.5px; font-weight: 700; margin: 22px 0 4px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  p, li { max-width: 74ch; }
+  p { margin: 8px 0; }
+  a { color: var(--accent); }
+  code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--code-bg); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 5px;
+  }
+  pre.code {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 12px 0;
+  }
+  pre.code code { background: none; border: none; padding: 0; }
+  .diagram {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px; margin: 14px 0; overflow-x: auto;
+  }
+  .diagram figcaption { font-size: 12px; color: var(--muted); margin-top: 8px; font-family: var(--mono); }
+  figure { margin: 14px 0; }
+  .tablewrap { overflow-x: auto; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); padding: 9px 12px; border-bottom: 1px solid var(--line);
+    background: var(--code-bg); white-space: nowrap;
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+  .num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; }
+  .sev {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    padding: 1px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap;
+  }
+  .sev.crit { color: var(--crit-fg); background: var(--crit-bg); border-color: var(--crit-bd); }
+  .sev.high { color: var(--high-fg); background: var(--high-bg); border-color: var(--high-bd); }
+  .sev.med  { color: var(--med-fg);  background: var(--med-bg);  border-color: var(--med-bd); }
+  .sev.low  { color: var(--low-fg);  background: var(--low-bg);  border-color: var(--low-bd); }
+  .dom {
+    display: inline-block; font-size: 10.5px; font-weight: 600; font-family: var(--mono);
+    padding: 1px 7px; border-radius: 4px; background: var(--accent-soft); color: var(--accent);
+    white-space: nowrap;
+  }
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 0 8px 8px 0; padding: 10px 16px; margin: 14px 0;
+    font-size: 14px; max-width: 76ch; box-sizing: border-box;
+  }
+  .callout b:first-child { color: var(--accent); }
+  .toc {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 20px; margin: 22px 0; column-count: 2; column-gap: 32px; font-size: 13.5px;
+  }
+  .toc a { display: block; padding: 2.5px 0; text-decoration: none; break-inside: avoid; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .no { font-family: var(--mono); color: var(--muted); font-size: 12px; margin-right: 8px; }
+  @media (max-width: 640px) { .toc { column-count: 1; } }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+</head>
+<body>
+<main>
+  <div class="eyebrow">Transform Platform · Low-Level Design · 2026-08-05</div>
+  <h1>Change Impact Assessment</h1>
+  <p class="subtitle">How a proposed change (retire, consolidate, replace…) is assessed against the live operating-model graph before it is applied — the deterministic walk, the two AI enrichment passes, and the frontend gate that holds the pending action until the user confirms from the report.</p>
+  <p class="meta">backend/src/routes/impact/ · frontend/src/pages/workspace-map/impact/ · PR #92 lineage</p>
+
+  <nav class="toc" aria-label="Contents">
+    <a href="#s1"><span class="no">1</span>Overview &amp; design principles</a>
+    <a href="#s2"><span class="no">2</span>Component architecture</a>
+    <a href="#s3"><span class="no">3</span>End-to-end sequence</a>
+    <a href="#s4"><span class="no">4</span>API contracts</a>
+    <a href="#s5"><span class="no">5</span>Shared vocabulary &amp; grading math</a>
+    <a href="#s6"><span class="no">6</span>The four graph walkers</a>
+    <a href="#s7"><span class="no">7</span>Product extras: decision score &amp; goal</a>
+    <a href="#s8"><span class="no">8</span>AI enrichment layers</a>
+    <a href="#s9"><span class="no">9</span>Frontend: gate &amp; panel</a>
+    <a href="#s10"><span class="no">10</span>Guardrails, failure modes, invariants</a>
+  </nav>
+
+  <h2 id="s1"><span class="no">1</span>Overview &amp; design principles</h2>
+  <p>The change impact assessment is a <b>pre-decision gate</b>. Every Workspace lens (Products, Value streams, Roles, Applications) routes its destructive or restructuring actions through one mechanism: the action is captured as a pending callback, an impact report is computed against the live graph, and the callback only executes when the user confirms from that report.</p>
+  <div class="callout"><b>Principle 1 — derived on read, never persisted.</b> A report is computed from the closures and junctions at request time. Nothing is written, nothing is cached (<code>routes/impact/index.ts</code> deliberately applies no <code>cacheResponses</code>). A report must reflect the graph at the moment the user is about to decide.</div>
+  <div class="callout"><b>Principle 2 — the graph walk is ground truth; AI is enrichment.</b> The deterministic report from <code>/impact/assess</code> stands alone. The AI summary and deep-dive add narration and derived consequences, are badged as such, and on any failure or timeout silently return nothing — they can never block or fail the assessment.</div>
+  <div class="callout"><b>Principle 3 — every domain always answers.</b> Six knock-on domains (product, technology, data, operational, compliance, testing) are always rendered. An empty domain card reads as “checked — no impact found”, never “not checked”.</div>
+  <div class="callout"><b>Principle 4 — no per-row fan-out.</b> Walkers batch-load junctions with single <code>{ in: ids }</code> queries, resolve ancestry once through the shared resolvers, and aggregate in memory. Itemized output is capped at 10 lines per rule; the remainder collapses to one aggregate line.</div>
+
+  <h2 id="s2"><span class="no">2</span>Component architecture</h2>
+  <figure class="diagram">
+<pre class="mermaid">
+flowchart LR
+  subgraph LENSES["Decision surfaces — workspace lenses"]
+    PB["ProductBoard / ProductCellModal / ProductNormalizeColumn"]
+    VSB["VsStreamBoard"]
+    RCB["RoleCompareBoard"]
+    NC["NormalizeCards"]
+  end
+  subgraph FE["frontend · pages/workspace-map/impact"]
+    GATE["useImpactGate.ts<br/>holds pending proceed()"]
+    PANEL["ImpactPanel.tsx<br/>portal modal, zIndex 70"]
+    AIH["aiAnalysis.tsx<br/>useAiAnalysis + AiAssessment"]
+  end
+  subgraph BE["backend · routes/impact (requireAuth, no cache)"]
+    ASSESS["POST /impact/assess<br/>assess.ts — zod dispatch"]
+    ANA["POST /impact/analyze<br/>analyze.ts — Sonnet deep-dive"]
+    SUM["POST /impact/summary<br/>summary.ts — Haiku narration"]
+    W1["processNodes.ts"]
+    W2["role.ts"]
+    W3["application.ts"]
+    W4["product.ts"]
+    T["types.ts<br/>grade · buildReport · pushCapped"]
+  end
+  DB[("Neon Postgres<br/>via Prisma")]
+  AAPI["Anthropic API"]
+  LENSES --> GATE
+  GATE --> PANEL
+  PANEL --> AIH
+  GATE -- "1 · assess" --> ASSESS
+  AIH -- "2 · analyze" --> ANA
+  AIH -- "3 · summary" --> SUM
+  ASSESS --> W1 &amp; W2 &amp; W3 &amp; W4
+  W1 &amp; W2 &amp; W3 &amp; W4 --> T
+  W1 &amp; W2 &amp; W3 &amp; W4 --> DB
+  ANA --> DB
+  ANA --> AAPI
+  SUM --> AAPI
+</pre>
+    <figcaption>Fig. 1 — components and call directions. The three POSTs are independent; only /impact/assess is required.</figcaption>
+  </figure>
+
+  <h4>File map</h4>
+  <div class="tablewrap"><table>
+    <tr><th>File</th><th>Responsibility</th></tr>
+    <tr><td><code>backend/src/routes/impact/index.ts</code></td><td>Router assembly. <code>requireAuth</code>, then registers assess / summary / analyze. Deliberately no response cache.</td></tr>
+    <tr><td><code>backend/src/routes/impact/types.ts</code></td><td>Change-type vocabulary, severity ladder, <code>grade()</code>, <code>buildReport()</code>, <code>pushCapped()</code>, all shared interfaces.</td></tr>
+    <tr><td><code>backend/src/routes/impact/assess.ts</code></td><td><code>POST /assess</code>. Zod discriminated union over 4 subject kinds; tenant check; dispatch to walker; 404 on missing subject.</td></tr>
+    <tr><td><code>backend/src/routes/impact/processNodes.ts</code></td><td>Walker for process-spine subjects (closure expansion, 12 batched reads, sole-producer refinement).</td></tr>
+    <tr><td><code>backend/src/routes/impact/role.ts</code></td><td>Walker for role subjects (sole-owner analysis, whole-role vs step scope).</td></tr>
+    <tr><td><code>backend/src/routes/impact/application.ts</code></td><td>Walker for application subjects (board→estate FK resolution, sole-performer analysis).</td></tr>
+    <tr><td><code>backend/src/routes/impact/product.ts</code></td><td>Walker for product-element subjects; also computes <code>DecisionScore</code> and <code>GoalProgress</code>.</td></tr>
+    <tr><td><code>backend/src/routes/impact/summary.ts</code></td><td><code>POST /summary</code> — Haiku executive narration, 4 s hard race.</td></tr>
+    <tr><td><code>backend/src/routes/impact/analyze.ts</code></td><td><code>POST /analyze</code> — Sonnet deep-dive, context pack, forced tool use, 60 s race.</td></tr>
+    <tr><td><code>frontend/src/pages/workspace-map/impact/types.ts</code></td><td>Frontend mirror of the vocabulary + <code>DOMAIN_META</code>, <code>SEVERITY_META</code>, labels.</td></tr>
+    <tr><td><code>frontend/src/pages/workspace-map/impact/useImpactGate.ts</code></td><td>The gate hook: run / cancel / confirm, stale-response sequencing, pending-proceed ref.</td></tr>
+    <tr><td><code>frontend/src/pages/workspace-map/impact/ImpactPanel.tsx</code></td><td>The modal: scanner phase, six domain cards, score card, goal strip, decision footer.</td></tr>
+    <tr><td><code>frontend/src/pages/workspace-map/impact/aiAnalysis.tsx</code></td><td><code>useAiAnalysis</code> (fires /analyze), <code>AiAssessment</code> (renders /summary), scanner animation.</td></tr>
+  </table></div>
+
+  <h2 id="s3"><span class="no">3</span>End-to-end sequence</h2>
+  <figure class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  actor U as User
+  participant L as Lens
+  participant G as useImpactGate
+  participant P as ImpactPanel
+  participant A as POST /impact/assess
+  participant W as Walker
+  participant DB as Prisma / Neon
+  participant AN as POST /impact/analyze
+  participant S as POST /impact/summary
+  participant AI as Anthropic API
+  U->>L: clicks decision verb, e.g. Retire
+  L->>G: gate.run(request, proceed, onCancel)
+  G->>P: state loading — ScannerView renders
+  G->>A: ImpactRequest (invalidate: none)
+  A->>W: dispatch on subject.kind
+  W->>DB: closure expansion + batched junction reads
+  DB-->>W: rows
+  W-->>A: ImpactReport — graded, capped, sorted
+  A-->>G: report
+  G->>P: state report — scanner stays while AI runs
+  par deep-dive
+    P->>AN: subject + report lines (useAiAnalysis)
+    AN->>DB: context pack reads
+    AN->>AI: forced tool call report_impacts (60 s race)
+    AI-->>AN: 2 impacts × 6 domains
+    AN-->>P: derived impacts, badged aiGenerated
+  and narration
+    P->>S: report digest (AiAssessment)
+    S->>AI: Haiku, 220 tokens (4 s race)
+    AI-->>S: 2–3 sentence read
+    S-->>P: summary or null
+  end
+  P->>U: 6 domain cards + severity totals (+ score + goal for products)
+  U->>P: Proceed / Retain / Standardize / Retire
+  P->>G: gate.confirm(chosen)
+  G->>L: pending proceed(chosen) executes the real mutation
+</pre>
+    <figcaption>Fig. 2 — one full decision. The assessment itself never writes; only the confirmed proceed() mutates.</figcaption>
+  </figure>
+  <p><b>Timing model.</b> The deterministic report typically lands in one round-trip of batched queries. The panel keeps the scanner visible while <code>s.loading || ai.loading</code> — the report view appears only when the deep-dive resolves (or fails to empty). The summary strip renders whenever it arrives; it never gates anything. The scanner’s six “locking” steps are a fixed 2.3 s cadence over a single-shot call — presentation, not real per-system progress.</p>
+
+  <h2 id="s4"><span class="no">4</span>API contracts</h2>
+  <h3>POST /impact/assess</h3>
+  <p>Pure read carried as POST (subjects hold id arrays). Auth: JWT via <code>requireAuth</code>; tenant resolved by <code>activeCompany(req)</code> — cross-tenant ids simply fail the walker’s <code>companyId</code> filter and 404.</p>
+<pre class="code"><code>// Request body (zod, assess.ts)
+{
+  changeType: 'RETIRE'|'DROP'|'DEPRECATE'|'REPLACE'|'MERGE'|'CONSOLIDATE'|'MOVE'|'ADOPT'|'HOLD',
+  label?: string,                       // ≤300, overrides subject display name
+  subject:                              // discriminated union on `kind`
+    | { kind:'process-nodes', nodeIds: string[] }          // 1..200
+    | { kind:'role', roleId: string, taskIds?: string[] }  // taskIds ≤500 narrows to step scope
+    | { kind:'application', applicationIds?: string[],     // ≤50 estate apps
+        rationalizationAppIds?: string[] }                 // ≤50 board apps
+    | { kind:'product-element', lobId: string, component: string,
+        elementName?: string, componentNodeIds?: string[] } // ≤100
+}
+
+// Response 200: ImpactReport
+{
+  subject: { kind, id, name, context },
+  changeType, changeClass: 'destructive'|'restructure'|'adopt',
+  summary: { breaking, high, medium, low, total },
+  impacts: Impact[],        // sorted domain → severity → entityName
+  score?: DecisionScore,    // product-element only
+  goal?:  GoalProgress      // product-element only
+}
+// Impact line
+{ severity, domain, category, entityType, entityId|null, entityName, description, count? }
+
+// 400 invalid body · 404 no company / subject not found · 500 via central error handler</code></pre>
+
+  <h3>POST /impact/summary</h3>
+<pre class="code"><code>// Request: digest of an already-computed report (client-built, re-validated)
+{ subject:{kind,name,context?}, changeType,
+  summary:{breaking,high,medium,low}, impacts: ≤40 × {severity, domain?, category, entityName, description} }
+// Response — ALWAYS 200 unless body invalid:
+{ summary: string | null }   // null on: no ANTHROPIC_API_KEY, 4s timeout, any AI error</code></pre>
+  <p>Model <code>IMPACT_AI_MODEL</code> (default <code>claude-haiku-4-5-20251001</code>), <code>max_tokens 220</code>, <code>maxRetries 0</code> (a retry cannot finish inside the budget), <code>Promise.race</code> against a 4 000 ms unref’d timer.</p>
+
+  <h3>POST /impact/analyze</h3>
+<pre class="code"><code>// Request
+{ changeType, subject: &lt;same subjectSchema as /assess&gt;, subjectName,
+  subjectContext?, reportLines: ≤60 × {domain, severity, entityName, description} }
+// Response — ALWAYS 200 unless body invalid / no company:
+{ impacts: Impact[] }   // [] on: no key, 60s timeout, bad AI shape
+// Derived lines: entityType 'DerivedImpact', entityId null,
+// category mapped from domain: product→products, technology→applications,
+// data→applications, operational→tasks, compliance→compliance, testing→testing</code></pre>
+  <p>Model <code>IMPACT_ANALYZE_MODEL</code> (default <code>claude-sonnet-5</code>), <code>max_tokens 4000</code>, <code>maxRetries 1</code>, 60 000 ms race. Output is a <b>forced tool call</b> (<code>tool_choice: {type:'tool', name:'report_impacts'}</code>) so the response arrives as parsed JSON — a long generation can never truncate into an unparseable string. <code>unwrapImpacts()</code> then normalizes wrapper variance (bare array, double-wrapped object, stringified payload — up to 4 unwrap steps) before zod validation.</p>
+
+  <h2 id="s5"><span class="no">5</span>Shared vocabulary &amp; grading math</h2>
+  <h3>Change class</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Change types</th><th>Class</th><th>Severity shift</th></tr>
+    <tr><td><code>RETIRE · DROP · DEPRECATE · REPLACE</code></td><td>destructive</td><td class="num">0 — keeps base</td></tr>
+    <tr><td><code>MERGE · CONSOLIDATE · MOVE</code></td><td>restructure</td><td class="num">−1 step</td></tr>
+    <tr><td><code>ADOPT · HOLD</code></td><td>adopt</td><td class="num">−2 steps</td></tr>
+  </table></div>
+  <h3>grade(base, class) — the whole grading function</h3>
+  <p>Ladder: <span class="sev crit">CRITICAL</span> → <span class="sev high">HIGH</span> → <span class="sev med">MEDIUM</span> → <span class="sev low">INFO</span> (wire tokens <code>BREAKING/HIGH/MEDIUM/LOW</code>). Every rule below states a <i>base</i> severity for the destructive case; the class shifts it down the ladder, clamped at LOW. Same touched entity, gentler verb, lower grade.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Base</th><th>destructive</th><th>restructure</th><th>adopt</th></tr>
+    <tr><td><span class="sev crit">BREAKING</span></td><td><span class="sev crit">BREAKING</span></td><td><span class="sev high">HIGH</span></td><td><span class="sev med">MEDIUM</span></td></tr>
+    <tr><td><span class="sev high">HIGH</span></td><td><span class="sev high">HIGH</span></td><td><span class="sev med">MEDIUM</span></td><td><span class="sev low">LOW</span></td></tr>
+    <tr><td><span class="sev med">MEDIUM</span></td><td><span class="sev med">MEDIUM</span></td><td><span class="sev low">LOW</span></td><td><span class="sev low">LOW</span></td></tr>
+    <tr><td><span class="sev low">LOW</span></td><td><span class="sev low">LOW</span></td><td><span class="sev low">LOW</span></td><td><span class="sev low">LOW</span></td></tr>
+  </table></div>
+  <h3>Assembly helpers</h3>
+  <ul>
+    <li><code>pushCapped(impacts, items, cap=10, toImpact, rollup)</code> — first 10 items itemized with entity ids; the remainder collapses into one aggregate line carrying <code>count</code>. A 300-task subtree never yields a 300-row report.</li>
+    <li><code>buildReport(subject, changeType, impacts, extras?)</code> — sorts <b>domain order → severity → entityName</b> (domain order: product, technology, data, operational, compliance, testing), computes the severity totals, attaches optional <code>score</code>/<code>goal</code>.</li>
+  </ul>
+
+  <h2 id="s6"><span class="no">6</span>The four graph walkers</h2>
+  <p>All walkers share the same shape: verify tenant → expand scope → batch-load every junction the scope touches in one <code>Promise.all</code> → apply the rule table → grade → cap → build. The recurring analytical move is the <b>sole-vs-co distinction</b>: an entity that exists <i>only</i> inside the change scope grades BREAKING (nothing left after a destructive change); one that also exists outside grades softer (workload shifts, doesn’t vanish).</p>
+
+  <h3>6.1 processNodes.ts — subject kind <code>process-nodes</code></h3>
+  <figure class="diagram">
+<pre class="mermaid">
+flowchart TD
+  A["nodeIds (≤200) from request"] --> B["Load roots — tenant-filtered"]
+  B --> C["Closure DOWN:<br/>scopeIds = roots + all descendants"]
+  B --> D["Closure UP:<br/>govIds = scopeIds + all ancestors<br/>(standards / regs inherit downward)"]
+  C --> E["Promise.all — 12 batched reads:<br/>task count · rolesForNodes · appsForNodes ·<br/>deliverable links · checklist count · standards ·<br/>regulations · initiatives · external interactions ·<br/>streamAncestry · testing templates · TEST work plans"]
+  D --> E
+  E --> F{"scopeIds ≤ 4000 ?"}
+  F -- yes --> G["Sole-producer probe:<br/>deliverables with NO producing<br/>node outside the scope (groupBy notIn)"]
+  F -- no --> H["Skip refinement —<br/>probe costs more than the distinction"]
+  G --> I["Apply rule table → Impact lines"]
+  H --> I
+  I --> J["grade(base, changeClass) each line"]
+  J --> K["pushCapped — 10 itemized + rollup"]
+  K --> L["buildReport — sort + totals + subject context<br/>(value streams via streamAncestry)"]
+</pre>
+    <figcaption>Fig. 3 — process-nodes walk. Governance reads use govIds (ancestors included); everything else uses scopeIds.</figcaption>
+  </figure>
+  <div class="tablewrap"><table>
+    <tr><th>Source (junction / count)</th><th>Condition</th><th>Base</th><th>Domain</th><th>Line</th></tr>
+    <tr><td><code>NodeDeliverable</code></td><td>produced <b>only</b> inside scope</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">operational</span></td><td>itemized ×10 + rollup — “no other process produces it”</td></tr>
+    <tr><td><code>NodeDeliverable</code></td><td>also produced elsewhere</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>single aggregate</td></tr>
+    <tr><td><code>NodeRegulation</code> (govIds, not excluded)</td><td>any</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">compliance</span></td><td>itemized ×10 — “obligation remains, must be satisfied elsewhere”</td></tr>
+    <tr><td><code>NodeStandard</code> (govIds)</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">compliance</span></td><td>aggregate count</td></tr>
+    <tr><td><code>NodeRole</code> role_=Owner</td><td>per role, sorted by owned count</td><td><span class="sev high">HIGH</span></td><td><span class="dom">operational</span></td><td>itemized ×10 — “ownership must be re-planned”</td></tr>
+    <tr><td><code>NodeRole</code> participant-only</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>aggregate</td></tr>
+    <tr><td><code>NodeAppUsage</code> performed</td><td>per app, sorted</td><td><span class="sev high">HIGH</span></td><td><span class="dom">technology</span></td><td>itemized ×10 — “integrations and licences affected”</td></tr>
+    <tr><td><code>NodeAppUsage</code> memorialized-only</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">data</span></td><td>systems of record — “records, warehouse feeds, analytics change”</td></tr>
+    <tr><td><code>TestingTemplate</code> + TEST work plans</td><td>count &gt; 0</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">testing</span></td><td>one combined line</td></tr>
+    <tr><td><code>NodeInitiative</code></td><td>per initiative</td><td><span class="sev high">HIGH</span></td><td><span class="dom">operational</span></td><td>itemized ×10</td></tr>
+    <tr><td><code>NodeChecklist</code></td><td>count &gt; 0</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>aggregate</td></tr>
+    <tr><td><code>ExternalInteraction</code></td><td>count &gt; 0</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>aggregate — third-party hand-offs</td></tr>
+    <tr><td>scope line</td><td>always</td><td><span class="sev low">LOW</span></td><td><span class="dom">operational</span></td><td>“N nodes in scope, M of them tasks” — ungraded, states what was walked</td></tr>
+  </table></div>
+
+  <h3>6.2 role.ts — subject kind <code>role</code></h3>
+  <p>Two scopes: with <code>taskIds</code> the walk narrows to those tasks’ <code>NodeRole</code> links (a “move/drop this step” decision); without, the whole role footprint is graded plus role-global responsibilities.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Source</th><th>Condition</th><th>Base</th><th>Domain</th><th>Note</th></tr>
+    <tr><td><code>NodeRole</code> Owner</td><td>role is the <b>only</b> Owner of the task</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">operational</span></td><td>“task left ownerless without reassignment” — itemized ×10</td></tr>
+    <tr><td><code>NodeRole</code> Owner</td><td>another Owner exists</td><td><span class="sev high">HIGH</span></td><td><span class="dom">operational</span></td><td>“remaining owner absorbs them” — aggregate</td></tr>
+    <tr><td><code>NodeRole</code> Participant</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>capacity moves with the change</td></tr>
+    <tr><td colspan="5"><i>Whole-role scope only (no taskIds):</i></td></tr>
+    <tr><td><code>RoleDeliverable</code> Owner</td><td>sole owner</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">operational</span></td><td>deliverable left unowned — itemized ×10</td></tr>
+    <tr><td><code>RoleDeliverable</code> contributor</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>aggregate</td></tr>
+    <tr><td><code>RoleStandard</code> + <code>RoleRegulation</code></td><td>count &gt; 0</td><td><span class="sev high">HIGH</span></td><td><span class="dom">compliance</span></td><td>“governance responsibilities need a new home”</td></tr>
+    <tr><td><code>Role._count.ownedStandards</code></td><td>&gt; 0</td><td><span class="sev high">HIGH</span></td><td><span class="dom">compliance</span></td><td>standards fall back to unowned</td></tr>
+    <tr><td><code>Role._count.reports</code></td><td>&gt; 0</td><td><span class="sev high">HIGH</span></td><td><span class="dom">operational</span></td><td>direct reports lose their manager line</td></tr>
+    <tr><td><code>Role._count.checklistItems</code></td><td>&gt; 0</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>duties become unassigned</td></tr>
+    <tr><td><code>TestingTemplate</code> via role deliverables</td><td>&gt; 0</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">testing</span></td><td>UAT / regression packs lose their SME owner</td></tr>
+    <tr><td><code>streamAncestry</code> of touched nodes</td><td>any</td><td><span class="sev low">LOW</span></td><td><span class="dom">operational</span></td><td>value-stream footprint context line</td></tr>
+  </table></div>
+
+  <h3>6.3 application.ts — subject kind <code>application</code></h3>
+  <p>Board apps (<code>RationalizationApp</code>) resolve to estate <code>Application</code> rows through their catalog FK; estate ids drive the graph walk, board ids drive board-level dependents. Board apps with no catalog link are flagged — estate-wide usage could not be walked.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Source</th><th>Condition</th><th>Base</th><th>Domain</th><th>Note</th></tr>
+    <tr><td><code>NodeAppUsage</code> performed</td><td>task has <b>no other</b> performing system</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">operational</span></td><td>“work stops without a replacement” — itemized ×10</td></tr>
+    <tr><td><code>NodeAppUsage</code> performed</td><td>co-performed elsewhere</td><td><span class="sev high">HIGH</span></td><td><span class="dom">operational</span></td><td>workload shifts onto the other system</td></tr>
+    <tr><td><code>NodeAppUsage</code> memorialized</td><td>any</td><td><span class="sev high">HIGH</span></td><td><span class="dom">data</span></td><td>records / warehouse feeds need a new system of record</td></tr>
+    <tr><td><code>NodeTemplateAnswer.applicationId</code></td><td>count &gt; 0</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">testing</span></td><td>work-plan steps name this system — scripts must be repointed</td></tr>
+    <tr><td><code>RegulationApplication</code></td><td>per regulation</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">compliance</span></td><td>regulatory evidence runs through this app — itemized ×10</td></tr>
+    <tr><td><code>rolesForNodes</code> over usage nodes</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">operational</span></td><td>retraining / new tooling</td></tr>
+    <tr><td><code>RationalizationCapability.sharedServiceId</code></td><td>count &gt; 0</td><td><span class="sev high">HIGH</span></td><td><span class="dom">technology</span></td><td>board apps consume this as a shared service</td></tr>
+    <tr><td><code>ScreenAsset</code></td><td>count &gt; 0</td><td><span class="sev low">LOW</span></td><td><span class="dom">technology</span></td><td>documented screens (+ how many mapped to the spine)</td></tr>
+    <tr><td><code>streamAncestry</code></td><td>any</td><td><span class="sev low">LOW</span></td><td><span class="dom">operational</span></td><td>value streams touched</td></tr>
+  </table></div>
+
+  <h3>6.4 product.ts — subject kind <code>product-element</code></h3>
+  <p>The product spine has <b>no FKs into the process graph</b>, so this walk is spine-internal plus one text bridge. Scope: closure under the LOB → L4 versions, L5 components; component matched by id set or normalized name; elements parsed from the component’s <code>attributes.elements</code> JSON (element name + <code>livesIn</code> prose). Element matching is normalized substring-in-either-direction.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Signal</th><th>Condition</th><th>Base</th><th>Domain</th><th>Note</th></tr>
+    <tr><td>carrier versions</td><td>component/element present</td><td><span class="sev high">HIGH</span></td><td><span class="dom">product</span></td><td>“Included in N of M product versions”</td></tr>
+    <tr><td>live carriers (status Active/Bound)</td><td>destructive class only</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">product</span></td><td>policies in force — “cannot simply be switched off”; ungraded, always BREAKING</td></tr>
+    <tr><td>states (parseStates over carrier attrs)</td><td>any</td><td><span class="sev high">HIGH</span></td><td><span class="dom">product</span></td><td>geographic footprint</td></tr>
+    <tr><td>states, filing obligation</td><td>class ≠ adopt</td><td><span class="sev high">HIGH</span></td><td><span class="dom">compliance</span></td><td>amended form filings + regulator notice per state</td></tr>
+    <tr><td><code>livesIn</code> text ∋ app name (normalized)</td><td>matched app is SystemOfRecord</td><td><span class="sev crit">BREAKING</span></td><td><span class="dom">technology</span></td><td>name-match is the only bridge to systems — itemized ×10</td></tr>
+    <tr><td>same</td><td>matched app, other kind</td><td><span class="sev high">HIGH</span></td><td><span class="dom">technology</span></td><td>screens / rules / stored data must change</td></tr>
+    <tr><td>SystemOfRecord matches</td><td>count &gt; 0</td><td><span class="sev high">HIGH</span></td><td><span class="dom">data</span></td><td>downstream extracts and dashboards re-mapped</td></tr>
+    <tr><td>unmatched <code>livesIn</code> text</td><td>any</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">data</span></td><td>“check these by hand” — honest about the bridge’s limits</td></tr>
+    <tr><td><code>ProductNormalizationDecision</code></td><td>prior sign-offs in same component</td><td><span class="sev med">MEDIUM</span></td><td><span class="dom">product</span></td><td>consistency with the decision landscape</td></tr>
+    <tr><td>cross-LOB overlap</td><td>same element/component in other LOBs</td><td><span class="sev low">LOW</span></td><td><span class="dom">product</span></td><td>element-scoped when elementName given — avoids repeating the component-wide figure</td></tr>
+    <tr><td>scope line</td><td>always</td><td><span class="sev low">LOW</span></td><td><span class="dom">product</span></td><td>what was checked, carriers / versions counts</td></tr>
+  </table></div>
+
+  <h2 id="s7"><span class="no">7</span>Product extras: decision score &amp; goal progress</h2>
+  <p>Only product reports carry <code>score</code> and <code>goal</code>. Both are deterministic — no AI involvement.</p>
+  <figure class="diagram">
+<pre class="mermaid">
+flowchart TD
+  A["carriage = carrierCount / versionCount"] --> B{"carriage &gt; 50% ?<br/>(same rule as the board heat map)"}
+  B -- yes --> S["STANDARDIZE<br/>value = 55 + 40·carriage − 8·breaking − 2·high<br/>clamp 35–98"]
+  B -- no --> C{"live versions = 0 ?<br/>(Active / Bound carriers)"}
+  C -- yes --> R["RETIRE<br/>value = 55 + 35·(1 − 2·carriage) − 8·breaking − 2·high<br/>clamp 35–95"]
+  C -- no --> T["RETAIN — in-force business vetoes Retire<br/>value = 45 + 6·live + 4·breaking<br/>clamp 40–90"]
+  S --> F["3 explain factors:<br/>Adoption · In-force business · Change risk"]
+  R --> F
+  T --> F
+</pre>
+    <figcaption>Fig. 4 — scoreDecision(). Carriage is the primary signal; in-force exposure vetoes Retire; the report’s own severity mix tempers confidence.</figcaption>
+  </figure>
+  <p><b>GoalProgress</b> reuses the products-board pipeline (<code>loadSpine → scopeLobs</code> (latest generation per product, no filters) <code>→ buildHeatmap</code> with persisted decisions) to state “LOB is X% normalized — N of M decisions made”. Wrapped in try/catch returning <code>undefined</code>: the strip is enrichment and never fails the assessment.</p>
+
+  <h2 id="s8"><span class="no">8</span>AI enrichment layers</h2>
+  <div class="tablewrap"><table>
+    <tr><th></th><th>/impact/summary</th><th>/impact/analyze</th></tr>
+    <tr><td>Job</td><td>Narrate the report: what it means, biggest risk, next step (2–3 sentences)</td><td>Derive forward-looking knock-on impacts the graph can’t know</td></tr>
+    <tr><td>Model</td><td class="num">IMPACT_AI_MODEL · claude-haiku-4-5</td><td class="num">IMPACT_ANALYZE_MODEL · claude-sonnet-5</td></tr>
+    <tr><td>Budget</td><td class="num">220 tokens · 4 s race · maxRetries 0</td><td class="num">4 000 tokens · 60 s race · maxRetries 1</td></tr>
+    <tr><td>Input</td><td>Report digest only (client-sent, re-validated)</td><td>Report lines + <b>context pack</b> read live from the graph per subject kind (app descriptions + screens, role charter + deliverables, node descriptions, LOB/element identity)</td></tr>
+    <tr><td>Output shape</td><td>Free text</td><td>Forced tool call <code>report_impacts</code> → parsed JSON, then <code>unwrapImpacts()</code> + zod</td></tr>
+    <tr><td>Contract in prompt</td><td>Ground every claim ONLY in the report; plain business language</td><td>Exactly 2 concrete impacts per domain, all 6 covered; name report/pack entities exactly; where the graph is silent reason from what the subject IS with insurance-industry knowledge; never restate a report line — add the consequence; severity semantics pinned (BREAKING = stops working)</td></tr>
+    <tr><td>On failure</td><td><code>{summary:null}</code> — strip not rendered</td><td><code>{impacts:[]}</code> — panel keeps deterministic view</td></tr>
+  </table></div>
+  <p><b>Grounding chain:</b> the AI never queries the database freely. <code>/analyze</code> builds a compact context pack server-side (capped lists, sliced descriptions), concatenates it with the deterministic report lines, and the system prompt binds claims to those two sources. Derived lines are tagged <code>entityType:'DerivedImpact'</code> and wear the same category vocabulary as graph lines so the cards read as one report; the frontend additionally badges them via the <code>aiGenerated</code> flag on merge.</p>
+
+  <h2 id="s9"><span class="no">9</span>Frontend: gate &amp; panel</h2>
+  <figure class="diagram">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> Closed
+  Closed --> Assessing: gate.run — POST assess, ScannerView
+  Assessing --> Deriving: report landed — AI deep-dive in flight
+  Assessing --> Failed: assess error
+  Deriving --> Report: analyze resolved or returned empty
+  Report --> Applying: gate.confirm(chosen) — proceed() runs
+  Failed --> Applying: user may proceed unreviewed
+  Applying --> Closed: proceed resolved — panel unmounts
+  Applying --> Report: proceed threw — error shown, panel stays
+  Assessing --> Closed: cancel — seq guard voids in-flight response
+  Deriving --> Closed: cancel
+  Report --> Closed: cancel
+</pre>
+    <figcaption>Fig. 5 — gate lifecycle. “Deriving” is panel-level: gate state already holds the report; scanning continues while ai.loading.</figcaption>
+  </figure>
+  <h4>Gate mechanics (useImpactGate.ts)</h4>
+  <ul>
+    <li><code>run(request, proceed, onCancel?)</code> stores <code>proceed</code> in a ref and POSTs <code>/impact/assess</code> with <code>invalidate:'none'</code> — the assessment is a pure read and must not wipe the warm GET cache.</li>
+    <li><code>seqRef</code> increments on every run/cancel/confirm; a stale assess response comparing unequal is dropped — a cancelled panel can never be resurrected by a late response.</li>
+    <li><code>confirm(chosen?)</code> sets <code>busy</code>, awaits <code>proceed(chosen)</code>; success closes the panel, a throw surfaces as an inline error with the panel still open.</li>
+  </ul>
+  <h4>Panel rules (ImpactPanel.tsx)</h4>
+  <ul>
+    <li>Portal on <code>document.body</code>, <code>zIndex 70</code> — stacks above ReviewModal (60), which stays open underneath.</li>
+    <li><code>scanning = s.loading || ai.loading</code> — one scan phase covers graph walk and deep-dive; the six-card report appears only when the full analysis is in.</li>
+    <li>Merged lines = graph impacts (already sorted) followed by AI impacts sorted by severity; cards filter merged lines by domain; severity totals count the merged set.</li>
+    <li>Product subjects: footer <b>is</b> the decision — Retain / Standardize / Retire map to <code>HELD / APPROVED / RETIRED</code>; buttons lock until scanning completes; the score’s recommendation earns a ★ (<code>STANDARDIZE→APPROVED, RETAIN→HELD, RETIRE→RETIRED</code>).</li>
+    <li>Other subjects: single Proceed button, red when the verb is destructive.</li>
+    <li>Assess failure: warning renders, Proceed stays available — “consequences have not been reviewed” is stated, not enforced.</li>
+  </ul>
+
+  <h2 id="s10"><span class="no">10</span>Guardrails, failure modes, invariants</h2>
+  <h4>Performance guardrails</h4>
+  <div class="tablewrap"><table>
+    <tr><th>Guard</th><th>Value</th><th>Why</th></tr>
+    <tr><td>Subject size caps (zod)</td><td class="num">200 nodeIds · 500 taskIds · 50+50 app ids · 100 componentNodeIds</td><td>bounds closure expansion up front</td></tr>
+    <tr><td><code>ITEM_CAP</code></td><td class="num">10 per rule</td><td>itemized lines + one rollup; report stays readable and bounded</td></tr>
+    <tr><td><code>SOLE_CHECK_CAP</code></td><td class="num">4 000 scope nodes</td><td>past this the NOT-IN sole-producer probe costs more than the distinction is worth — refinement skipped, co-produced grading used</td></tr>
+    <tr><td>Batching</td><td>one <code>Promise.all</code> per walker</td><td>single <code>{ in: ids }</code> reads, shared resolvers, in-memory aggregation — never per-row queries</td></tr>
+    <tr><td>AI budgets</td><td class="num">4 s / 60 s races, unref’d timers</td><td>panel latency bounded; timers never hold the process open</td></tr>
+  </table></div>
+  <h4>Failure modes</h4>
+  <div class="tablewrap"><table>
+    <tr><th>Failure</th><th>Behavior</th><th>User sees</th></tr>
+    <tr><td>Invalid assess body</td><td>400 with first zod issue</td><td>error banner; may still proceed unreviewed</td></tr>
+    <tr><td>Unknown / cross-tenant subject</td><td>404 (never 403)</td><td>same banner</td></tr>
+    <tr><td>DB error in walker</td><td><code>next(e)</code> → central handler, 500, pino log with request id</td><td>same banner</td></tr>
+    <tr><td>No <code>ANTHROPIC_API_KEY</code></td><td>summary→null, analyze→[] — silent</td><td>deterministic report only</td></tr>
+    <tr><td>AI timeout / API error / bad shape</td><td>logged <code>warn</code>, same nulls — HTTP 200</td><td>deterministic report only</td></tr>
+    <tr><td>Stale assess response after cancel</td><td>dropped by seq guard</td><td>nothing</td></tr>
+    <tr><td><code>proceed()</code> throws on confirm</td><td>busy cleared, error string in state</td><td>inline error, panel stays open</td></tr>
+  </table></div>
+  <h4>Invariants (hold these when extending)</h4>
+  <ul>
+    <li>The assessment path performs <b>zero writes</b> — any mutation belongs in the caller’s <code>proceed()</code>.</li>
+    <li>Every impact line belongs to exactly one of the six domains; the panel renders all six unconditionally.</li>
+    <li>Every base severity passes through <code>grade()</code> — never hardcode a graded severity (the two deliberate exceptions are LOW scope lines and the product in-force BREAKING line, which is destructive-only by condition).</li>
+    <li>New itemizable rules go through <code>pushCapped</code>; aggregates must carry <code>count</code>.</li>
+    <li>AI responses are validated (zod) and normalized (<code>unwrapImpacts</code>) before use; a bad shape degrades to empty, never to a 500.</li>
+    <li>Frontend types in <code>impact/types.ts</code> mirror backend <code>routes/impact/types.ts</code> — change them together.</li>
+  </ul>
+</main>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'neutral', securityLevel: 'loose' });
+</script>
+</body>
+</html>
