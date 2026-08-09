@@ -34,6 +34,7 @@ const PortfolioProgram = lazy(() => import('./pages/portfolio-program/PortfolioP
 const PortfolioInitiative = lazy(() => import('./pages/portfolio-initiative/PortfolioInitiative'));
 const PortfolioRaid = lazy(() => import('./pages/portfolio-raid/PortfolioRaid'));
 const UwWorkbench = lazy(() => import('./pages/uw-workbench/UwWorkbench'));
+const RatePricing = lazy(() => import('./pages/rate-price/RatePricing'));
 const Work = lazy(() => import('./pages/work/Work'));
 const Automatable = lazy(() => import('./pages/automatable/Automatable'));
 const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
@@ -258,6 +259,17 @@ export default function App() {
                     element={
                       <G k="uw-workbench">
                         <UwWorkbench />
+                      </G>
+                    }
+                  />
+                  {/* Rate & Price — Rating & Pricing Rationalization module (RATE-PRICE):
+            model estate registry, immutable versions, reference execution,
+            constrained optimization, SERFF filing desk, legacy rationalizer. */}
+                  <Route
+                    path="/rate-price"
+                    element={
+                      <G k="rate-price">
+                        <RatePricing />
                       </G>
                     }
                   />

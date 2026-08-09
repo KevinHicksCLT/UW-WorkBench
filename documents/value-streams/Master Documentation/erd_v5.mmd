@@ -1297,6 +1297,88 @@ erDiagram
     string id PK  string companyId FK  string ref "DP-###"  string kind "APPETITE|RULE|AUTHORITY"
     string leftRef  string rightRef  float weight "1 - similarity"  string proposal  json impactPreview
   }
+
+  %% Rating & Pricing Rationalization (RATE-PRICE). Estate registry → immutable
+  %% versions → run store → programs/filings → legacy rationalization. Governed
+  %% on the UwGovernanceEvent spine (one choke point, ADR-001); TB is the
+  %% rationalization plane, never the production rating engine (ADR-002).
+  RpRatingModel {
+    string lifecycle "draft|review|approved|deployed|deprecated|retired"
+    string id PK  string companyId FK  string ref "M-XX-## — resolves UwQuoteProposal.modelRef"
+    string name  string lob  string jurisdictions "comma USPS; CW=countrywide"
+    string engineOfRecord "earnix|hx|pas-native|spreadsheet|legacy|tb-reference"
+    string ownerRoleId FK "owned-by"  string valueStreamNodeId FK "supports"
+    string currentVersionId "derived cache — publish path owns it"
+  }
+  RpModelVersion {
+    string status_ "draft|published — immutable after publish (INV-01)"
+    string id PK  string modelId FK  string semver  string bundleHash "content address"
+    string provenance "human|aglm-proposal|migration-extract"  json spec "factor set"
+    string publishedBy  datetime publishedAt
+  }
+  RpModelRun {
+    string kind "quote|what-if|batch|parallel-run"
+    string id PK  string versionId FK  string batchId FK  string traceEventId FK "traced-by"
+    json riskInput  json output "premium + factorBreakdown"  float premium  int latencyMs
+  }
+  RpTestBatch {
+    string status_ "RUNNING|CHECKPOINTED|COMPLETED|FAILED — resumable"
+    string id PK  string companyId FK  string name  string purpose "regression|parallel_run|challenger"
+    json versionIds "enumerated scope (SM-05)"  string datasetRef  float tolerancePct
+    json checkpoint  json passFailMatrix  json disruptionDeciles
+  }
+  RpJurisdictionRuleSet {
+    string id PK  string companyId FK  string code "USPS"  string jurisdictionId FK
+    int version  boolean optimizationRestricted "P6 ack required when true"
+    json constraints "data, not code (ADR-006/INV-05)"
+  }
+  RpOptimizationJob {
+    string status_ "BLOCKED|READY|RUNNING|COMPLETED"
+    string id PK  string versionId FK  string ruleSetId FK "constrained-by (INV-05)"
+    string objective  json constraints  int scenarioCount
+    string complianceAckBy "P6 human — agents rejected"  json resultSummary "deciles"
+  }
+  RpRateProgram {
+    string filingStatus "drafting|filed|approved|withdrawn"
+    string id PK  string companyId FK  string ref "RP-###"  string product  string lob
+    string jurisdiction  datetime effectiveDate
+  }
+  RpProgramModel {
+    string id PK  string programId FK  string modelId FK
+  }
+  RpFilingPacket {
+    string status_ "draft|submitted|accepted|objection|disposed"
+    string id PK  string programId FK  string modelVersionId FK "generated-from"
+    string serffTrackingNo  json sections  string submittedBy  string disposition
+  }
+  RpFilingCompliance {
+    string id PK  string filingPacketId FK  string complianceItemId FK "satisfies"
+  }
+  RpLegacyRater {
+    string status_ "INVENTORIED|EXTRACTED|MIGRATING|RETIRED"
+    string id PK  string companyId FK  string ref "LR-###"  string name  string lob
+    string artifactType "spreadsheet|engine|vendor"  float complexityScore  json definition
+  }
+  RpCanonicalSpec {
+    string extractionConfidence "high|medium|low"
+    string id PK  string legacyRaterId FK  int specVersion
+    json spec "inputs/factors/logic/unextracted — never approximated (LLR-18.1)"
+    boolean humanConfirmed "cutover gate input (INV-04)"  string confirmedBy
+  }
+  RpDivergenceMatrix {
+    string id PK  string specId FK  string targetVersionId FK  string portfolioRef
+    float maxDivergencePct  json cells "identical|parametric-delta|structural-delta|unique"
+    string recommendation "merge|re-baseline|rebuild|retire"
+  }
+  RpMigrationWave {
+    string status_ "PLANNED|READY|CUTOVER|ROLLED_BACK — gate INV-04"
+    string id PK  string companyId FK  string ref "MW-##"  string name  int sequence
+    datetime cutoverDate  string rollbackPlan  float tolerancePct  string targetModelId FK "migrates-to"
+  }
+  RpWaveMember {
+    string status_ "PLANNED|CUTOVER|ROLLED_BACK"
+    string id PK  string waveId FK  string legacyRaterId FK
+  }
   %% ================= RELATIONSHIPS =================
   %% approvals
   ApprovalPolicy ||--o{ ApprovalPolicyStage : "defines stages"
@@ -1554,6 +1636,34 @@ erDiagram
   Company ||--o{ UwGovernanceEvent : "audit spine"
   UwSubmission |o--o{ UwGovernanceEvent : "narrates"
   Company ||--o{ UwDivergencePair : "rationalizes"
+  %% Rate-Price
+  Company ||--o{ RpRatingModel : "estate registry"
+  Role |o--o{ RpRatingModel : "owned-by"
+  ProcessNode |o--o{ RpRatingModel : "supports"
+  RpRatingModel ||--o{ RpModelVersion : "has-version (immutable)"
+  RpModelVersion ||--o{ RpModelRun : "produced-run"
+  RpTestBatch |o--o{ RpModelRun : "collects"
+  UwGovernanceEvent |o--o{ RpModelRun : "traced-by"
+  Company ||--o{ RpTestBatch : "validates"
+  Company ||--o{ RpJurisdictionRuleSet : "constrains"
+  Jurisdiction |o--o{ RpJurisdictionRuleSet : "anchors"
+  RpModelVersion ||--o{ RpOptimizationJob : "subject-of"
+  RpJurisdictionRuleSet ||--o{ RpOptimizationJob : "constrained-by (INV-05)"
+  Company ||--o{ RpRateProgram : "files"
+  RpRateProgram ||--o{ RpProgramModel : "implemented-by"
+  RpRatingModel ||--o{ RpProgramModel : "implements"
+  RpRateProgram ||--o{ RpFilingPacket : "filed-via"
+  RpModelVersion ||--o{ RpFilingPacket : "generated-from"
+  RpFilingPacket ||--o{ RpFilingCompliance : "satisfies"
+  ComplianceItem ||--o{ RpFilingCompliance : "discharged-by"
+  Company ||--o{ RpLegacyRater : "inventories"
+  RpLegacyRater ||--o{ RpCanonicalSpec : "extracted-to"
+  RpCanonicalSpec ||--o{ RpDivergenceMatrix : "compared-in"
+  RpModelVersion ||--o{ RpDivergenceMatrix : "compared-against"
+  Company ||--o{ RpMigrationWave : "sequences"
+  RpRatingModel |o--o{ RpMigrationWave : "migrates-to"
+  RpMigrationWave ||--o{ RpWaveMember : "tranches"
+  RpLegacyRater ||--o{ RpWaveMember : "member-of"
   %% ================= COLOR CODING =================
   %% red=connection tables · blue=value stream · orange=org · green=work · purple=other · teal=peripheral
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
@@ -1670,3 +1780,6 @@ erDiagram
   style ApprovalPolicyStage fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style ApprovalRequest fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style ApprovalAssignment fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style RpProgramModel fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RpFilingCompliance fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RpWaveMember fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21

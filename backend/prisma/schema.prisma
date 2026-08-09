@@ -384,6 +384,13 @@ model Company {
   uwAuthorityGrants             UwAuthorityGrant[]
   uwGovernanceEvents            UwGovernanceEvent[]
   uwDivergencePairs             UwDivergencePair[]
+  // Rate-Price
+  rpRatingModels                RpRatingModel[]
+  rpTestBatches                 RpTestBatch[]
+  rpJurisdictionRuleSets        RpJurisdictionRuleSet[]
+  rpRatePrograms                RpRateProgram[]
+  rpLegacyRaters                RpLegacyRater[]
+  rpMigrationWaves              RpMigrationWave[]
 
   @@unique([tenantId, slug])
 }
@@ -503,6 +510,7 @@ model Role {
   uwAuthorityGrants             UwAuthorityGrant[]             @relation("UwAuthorityGrantRole")
   uwReferralCasesEscalated      UwReferralCase[]               @relation("UwReferralEscalatedTo")
   uwSubmissionsAssigned         UwSubmission[]                 @relation("UwSubmissionAssignedRole")
+  rpOwnedRatingModels           RpRatingModel[]                @relation("RpModelOwnerRole")
 
   @@unique([companyId, dbValue])
   @@index([companyId])
@@ -594,6 +602,7 @@ model ProcessNode {
   userValueStreams          UserValueStream[]
   screenAssets              ScreenAsset[]
   uwSubmissions             UwSubmission[]             @relation("UwSubmissionValueStream")
+  rpRatingModels            RpRatingModel[]            @relation("RpModelValueStream")
 
   @@index([companyId, processLevelTypeId])
   @@index([parentId])
@@ -2529,6 +2538,7 @@ model Jurisdiction {
   bulletins    RegulatoryBulletin[]
   rules        ComplianceRule[]
   integrations JurisdictionIntegration[]
+  rpRuleSets   RpJurisdictionRuleSet[]
 
   @@unique([companyId, code])
   @@index([companyId])
@@ -2771,6 +2781,7 @@ model ComplianceItem {
   promotedFromVariants ComplianceJurisdictionVariant[]
   workTemplates        ComplianceItemWorkTemplate[]
   templateAnswers      ComplianceItemTemplateAnswer[]
+  rpFilingLinks        RpFilingCompliance[]
 
   @@unique([companyId, itemCode])
   @@index([regulationId])
@@ -3336,6 +3347,7 @@ model UwGovernanceEvent {
   // Append-only audit spine — the service layer exposes no update/delete path.
 
   agentAction UwAgentAction?
+  rpModelRuns RpModelRun[] // Rate-Price runs anchor their trace here (traced-by)
 
   @@index([companyId, at])
   @@index([companyId, eventType])
@@ -3366,4 +3378,329 @@ model UwDivergencePair {
 
   @@unique([companyId, ref])
   @@index([companyId, kind, status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RATE-PRICE — Rating & Pricing Rationalization module.
+// Model estate registry → immutable published versions → run store → rate
+// programs / filing packets → legacy rationalization (extract → diverge →
+// migrate). Governed on the same append-only UwGovernanceEvent spine as the
+// UW Workbench (ADR-001: one authority/trace choke point for humans, copilots,
+// and agents). TB is the rationalization plane, not the production rating
+// engine (ADR-002): runs here are reference quotes / parallel-run evidence.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model RpRatingModel {
+  id                String       @id @default(cuid())
+  tenantId          String
+  companyId         String
+  company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref               String // M-GL-01 — same grain as UwQuoteProposal.modelRef (^M-[A-Z]{2}-\d{2}$), so the priced-by cross-module edge resolves against this registry
+  name              String
+  lob               String // CP | EB | GL | BOP | OM | XS | WC
+  jurisdictions     String // comma list of USPS codes; CW = countrywide
+  engineOfRecord    String       @default("tb-reference") // earnix | hx | pas-native | spreadsheet | legacy | tb-reference
+  lifecycle         String       @default("draft") // draft | review | approved | deployed | deprecated | retired
+  ownerRoleId       String? // owned-by: six-dimension Role participation
+  ownerRole         Role?        @relation("RpModelOwnerRole", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  valueStreamNodeId String? // supports: six-dimension ValueStream participation
+  valueStreamNode   ProcessNode? @relation("RpModelValueStream", fields: [valueStreamNodeId], references: [id], onDelete: SetNull)
+  currentVersionId  String? // latest published version — derived cache, publish path owns it
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  versions     RpModelVersion[]
+  programLinks RpProgramModel[]
+  targetWaves  RpMigrationWave[]
+
+  @@unique([companyId, ref])
+  @@index([companyId, lifecycle])
+  @@index([ownerRoleId])
+  @@index([valueStreamNodeId])
+}
+
+model RpModelVersion {
+  id          String        @id @default(cuid())
+  tenantId    String
+  companyId   String
+  modelId     String
+  model       RpRatingModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  semver      String
+  bundleHash  String // sha256 of spec — immutable content address, frozen on publish (INV-01)
+  provenance  String        @default("human") // human | aglm-proposal | migration-extract
+  spec        Json // canonical factor set the reference engine evaluates: { inputs[], factors[], minPremium?, rounding? }
+  status      String        @default("draft") // draft | published — published versions are never mutated (edits create a new version)
+  publishedBy String? // email — absent until published
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  runs               RpModelRun[]
+  optimizationJobs   RpOptimizationJob[]
+  filingPackets      RpFilingPacket[]
+  divergenceMatrices RpDivergenceMatrix[]
+
+  @@unique([modelId, semver])
+  @@index([companyId, status])
+}
+
+model RpModelRun {
+  id           String             @id @default(cuid())
+  tenantId     String
+  companyId    String
+  versionId    String
+  version      RpModelVersion     @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  kind         String // quote | what-if | batch | parallel-run
+  riskInput    Json
+  output       Json // { premium, factorBreakdown[] } (+ { delta, materiality } on parallel-run)
+  premium      Float
+  latencyMs    Int
+  batchId      String?
+  batch        RpTestBatch?       @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  traceEventId String? // traced-by: governance-spine anchor for replay
+  traceEvent   UwGovernanceEvent? @relation(fields: [traceEventId], references: [id], onDelete: SetNull)
+  executedAt   DateTime           @default(now())
+
+  @@index([versionId, executedAt])
+  @@index([batchId])
+  @@index([traceEventId])
+  @@index([companyId])
+}
+
+model RpTestBatch {
+  id                String   @id @default(cuid())
+  tenantId          String
+  companyId         String
+  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name              String
+  purpose           String   @default("regression") // regression | parallel_run | challenger
+  versionIds        Json // enumerated scope — bulk ops list every affected version (SM-05)
+  datasetRef        String
+  tolerancePct      Float    @default(5)
+  status            String   @default("RUNNING") // RUNNING | CHECKPOINTED | COMPLETED | FAILED
+  checkpoint        Json? // resume point — partial completion is a first-class state
+  passFailMatrix    Json?
+  disruptionDeciles Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  runs RpModelRun[]
+
+  @@index([companyId, status])
+}
+
+model RpJurisdictionRuleSet {
+  id                     String        @id @default(cuid())
+  tenantId               String
+  companyId              String
+  company                Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  code                   String // USPS code; CW = countrywide default
+  jurisdictionId         String? // anchored to the regulations spine when the state is profiled
+  jurisdiction           Jurisdiction? @relation(fields: [jurisdictionId], references: [id], onDelete: SetNull)
+  version                Int           @default(1)
+  optimizationRestricted Boolean       @default(false) // restricted states block optimization until P6 acknowledgment
+  constraints            Json // [{ kind, value, note }] — rate caps, banned factors, filing rules. Data, not code (ADR-006 / INV-05)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  optimizationJobs RpOptimizationJob[]
+
+  @@unique([companyId, code, version])
+  @@index([companyId])
+  @@index([jurisdictionId])
+}
+
+model RpOptimizationJob {
+  id              String                @id @default(cuid())
+  tenantId        String
+  companyId       String
+  versionId       String
+  version         RpModelVersion        @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  objective       String // e.g. retention-weighted margin
+  constraints     Json? // job-local caps, e.g. per-risk change cap
+  ruleSetId       String // constrained-by: constraints resolve ONLY from a versioned rule set (INV-05)
+  ruleSet         RpJurisdictionRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+  scenarioCount   Int                   @default(0)
+  status          String                @default("READY") // BLOCKED | READY | RUNNING | COMPLETED
+  complianceAckBy String? // P6 principal email — agent actors cannot supply the acknowledgment
+  complianceAckAt DateTime?
+  resultSummary   Json? // disruption preview: premium-change deciles
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([versionId])
+  @@index([companyId, status])
+  @@index([ruleSetId])
+}
+
+model RpRateProgram {
+  id            String    @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref           String // RP-001
+  product       String
+  lob           String
+  jurisdiction  String // USPS code
+  effectiveDate DateTime?
+  filingStatus  String    @default("drafting") // drafting | filed | approved | withdrawn
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  modelLinks    RpProgramModel[]
+  filingPackets RpFilingPacket[]
+
+  @@unique([companyId, ref])
+  @@index([companyId, filingStatus])
+}
+
+model RpProgramModel {
+  id        String        @id @default(cuid())
+  companyId String
+  programId String
+  program   RpRateProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  modelId   String
+  model     RpRatingModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, modelId])
+  @@index([programId])
+  @@index([modelId])
+}
+
+model RpFilingPacket {
+  id              String         @id @default(cuid())
+  tenantId        String
+  companyId       String
+  programId       String
+  program         RpRateProgram  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  modelVersionId  String // generated-from: the implementing published version
+  modelVersion    RpModelVersion @relation(fields: [modelVersionId], references: [id], onDelete: Cascade)
+  serffTrackingNo String?
+  status          String         @default("draft") // draft | submitted | accepted | objection | disposed
+  sections        Json // [{ name, status, boundComplianceRef? }] — factor deltas, exhibits, checklist
+  submittedBy     String?
+  submittedAt     DateTime?
+  disposition     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  complianceLinks RpFilingCompliance[]
+
+  @@index([programId])
+  @@index([modelVersionId])
+  @@index([companyId, status])
+}
+
+model RpFilingCompliance {
+  id               String         @id @default(cuid())
+  companyId        String
+  filingPacketId   String
+  filingPacket     RpFilingPacket @relation(fields: [filingPacketId], references: [id], onDelete: Cascade)
+  complianceItemId String // satisfies: obligation discharged by the filing
+  complianceItem   ComplianceItem @relation(fields: [complianceItemId], references: [id], onDelete: Cascade)
+
+  @@unique([filingPacketId, complianceItemId])
+  @@index([filingPacketId])
+  @@index([complianceItemId])
+}
+
+model RpLegacyRater {
+  id              String   @id @default(cuid())
+  tenantId        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref             String // LR-001
+  name            String
+  lob             String
+  artifactType    String // spreadsheet | engine | vendor
+  discoveredVia   String?
+  complexityScore Float?
+  definition      Json? // inventoried raw structure the extractor walks (factor cells, macros, exports)
+  status          String   @default("INVENTORIED") // INVENTORIED | EXTRACTED | MIGRATING | RETIRED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  specs       RpCanonicalSpec[]
+  waveMembers RpWaveMember[]
+
+  @@unique([companyId, ref])
+  @@index([companyId, status])
+}
+
+model RpCanonicalSpec {
+  id                   String        @id @default(cuid())
+  tenantId             String
+  companyId            String
+  legacyRaterId        String
+  legacyRater          RpLegacyRater @relation(fields: [legacyRaterId], references: [id], onDelete: Cascade)
+  specVersion          Int           @default(1)
+  spec                 Json // { model, inputs[], factors[], logic[], unextracted[] } — unextracted is flagged, never approximated (LLR-18.1)
+  extractionConfidence String // high | medium | low
+  humanConfirmed       Boolean       @default(false) // cutover gate input (INV-04)
+  confirmedBy          String?
+  confirmedAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  divergenceMatrices RpDivergenceMatrix[]
+
+  @@unique([legacyRaterId, specVersion])
+  @@index([companyId])
+}
+
+model RpDivergenceMatrix {
+  id               String          @id @default(cuid())
+  tenantId         String
+  companyId        String
+  specId           String
+  spec             RpCanonicalSpec @relation(fields: [specId], references: [id], onDelete: Cascade)
+  targetVersionId  String
+  targetVersion    RpModelVersion  @relation(fields: [targetVersionId], references: [id], onDelete: Cascade)
+  portfolioRef     String
+  maxDivergencePct Float
+  cells            Json // per-factor { factor, class: identical|parametric-delta|structural-delta|unique, deltaPct? }
+  recommendation   String? // merge | re-baseline | rebuild | retire
+  createdAt        DateTime        @default(now())
+
+  @@index([specId])
+  @@index([targetVersionId])
+  @@index([companyId])
+}
+
+model RpMigrationWave {
+  id            String         @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ref           String // MW-01
+  name          String
+  sequence      Int
+  cutoverDate   DateTime?
+  rollbackPlan  String?
+  tolerancePct  Float          @default(5) // divergence tolerance every member must be within (INV-04)
+  status        String         @default("PLANNED") // PLANNED | READY | CUTOVER | ROLLED_BACK
+  targetModelId String? // migrates-to: the target model raters cut over to
+  targetModel   RpRatingModel? @relation(fields: [targetModelId], references: [id], onDelete: SetNull)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  members RpWaveMember[]
+
+  @@unique([companyId, ref])
+  @@index([companyId, status])
+  @@index([targetModelId])
+}
+
+model RpWaveMember {
+  id            String          @id @default(cuid())
+  companyId     String
+  waveId        String
+  wave          RpMigrationWave @relation(fields: [waveId], references: [id], onDelete: Cascade)
+  legacyRaterId String
+  legacyRater   RpLegacyRater   @relation(fields: [legacyRaterId], references: [id], onDelete: Cascade)
+  status        String          @default("PLANNED") // PLANNED | CUTOVER | ROLLED_BACK
+
+  @@unique([waveId, legacyRaterId])
+  @@index([waveId])
+  @@index([legacyRaterId])
 }

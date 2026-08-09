@@ -36,6 +36,7 @@ import { seedProductModelAnatomy } from './seedProductModelAnatomy.js';
 import { seedProductModel } from './productModel.js';
 import { seedRoleProfiles } from './seedRoleProfiles.js';
 import { seedUwWorkbench } from './seedUwWorkbench.js';
+import { seedRatePrice } from './seedRatePrice.js';
 import { decomposeSingleChild } from '../../scripts/decompose-single-child.js';
 
 const prisma = new PrismaClient();
@@ -218,6 +219,8 @@ async function main() {
   await run('uwWorkbench', () => seedUwWorkbench(prisma, ctx));
   await run('regulations', () => seedRegulations(prisma, { ...ctx, refs }));
   await run('federalRegs', () => seedFederalRegs(prisma, { ...ctx, refs }));
+  // Runs AFTER regulations: filing packets bind to seeded ComplianceItems.
+  await run('ratePrice', () => seedRatePrice(prisma, ctx));
   await run('standards', () => seedStandards(prisma, { ...ctx, refs }));
   // Runs AFTER the org spine exists: demo users + kevin are homed to L1 OrgUnits.
   await run('permissions', () => seedPermissions(prisma, ctx));
