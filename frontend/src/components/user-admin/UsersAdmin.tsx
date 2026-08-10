@@ -120,7 +120,15 @@ export default function UsersAdmin() {
         loading={loading}
         emptyText="No users match the current filters."
         onRowClick={(u) => setDrawer({ mode: 'edit', user: u })}
-        leading={<Button onClick={() => setDrawer({ mode: 'create' })}>Add user</Button>}
+        leading={
+          <Button
+            variant="secondary"
+            className="text-xs"
+            onClick={() => setDrawer({ mode: 'create' })}
+          >
+            Add user
+          </Button>
+        }
       />
 
       {drawer && (
