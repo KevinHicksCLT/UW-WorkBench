@@ -13,7 +13,11 @@ import {
 export type AdminUser = {
   id: string;
   email: string;
+  /** Full display name (composed from firstName + lastName for admin-managed users). */
   name: string;
+  /** Structured components; null for IAM/import-provisioned users that only carry a display name. */
+  firstName: string | null;
+  lastName: string | null;
   role: UserType;
   status: 'ACTIVE' | 'DEACTIVATED';
   externalId: string | null;
@@ -70,6 +74,19 @@ export type CreatedApiKey = {
   key: string;
   webhookSecret?: string;
 };
+
+/** Given name for display — prefers the structured field, else the first token of `name`. */
+export function firstNameOf(u: AdminUser): string {
+  if (u.firstName) return u.firstName;
+  return u.name.trim().split(/\s+/)[0] ?? '';
+}
+
+/** Family name for display — prefers the structured field, else everything after the first token of `name`. */
+export function lastNameOf(u: AdminUser): string {
+  if (u.lastName) return u.lastName;
+  const parts = u.name.trim().split(/\s+/);
+  return parts.length > 1 ? parts.slice(1).join(' ') : '';
+}
 
 export function userTypeLabel(role: string): string {
   return isUserType(role) ? USER_TYPE_LABELS[role] : role;

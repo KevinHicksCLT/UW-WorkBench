@@ -20,7 +20,7 @@ import {
   overrideStateFromRows,
   type OverrideState,
 } from './permissionTreeModel';
-import type { AdminUser, Pickers } from './types';
+import { firstNameOf, lastNameOf, type AdminUser, type Pickers } from './types';
 
 // UserDetail — drawer body for the Users sheet: the full user form (create →
 // POST /users, edit → PATCH with only the changed fields), plus (edit only)
@@ -36,7 +36,8 @@ type OverrideRow = {
 type PermissionsPayload = { effective: EffectivePermissions; overrides: OverrideRow[] };
 
 type FormState = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: UserType;
   geography: string;
@@ -51,7 +52,8 @@ type FormState = {
 
 function formFromUser(user: AdminUser | null): FormState {
   return {
-    name: user?.name ?? '',
+    firstName: user ? firstNameOf(user) : '',
+    lastName: user ? lastNameOf(user) : '',
     email: user?.email ?? '',
     role: user?.role ?? 'MEMBER',
     geography: user?.geography ?? '',
@@ -186,7 +188,8 @@ export default function UserDetail({
       if (isCreate) {
         const body: UserUpsertRequest = {
           email: form.email.trim(),
-          name: form.name.trim(),
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
           role: form.role,
           orgUnitId: form.orgUnitId || null,
           geography: (form.geography || null) as UserUpsertRequest['geography'],
@@ -209,7 +212,8 @@ export default function UserDetail({
         // PATCH only what changed.
         const initial = formFromUser(user);
         const patch: Partial<UserUpsertRequest> = {};
-        if (form.name.trim() !== initial.name) patch.name = form.name.trim();
+        if (form.firstName.trim() !== initial.firstName) patch.firstName = form.firstName.trim();
+        if (form.lastName.trim() !== initial.lastName) patch.lastName = form.lastName.trim();
         if (form.email.trim() !== initial.email) patch.email = form.email.trim();
         if (form.role !== initial.role) patch.role = form.role;
         if (form.geography !== initial.geography)
@@ -280,8 +284,20 @@ export default function UserDetail({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="ud-name">Name</Label>
-          <Input id="ud-name" value={form.name} onChange={(e) => set('name', e.target.value)} />
+          <Label htmlFor="ud-first-name">First name</Label>
+          <Input
+            id="ud-first-name"
+            value={form.firstName}
+            onChange={(e) => set('firstName', e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="ud-last-name">Last name</Label>
+          <Input
+            id="ud-last-name"
+            value={form.lastName}
+            onChange={(e) => set('lastName', e.target.value)}
+          />
         </div>
         <div>
           <Label htmlFor="ud-email">Email</Label>
@@ -463,7 +479,7 @@ export default function UserDetail({
       <div className="flex items-center gap-2 pt-1 border-t border-[#f5f5f5]">
         <Button
           onClick={() => void save()}
-          disabled={saving || !form.name.trim() || !form.email.trim()}
+          disabled={saving || !form.firstName.trim() || !form.lastName.trim() || !form.email.trim()}
         >
           {saving ? 'Saving…' : isCreate ? 'Create user' : 'Save'}
         </Button>

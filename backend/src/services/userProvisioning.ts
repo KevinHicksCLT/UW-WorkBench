@@ -21,6 +21,8 @@ export type RefError = { field: string; message: string };
 export type ProvisionUserData = {
   email?: string;
   name?: string;
+  firstName?: string;
+  lastName?: string;
   role?: string;
   status?: string;
   externalId?: string | null;
@@ -73,6 +75,8 @@ function isP2002(e: unknown): boolean {
 const AUDITED_FIELDS = [
   'email',
   'name',
+  'firstName',
+  'lastName',
   'role',
   'status',
   'externalId',
@@ -140,11 +144,25 @@ export async function validateUserRefs(
   return errors;
 }
 
+/**
+ * Compose the canonical display name from its structured components. Used when
+ * the caller (the User Admin form) supplies firstName/lastName instead of a
+ * pre-joined `name`.
+ */
+function composeName(
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+): string {
+  return `${firstName ?? ''} ${lastName ?? ''}`.replace(/\s+/g, ' ').trim();
+}
+
 /** Scalar update payload from only the fields present on the input. */
 function scalarData(data: ProvisionUserData): Prisma.UserUncheckedUpdateInput {
   const out: Prisma.UserUncheckedUpdateInput = {};
   if (data.email !== undefined) out.email = data.email;
   if (data.name !== undefined) out.name = data.name;
+  if (data.firstName !== undefined) out.firstName = data.firstName;
+  if (data.lastName !== undefined) out.lastName = data.lastName;
   if (data.role !== undefined) out.role = data.role;
   if (data.status !== undefined) out.status = data.status;
   if (data.externalId !== undefined) out.externalId = data.externalId;
@@ -188,7 +206,20 @@ export async function upsertUser(input: UpsertUserInput): Promise<UpsertUserResu
 
   try {
     if (existing) {
-      const updateData = scalarData(data);
+      // The admin form supplies firstName/lastName; recompose the display name,
+      // filling the unedited half from the existing row so a first-name-only
+      // edit keeps the surname intact.
+      const withName =
+        data.firstName !== undefined || data.lastName !== undefined
+          ? {
+              ...data,
+              name: composeName(
+                data.firstName !== undefined ? data.firstName : existing.firstName,
+                data.lastName !== undefined ? data.lastName : existing.lastName,
+              ),
+            }
+          : data;
+      const updateData = scalarData(withName);
       if (data.password) updateData.password = await hashPassword(data.password);
       const user = await prisma.$transaction(async (tx) => {
         const updated = await tx.user.update({ where: { id: existing.id }, data: updateData });
@@ -221,7 +252,10 @@ export async function upsertUser(input: UpsertUserInput): Promise<UpsertUserResu
       return { user, created: false };
     }
 
-    if (!data.email || !data.name) {
+    // Prefer the composed first+last name (admin form); fall back to the
+    // pre-joined `name` that IAM/import surfaces supply.
+    const name = composeName(data.firstName, data.lastName) || data.name;
+    if (!data.email || !name) {
       throw Object.assign(new Error('email and name are required to create a user'), {
         status: 400,
       });
@@ -232,7 +266,9 @@ export async function upsertUser(input: UpsertUserInput): Promise<UpsertUserResu
         data: {
           tenantId,
           email: data.email as string,
-          name: data.name as string,
+          name,
+          firstName: data.firstName ?? null,
+          lastName: data.lastName ?? null,
           password,
           role: data.role ?? 'MEMBER',
           status: data.status ?? 'ACTIVE',
