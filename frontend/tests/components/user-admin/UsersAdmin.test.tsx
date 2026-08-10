@@ -31,6 +31,8 @@ const USERS = [
     id: 'u1',
     email: 'ada@acme.io',
     name: 'Ada Lovelace',
+    firstName: 'Ada',
+    lastName: 'Lovelace',
     role: 'SITE_ADMIN',
     status: 'ACTIVE',
     externalId: null,
@@ -49,7 +51,9 @@ const USERS = [
   {
     id: 'u2',
     email: 'bob@acme.io',
-    name: 'Bob Deactivated',
+    name: 'Bob Turing',
+    firstName: 'Bob',
+    lastName: 'Turing',
     role: 'MEMBER',
     status: 'DEACTIVATED',
     externalId: null,
@@ -80,8 +84,12 @@ describe('UsersAdmin', () => {
   it('renders a row per user with derived display columns', async () => {
     render(wrap(<UsersAdmin />));
 
-    expect(await screen.findByText('Ada Lovelace')).toBeInTheDocument();
-    expect(screen.getByText('Bob Deactivated')).toBeInTheDocument();
+    // Name is split into separate First name / Last name columns.
+    // Name is split into separate First name / Last name columns.
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    expect(screen.getByText('Lovelace')).toBeInTheDocument();
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(screen.getByText('Turing')).toBeInTheDocument();
     expect(screen.getByText('ada@acme.io')).toBeInTheDocument();
 
     // Derived labels, not raw enum tokens.
@@ -100,7 +108,7 @@ describe('UsersAdmin', () => {
 
   it('offers the Add user action', async () => {
     render(wrap(<UsersAdmin />));
-    await screen.findByText('Ada Lovelace');
+    await screen.findByText('Ada');
     expect(screen.getByRole('button', { name: 'Add user' })).toBeInTheDocument();
   });
 });

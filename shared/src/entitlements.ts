@@ -12,9 +12,17 @@ export const geographySchema = z.enum(GEOGRAPHIES);
 
 export const menuKeySchema = z.string().refine(isMenuKey, { message: 'Unknown menu key' });
 
+// `name` is the canonical display name (IAM/import surfaces still send it),
+// while firstName + lastName are the structured components edited by the User
+// Admin form; the write path (services/userProvisioning) composes `name` from
+// them when they are present. All three are optional here so a single object
+// schema serves every caller — the create path enforces "name or first+last"
+// at runtime — and so it stays a plain ZodObject usable via .partial()/.omit().
 export const userUpsertSchema = z.object({
   email: z.string().email(),
-  name: z.string().min(1),
+  name: z.string().min(1).optional(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
   role: userTypeSchema,
   orgUnitId: z.string().nullable().optional(),
   geography: geographySchema.nullable().optional(),

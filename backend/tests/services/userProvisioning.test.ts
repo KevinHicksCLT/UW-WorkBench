@@ -215,6 +215,57 @@ describe('upsertUser targeting', () => {
   });
 });
 
+describe('firstName/lastName composition', () => {
+  it('composes the display name from first+last on create and stores the components', async () => {
+    prismaMock.user.findFirst.mockResolvedValue(null);
+    await upsertUser({
+      tenantId: TENANT,
+      actorLabel: 'admin@example.com',
+      data: { email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe', role: 'MEMBER' },
+    });
+    const created = txMock.user.create.mock.calls[0][0].data as {
+      name: string;
+      firstName: string;
+      lastName: string;
+    };
+    expect(created).toMatchObject({ name: 'Jane Doe', firstName: 'Jane', lastName: 'Doe' });
+  });
+
+  it('recomposes the name from the existing surname when only firstName changes', async () => {
+    prismaMock.user.findFirst.mockResolvedValue({
+      ...existingUser,
+      name: 'Alice Smith',
+      firstName: 'Alice',
+      lastName: 'Smith',
+    });
+    await upsertUser({
+      tenantId: TENANT,
+      actorLabel: 'admin@example.com',
+      byId: 'u-existing',
+      data: { firstName: 'Alicia' },
+    });
+    const updateArgs = txMock.user.update.mock.calls[0][0] as { data: Record<string, unknown> };
+    // firstName written, surname untouched, and name recomposed from both.
+    expect(updateArgs.data.firstName).toBe('Alicia');
+    expect(updateArgs.data.lastName).toBeUndefined();
+    expect(updateArgs.data.name).toBe('Alicia Smith');
+  });
+
+  it('leaves the display name alone when neither component is supplied (IAM path)', async () => {
+    prismaMock.user.findFirst.mockResolvedValue(existingUser);
+    await upsertUser({
+      tenantId: TENANT,
+      actorLabel: 'apiKey:okta',
+      byExternalId: 'okta|1',
+      source: 'PROVISION',
+      data: { name: 'Alice Renamed' },
+    });
+    const updateArgs = txMock.user.update.mock.calls[0][0] as { data: Record<string, unknown> };
+    expect(Object.keys(updateArgs.data)).toEqual(['name']);
+    expect(updateArgs.data.name).toBe('Alice Renamed');
+  });
+});
+
 describe('audit diff hygiene', () => {
   it('never includes the password (raw or hash) in the audit diff', async () => {
     prismaMock.user.findFirst.mockResolvedValue(null);
