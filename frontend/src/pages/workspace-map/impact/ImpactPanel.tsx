@@ -282,6 +282,10 @@ function Stakeholders({ stakeholders }: { stakeholders: Stakeholder[] }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
         {stakeholders.map((sh, i) => {
           const tone = STAKEHOLDER_TONE[sh.kind] ?? '#525252';
+          // The chip's bold label is the review function (kind); the secondary
+          // text names the concrete thing reviewed. Suppress it when it would
+          // just echo the function (e.g. old "Technology · Technology" packets).
+          const showName = !!sh.name && sh.name.toLowerCase() !== sh.kind.toLowerCase();
           return (
             <span
               key={`${sh.kind}:${sh.entityId ?? sh.name}:${i}`}
@@ -299,16 +303,21 @@ function Stakeholders({ stakeholders }: { stakeholders: Stakeholder[] }) {
               }}
             >
               <span style={{ fontWeight: 700, color: tone }}>{sh.kind}</span>
-              <span
-                style={{
-                  color: '#404040',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {sh.name}
-              </span>
+              {showName && (
+                <span
+                  style={{
+                    color: '#404040',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  <span aria-hidden style={{ color: `${tone}80`, marginRight: 4 }}>
+                    ·
+                  </span>
+                  {sh.name}
+                </span>
+              )}
             </span>
           );
         })}
@@ -477,9 +486,13 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
 export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   const s = gate.state;
   const report = s?.report ?? null;
+  // A reopened packet shows its stored snapshot verbatim — never re-walk the
+  // graph or re-run the AI, so the saved view is stable and reproducible.
+  const savedView = !!s?.saved;
   // The AI deep-dive kicks off as soon as the deterministic report lands and
-  // its derived lines merge into the domain cards (graph lines first).
-  const ai = useAiAnalysis(report, s?.request ?? null);
+  // its derived lines merge into the domain cards (graph lines first). Skipped
+  // for a reopened packet — its snapshot already carries what was assessed.
+  const ai = useAiAnalysis(report, savedView ? null : (s?.request ?? null));
   // Save-assessment state (pure assessments) — reset whenever the subject or
   // change type changes so a reshaped report can be saved afresh.
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
@@ -516,6 +529,8 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   // Persist the packet (Workstream D) — snapshot the derived report and its
   // staged artifacts as opaque jsonb. Saved in ASSESSED state; governance
   // (RECOMMEND → maker-checker APPROVE) happens on the assessment record.
+  // On success the panel closes: the packet now lives in the subject's
+  // assessment history, from where it can be reopened.
   const saveAssessment = async () => {
     if (!report) return;
     setSaveStatus('saving');
@@ -529,7 +544,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         report,
         ...(report.sections ? { artifacts: { sections: report.sections } } : {}),
       });
-      setSaveStatus('done');
+      gate.cancel();
     } catch {
       setSaveStatus('error');
     }
@@ -577,7 +592,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
             <span style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', flex: 1 }}>
               {subjectName}
             </span>
-            {pickable && !productDecision ? (
+            {pickable && !productDecision && !savedView ? (
               <LensPicker
                 lens={lens}
                 value={s.request.changeType}
@@ -710,18 +725,17 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               cursor: 'pointer',
             }}
           >
-            {pickable ? 'Close' : 'Cancel'}
+            {pickable || savedView ? 'Close' : 'Cancel'}
           </button>
-          {pickable ? (
-            // A pure assessment — persist the decision packet (Workstream D).
-            // Once saved, governance (RECOMMEND → maker-checker approval) runs
-            // on the stored record from the subject's assessment history.
+          {savedView ? null : pickable ? (
+            // A pure assessment — persist the decision packet (Workstream D) and
+            // close. The packet lands in the subject's assessment history, where
+            // governance (RECOMMEND → maker-checker approval) runs and from where
+            // it can be reopened. Saveable any time a report is on screen.
             <button
               type="button"
-              onClick={() => {
-                if (saveStatus !== 'done') saveAssessment();
-              }}
-              disabled={!report || scanning || saveStatus === 'saving' || saveStatus === 'done'}
+              onClick={saveAssessment}
+              disabled={!report || scanning || saveStatus === 'saving'}
               style={{
                 font: 'inherit',
                 fontSize: 12,
@@ -737,11 +751,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
             >
               {saveStatus === 'saving'
                 ? 'Saving…'
-                : saveStatus === 'done'
-                  ? 'Saved ✓'
-                  : saveStatus === 'error'
-                    ? 'Retry save'
-                    : 'Save assessment'}
+                : saveStatus === 'error'
+                  ? 'Retry save'
+                  : 'Save assessment'}
             </button>
           ) : productDecision ? (
             // The three board decisions, made from the report itself. They

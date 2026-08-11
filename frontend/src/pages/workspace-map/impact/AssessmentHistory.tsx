@@ -1,12 +1,32 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
-import { changeLabel } from './types';
+import { changeLabel, type ImpactReport, type ImpactSubject } from './types';
+import type { ImpactGate } from './useImpactGate';
+
+/** Fetch a saved packet's stored snapshot and reopen it read-only in the impact
+ *  panel. The subjectRef IS the original request subject, so the panel needs no
+ *  graph re-walk — it renders exactly what was saved. No-ops on legacy rows that
+ *  predate report snapshots. */
+export async function reopenAssessment(gate: ImpactGate, id: string): Promise<void> {
+  const a = await api.get<{
+    subjectRef: ImpactSubject;
+    changeType: string;
+    subjectName: string;
+    report: ImpactReport | null;
+  }>(`/impact/assessments/${id}`);
+  if (!a.report || !a.report.subject) return;
+  gate.openSaved(
+    { changeType: a.changeType, subject: a.subjectRef, label: a.subjectName, pickable: false },
+    a.report,
+  );
+}
 
 // The saved decision packets for one subject (Change Impact v2, Workstream D) —
 // surfaced on the subject's own detail page so the assessment trail lives with
-// the thing assessed. Read-only list; the panel is where packets are created.
-// `refreshToken` re-fetches when it changes (e.g. the panel just closed after a
-// save), so a freshly-saved packet appears without a manual reload.
+// the thing assessed. The panel is where packets are created; clicking a row
+// reopens its stored snapshot (via `onOpen`). `refreshToken` re-fetches when it
+// changes (e.g. the panel just closed after a save), so a freshly-saved packet
+// appears without a manual reload.
 
 interface Assessment {
   id: string;
@@ -31,10 +51,13 @@ export default function AssessmentHistory({
   subjectKind,
   subjectId,
   refreshToken,
+  onOpen,
 }: {
   subjectKind: string;
   subjectId: string;
   refreshToken?: number;
+  /** Reopen a saved packet by id — makes each row a button. */
+  onOpen?: (id: string) => void;
 }) {
   const [rows, setRows] = useState<Assessment[] | null>(null);
   useEffect(() => {
@@ -65,8 +88,8 @@ export default function AssessmentHistory({
       <div className="space-y-1.5">
         {rows.map((a) => {
           const tone = STATUS_TONE[a.status] ?? '#525252';
-          return (
-            <div key={a.id} className="flex items-center gap-2 text-xs">
+          const body = (
+            <>
               <span
                 className="rounded-full px-2 py-0.5 font-semibold"
                 style={{ color: '#fff', background: tone }}
@@ -77,6 +100,21 @@ export default function AssessmentHistory({
               <span className="ml-auto text-[#a3a3a3] tnum">
                 {new Date(a.createdAt).toLocaleDateString()}
               </span>
+            </>
+          );
+          return onOpen ? (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => onOpen(a.id)}
+              title="Reopen this assessment"
+              className="flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left text-xs transition-colors duration-150 hover:bg-[#f5f5f5]"
+            >
+              {body}
+            </button>
+          ) : (
+            <div key={a.id} className="flex items-center gap-2 px-1.5 py-1 text-xs">
+              {body}
             </div>
           );
         })}

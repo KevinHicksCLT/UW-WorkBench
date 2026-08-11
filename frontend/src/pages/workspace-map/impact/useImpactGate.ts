@@ -14,6 +14,9 @@ export interface ImpactGateState {
   loading: boolean;
   error: string;
   busy: boolean;
+  /** A previously-saved packet reopened from assessment history — the panel
+   *  renders the stored snapshot read-only (no re-assess, no save, no decision). */
+  saved?: boolean;
 }
 
 export interface ImpactGate {
@@ -29,6 +32,9 @@ export interface ImpactGate {
   /** Re-run the assessment with a different change type — the lens picker in
    *  the panel (pure assessments only). Keeps the pending proceed callback. */
   reassess: (changeType: string) => void;
+  /** Reopen a saved packet's stored snapshot read-only (assessment history).
+   *  No graph re-walk, no AI re-run — the panel shows exactly what was saved. */
+  openSaved: (request: ImpactRequest, report: ImpactReport) => void;
   cancel: () => void;
   confirm: (chosen?: string) => Promise<void>;
 }
@@ -81,6 +87,15 @@ export function useImpactGate(): ImpactGate {
     if (state) assess({ ...state.request, changeType });
   };
 
+  // Reopen a stored packet — bump the sequence so any in-flight assess can't
+  // clobber the snapshot, and clear the callbacks so the panel is view-only.
+  const openSaved = (request: ImpactRequest, report: ImpactReport) => {
+    seqRef.current += 1;
+    proceedRef.current = null;
+    cancelRef.current = null;
+    setState({ request, report, loading: false, error: '', busy: false, saved: true });
+  };
+
   const cancel = () => {
     seqRef.current += 1;
     proceedRef.current = null;
@@ -106,5 +121,5 @@ export function useImpactGate(): ImpactGate {
     }
   };
 
-  return { state, run, reassess, cancel, confirm };
+  return { state, run, reassess, openSaved, cancel, confirm };
 }

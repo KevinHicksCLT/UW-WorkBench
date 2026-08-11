@@ -15,7 +15,7 @@ import { Button, Card, ErrorMessage, LoadingState, Select, StatusPill } from '..
 import { type Initiative } from '../../lib/portfolio';
 import ImpactPanel from '../workspace-map/impact/ImpactPanel';
 import { useImpactGate } from '../workspace-map/impact/useImpactGate';
-import AssessmentHistory from '../workspace-map/impact/AssessmentHistory';
+import AssessmentHistory, { reopenAssessment } from '../workspace-map/impact/AssessmentHistory';
 import { SummaryTab } from './SummaryTab';
 import { CharterTab } from './CharterTab';
 import { AlignmentTab } from './AlignmentTab';
@@ -146,7 +146,12 @@ export default function PortfolioInitiative() {
       </Card>
 
       <div className="mb-6">
-        <AssessmentHistory subjectKind="plan" subjectId={init.id} refreshToken={assessRefresh} />
+        <AssessmentHistory
+          subjectKind="plan"
+          subjectId={init.id}
+          refreshToken={assessRefresh}
+          onOpen={(id) => reopenAssessment(gate, id)}
+        />
       </div>
 
       {/* Tabs */}

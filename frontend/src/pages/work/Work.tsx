@@ -15,7 +15,7 @@ import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../..
 import { StatusPill } from '../../components/ui';
 import ImpactPanel from '../workspace-map/impact/ImpactPanel';
 import { useImpactGate } from '../workspace-map/impact/useImpactGate';
-import AssessmentHistory from '../workspace-map/impact/AssessmentHistory';
+import AssessmentHistory, { reopenAssessment } from '../workspace-map/impact/AssessmentHistory';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -253,11 +253,13 @@ function DetailBody({
   detail,
   onOpenTask,
   onAssess,
+  onOpenAssessment,
   assessmentRefresh,
 }: {
   detail: Detail;
   onOpenTask?: (id: string) => void;
   onAssess?: () => void;
+  onOpenAssessment?: (id: string) => void;
   assessmentRefresh?: number;
 }) {
   // When every task shares one owner, name it once in the list header instead
@@ -315,6 +317,7 @@ function DetailBody({
           subjectKind="deliverable"
           subjectId={detail.id}
           refreshToken={assessmentRefresh}
+          onOpen={onOpenAssessment}
         />
       )}
 
@@ -846,6 +849,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
             detail={detail}
             assessmentRefresh={assessRefresh}
             onOpenTask={(id) => openDrill('task', id)}
+            onOpenAssessment={(id) => reopenAssessment(gate, id)}
             onAssess={
               detail.kind === 'deliverable'
                 ? () =>
