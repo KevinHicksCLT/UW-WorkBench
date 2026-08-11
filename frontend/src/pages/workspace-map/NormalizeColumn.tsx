@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './NormalizeCards';
 import { CORE_AREA } from './compare';
+import { normalizeHeaderStats } from './stats';
 import { useBoardVocab } from './vocabulary';
 
 /** Functional-area model for the "all screens" walk (null = single-screen walk). */
@@ -375,6 +376,13 @@ export default function NormalizeColumn({
   const awaiting = scopedEntries.filter(
     (e) => e.matchStatus === 'REVIEW' || e.matchStatus === 'HELD',
   ).length;
+  // v3 header roll-up — the server's numbers when the column shows the whole
+  // board it counted; a narrowed walk / cross-board merge recomputes above.
+  const stats = normalizeHeaderStats(
+    board.normalizeStats,
+    { raw: current, normalized, awaitingReview: awaiting },
+    findings.length === board.findings.length,
+  );
   // Comparison verdict: with several applications in scope and not a single
   // shared entry, say so plainly — nothing consolidates, everything migrates
   // application-specific.
@@ -404,12 +412,15 @@ export default function NormalizeColumn({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{current} current combined steps</b> →{' '}
-          <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized steps</b>
-          {awaiting > 0 && (
+          <b style={{ fontWeight: 700, color: '#171717' }}>{stats.raw} raw steps</b> →{' '}
+          <b style={{ fontWeight: 700, color: GREEN }}>{stats.normalized} normalized</b>
+          {stats.awaitingReview > 0 && (
             <>
               {' '}
-              · <b style={{ fontWeight: 600, color: AMBER }}>{awaiting} awaiting review</b>
+              ·{' '}
+              <b style={{ fontWeight: 600, color: AMBER }}>
+                {stats.awaitingReview} awaiting review
+              </b>
             </>
           )}
           {apps.length > 1 && sharedTotal === 0 && (

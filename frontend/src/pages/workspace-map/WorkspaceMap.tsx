@@ -225,12 +225,21 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     // targets) instead of stacking each board's card.
     const gf = crossBoard ? synthesizeGreenfield(list) : null;
     const title = apps.map((a) => a.name).join(' + ');
+    // v3 server roll-ups: per-source column stats merge across boards (source
+    // ids are unique); the Normalize header stats only hold when the scope IS
+    // one whole board — a partial pick recomputes client-side.
+    const columnStats = new Map(
+      list.flatMap((b) => (b.columnStats ?? []).map((s) => [s.sourceId, s] as const)),
+    );
+    const wholeBoard = !crossBoard && list[0].findings.every((f) => selectedAppIds.has(f.appId));
     return {
       name: title,
       application: title,
       apps,
       findings,
       normalizationEntries,
+      columnStats,
+      normalizeStats: wholeBoard ? (list[0].normalizeStats ?? null) : null,
       components: gf ? gf.components : list.flatMap((b) => b.components),
       microservices: gf ? [gf.microservice] : list.flatMap((b) => b.microservices),
       screens: list.flatMap((b) => b.screens.filter((s) => selectedAppIds.has(s.appId))),
@@ -739,6 +748,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               activeAppId={activeApp.id}
               onActiveApp={setActiveAppId}
               findings={bfFindings}
+              columnStat={merged.columnStats.get(activeApp.id) ?? null}
               screens={merged.screens}
               screenName={screenName}
               onScreen={pickScreen}
