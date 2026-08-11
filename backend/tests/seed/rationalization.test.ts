@@ -54,12 +54,34 @@ describe('rationalization seed data (v3)', () => {
     expect(dead.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('every Relocate category with a WHY panel states where the logic lands', () => {
+  it('every Relocate category carries a complete WHY panel (all five keys, non-empty lands)', () => {
+    const KEYS = ['captured', 'sent', 'processed', 'validated', 'lands'] as const;
+    const relocates = allCats.filter(({ cat }) => cat.capdan === 'Relocate');
+    expect(relocates.length).toBeGreaterThanOrEqual(15);
+    for (const { stage, layer, cat } of relocates) {
+      expect(cat.why, `${stage}/${layer}/${cat.category} is missing its WHY panel`).toBeTruthy();
+      for (const key of KEYS) {
+        expect(cat.why?.[key], `${stage}/${layer}/${cat.category}.${key}`).toBeTruthy();
+      }
+    }
+  });
+
+  it('WHY panels outside Relocate are dead-code narratives, and every panel is complete', () => {
+    const KEYS = ['captured', 'sent', 'processed', 'validated', 'lands'] as const;
     const whys = allCats.filter(({ cat }) => cat.why);
-    expect(whys.length).toBeGreaterThanOrEqual(5);
     for (const { stage, cat } of whys) {
-      expect(cat.capdan, `${stage}/${cat.category}`).toBe('Relocate');
-      expect(cat.why?.lands, `${stage}/${cat.category}`).toBeTruthy();
+      if (cat.capdan !== 'Relocate') {
+        // A narrative panel on a non-Relocate category is only for the red
+        // dead-code lane — the category must actually contain a dead finding.
+        expect(cat.capdan, `${stage}/${cat.category}`).toBe('Eliminate');
+        expect(
+          cat.items.some((i) => i.dead),
+          `${stage}/${cat.category} has a WHY panel but no dead-code finding`,
+        ).toBe(true);
+      }
+      for (const key of KEYS) {
+        expect(cat.why?.[key], `${stage}/${cat.category}.${key}`).toBeTruthy();
+      }
     }
   });
 
