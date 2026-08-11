@@ -1,15 +1,17 @@
 import { createPortal } from 'react-dom';
 import {
   CATEGORY_LABELS,
-  CHANGE_LABELS,
-  DESTRUCTIVE,
+  changeLabel,
   DOMAIN_META,
+  isDestructive,
   RECOMMENDATION_META,
   SEVERITY_META,
   type DecisionScore,
   type GoalProgress,
   type Impact,
+  type ImpactSection,
   type ImpactSeverity,
+  type Stakeholder,
 } from './types';
 import { AiAssessment, IMPACT_ANIM_CSS, LOGO_BLUE, ScannerView, useAiAnalysis } from './aiAnalysis';
 import type { ImpactGate } from './useImpactGate';
@@ -178,6 +180,129 @@ function GoalStrip({ goal }: { goal: GoalProgress }) {
   );
 }
 
+/** The review function each stakeholder kind maps onto — the docs prescribe
+ *  exactly these five (Process Owner, Business Architect, Operations Leader,
+ *  Risk, Technology). Colour keeps them scannable in the reviewer strip. */
+const STAKEHOLDER_TONE: Record<Stakeholder['kind'], string> = {
+  'Process Owner': '#4f46e5',
+  'Business Architect': '#0891b2',
+  'Operations Leader': '#0f766e',
+  'Risk & Compliance': '#b91c1c',
+  Technology: '#7c3aed',
+};
+
+/** Auto-identified reviewers — who must sign off, derived from the graph (owner
+ *  roles, org units, Risk on control-touching, Technology on app-touching).
+ *  Present on every v2 report so the change never proceeds without its
+ *  reviewers named. */
+function Stakeholders({ stakeholders }: { stakeholders: Stakeholder[] }) {
+  return (
+    <div style={{ margin: '10px 16px 0' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+        STAKEHOLDERS — who reviews this change
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+        {stakeholders.map((sh, i) => {
+          const tone = STAKEHOLDER_TONE[sh.kind] ?? '#525252';
+          return (
+            <span
+              key={`${sh.kind}:${sh.entityId ?? sh.name}:${i}`}
+              title={sh.why}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: 5,
+                maxWidth: '100%',
+                padding: '3px 9px',
+                borderRadius: 999,
+                border: `1px solid ${tone}33`,
+                background: `${tone}0d`,
+                fontSize: 11,
+              }}
+            >
+              <span style={{ fontWeight: 700, color: tone }}>{sh.kind}</span>
+              <span
+                style={{
+                  color: '#404040',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {sh.name}
+              </span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** A lens-specific staged artifact — Producers / Consumers / Information
+ *  Components for a deliverable, Milestone / Funding impact for a plan, etc.
+ *  One generic renderer covers every lens's stages (Workstream C). */
+function SectionCard({ section }: { section: ImpactSection }) {
+  return (
+    <div
+      style={{
+        borderRadius: 8,
+        border: '1px solid #e2e8f0',
+        background: '#fff',
+        padding: '9px 11px',
+      }}
+    >
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#171717' }}>{section.title}</div>
+      {section.blurb && (
+        <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2, lineHeight: 1.4 }}>
+          {section.blurb}
+        </div>
+      )}
+      {section.rows.length === 0 ? (
+        <div style={{ fontSize: 11, color: '#a3a3a3', marginTop: 6 }}>None identified.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 7 }}>
+          {section.rows.map((r, i) => (
+            <div
+              key={`${r.label}:${r.entityId ?? i}`}
+              style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 11.5 }}
+            >
+              <span style={{ fontWeight: 600, color: '#334155', flexShrink: 0 }}>{r.label}</span>
+              {r.detail && <span style={{ color: '#64748b', lineHeight: 1.4 }}>{r.detail}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The staged-artifact block — the named artifacts the docs prescribe per lens
+ *  (Dependency Map, Producers/Consumers, Milestone Impact, …), rendered under
+ *  the six-domain blast-radius grid. */
+function SectionStack({ sections }: { sections: ImpactSection[] }) {
+  return (
+    <div style={{ margin: '4px 16px 12px' }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: '#525252',
+          letterSpacing: 0.5,
+          marginBottom: 7,
+        }}
+      >
+        ANALYSIS ARTIFACTS
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {sections.map((section) => (
+          <SectionCard key={section.key} section={section} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** One knock-on impact domain. Always rendered — an empty card states its
  *  fixed coverage areas and "No impact detected". */
 function DomainCard({ label, areas, items }: { label: string; areas: string; items: Impact[] }) {
@@ -278,8 +403,8 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   // its derived lines merge into the domain cards (graph lines first).
   const ai = useAiAnalysis(report, s?.request ?? null);
   if (!s) return null;
-  const verb = CHANGE_LABELS[s.request.changeType];
-  const destructive = DESTRUCTIVE.has(s.request.changeType);
+  const verb = changeLabel(s.request.changeType);
+  const destructive = isDestructive(s.request.changeType, report?.changeClass);
   // Product decisions: the panel IS the decision point — the footer offers
   // Retain · Standardize · Retire directly (no verb tag, no generic Proceed).
   const productDecision = s.request.subject.kind === 'product-element';
@@ -387,6 +512,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           {report && !scanning && (
             <>
               {report.score && <ScoreCard score={report.score} />}
+              {report.stakeholders && report.stakeholders.length > 0 && (
+                <Stakeholders stakeholders={report.stakeholders} />
+              )}
               <AiAssessment report={report} />
               {merged.length === 0 ? (
                 <div style={{ padding: '18px 16px', fontSize: 12.5, color: '#737373' }}>
@@ -411,6 +539,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                     />
                   ))}
                 </div>
+              )}
+              {report.sections && report.sections.length > 0 && (
+                <SectionStack sections={report.sections} />
               )}
               {report.goal && <GoalStrip goal={report.goal} />}
             </>

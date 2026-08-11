@@ -6,8 +6,13 @@
 
 export type ImpactSeverity = 'BREAKING' | 'HIGH' | 'MEDIUM' | 'LOW';
 
-export type ChangeType =
+/** The legacy rationalization verbs — still the vocabulary the Applications and
+ *  Products boards emit. The per-lens taxonomies (value-stream / role /
+ *  deliverable / plan) add many more tokens; the API accepts any of them, so
+ *  the type stays open (`& {}` preserves autocomplete for the legacy nine). */
+export type LegacyChangeType =
   'RETIRE' | 'DROP' | 'DEPRECATE' | 'REPLACE' | 'MERGE' | 'CONSOLIDATE' | 'MOVE' | 'ADOPT' | 'HOLD';
+export type ChangeType = LegacyChangeType | (string & {});
 
 export type ImpactSubject =
   | { kind: 'process-nodes'; nodeIds: string[] }
@@ -19,7 +24,9 @@ export type ImpactSubject =
       component: string;
       elementName?: string;
       componentNodeIds?: string[];
-    };
+    }
+  | { kind: 'deliverable'; deliverableIds: string[] }
+  | { kind: 'plan'; programId?: string; workstreamId?: string; initiativeId?: string };
 
 export interface ImpactRequest {
   changeType: ChangeType;
@@ -59,12 +66,48 @@ export interface GoalProgress {
   pct: number;
 }
 
+/** An auto-identified reviewer for the change — derived from the graph, never
+ *  free-text (Change Impact v2, Workstream C). Mirrors backend Stakeholder. */
+export interface Stakeholder {
+  kind:
+    | 'Process Owner'
+    | 'Business Architect'
+    | 'Operations Leader'
+    | 'Risk & Compliance'
+    | 'Technology';
+  name: string;
+  why: string;
+  entityType: string;
+  entityId: string | null;
+}
+
+/** A named artifact produced by a lens-specific analysis stage (Producers,
+ *  Consumers, Information Components, Milestone Impact, …). Deterministic rows
+ *  come from the graph walk; AI-derived rows are editable. Kept generic so one
+ *  panel renders every lens's stages. Mirrors backend ImpactSection. */
+export interface ImpactSectionRow {
+  label: string;
+  detail?: string | null;
+  entityType?: string;
+  entityId?: string | null;
+}
+export interface ImpactSection {
+  key: string;
+  title: string;
+  blurb?: string;
+  rows: ImpactSectionRow[];
+}
+
 export interface ImpactReport {
   subject: { kind: string; id: string | null; name: string; context: string | null };
   changeType: ChangeType;
-  changeClass: 'destructive' | 'restructure' | 'adopt';
+  changeClass: 'destructive' | 'restructure' | 'additive' | 'adopt';
   summary: { breaking: number; high: number; medium: number; low: number; total: number };
   impacts: Impact[];
+  /** Auto-identified reviewers — present on every v2 report. */
+  stakeholders?: Stakeholder[];
+  /** Lens-specific staged artifacts (deliverable / plan / role stages). */
+  sections?: ImpactSection[];
   score?: DecisionScore;
   goal?: GoalProgress;
 }
@@ -89,8 +132,9 @@ export const SEVERITY_META: Record<
   LOW: { label: 'Info', fg: '#374151', bg: '#f9fafb', border: '#e5e7eb' },
 };
 
-/** Button/verb labels — what "Proceed" actually does. */
-export const CHANGE_LABELS: Record<ChangeType, string> = {
+/** Button/verb labels for the legacy rationalization vocabulary — what
+ *  "Proceed" actually does on the Applications and Products boards. */
+export const CHANGE_LABELS: Record<LegacyChangeType, string> = {
   RETIRE: 'Retire',
   DROP: 'Drop',
   DEPRECATE: 'Deprecate',
@@ -102,7 +146,26 @@ export const CHANGE_LABELS: Record<ChangeType, string> = {
   HOLD: 'Hold',
 };
 
-export const DESTRUCTIVE = new Set<ChangeType>(['RETIRE', 'DROP', 'DEPRECATE', 'REPLACE']);
+/** Human label for ANY change-type token. Legacy verbs use the curated map; the
+ *  per-lens taxonomy tokens (SNAKE_CASE) title-case cleanly as a fallback, so
+ *  the panel header renders every lens's verb without duplicating 55 strings. */
+export function changeLabel(token: string): string {
+  const legacy = CHANGE_LABELS[token as LegacyChangeType];
+  if (legacy) return legacy;
+  return token
+    .toLowerCase()
+    .split('_')
+    .map((w, i) => (i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(' ');
+}
+
+const DESTRUCTIVE_LEGACY = new Set<string>(['RETIRE', 'DROP', 'DEPRECATE', 'REPLACE']);
+/** Whether a change reads as destructive — used for the red accent. Falls back
+ *  to the report's changeClass for the new taxonomy tokens. */
+export function isDestructive(token: string, changeClass?: ImpactReport['changeClass']): boolean {
+  if (changeClass) return changeClass === 'destructive';
+  return DESTRUCTIVE_LEGACY.has(token);
+}
 
 /** The six knock-on impact domains, in display order. `areas` is the fixed
  *  checklist of what each domain covers — shown even when nothing was found,

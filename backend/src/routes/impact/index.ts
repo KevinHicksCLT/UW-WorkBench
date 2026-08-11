@@ -10,9 +10,11 @@ import { registerAssessRoutes } from './assess.js';
 import { registerSummaryRoutes } from './summary.js';
 import { registerAnalyzeRoutes } from './analyze.js';
 import { registerAssessmentRoutes } from './assessments.js';
+import { registerCatalogRoutes } from './catalog.js';
 
 const router = Router();
 router.use(requireAuth);
+registerCatalogRoutes(router);
 registerAssessRoutes(router);
 registerSummaryRoutes(router);
 registerAnalyzeRoutes(router);
