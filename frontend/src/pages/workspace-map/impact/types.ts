@@ -32,6 +32,33 @@ export interface ImpactRequest {
   changeType: ChangeType;
   label?: string;
   subject: ImpactSubject;
+  /** A pure assessment (opened from a subject's detail surface, not gating a
+   *  board action). The panel then offers the lens's change-type picker and a
+   *  Save-assessment action instead of a Proceed button. Board gates leave this
+   *  unset, so their flow is byte-identical (Workstream C / AC7). */
+  pickable?: boolean;
+}
+
+/** Which lens a subject kind belongs to — drives the change-type picker. Mirrors
+ *  the backend ChangeLens; product/application keep the legacy vocabulary. */
+export type ChangeLens =
+  'value-stream' | 'role' | 'deliverable' | 'plan' | 'application' | 'product';
+
+export function lensForKind(kind: string): ChangeLens {
+  switch (kind) {
+    case 'process-nodes':
+      return 'value-stream';
+    case 'role':
+      return 'role';
+    case 'deliverable':
+      return 'deliverable';
+    case 'plan':
+      return 'plan';
+    case 'product-element':
+      return 'product';
+    default:
+      return 'application';
+  }
 }
 
 export type ImpactDomain =

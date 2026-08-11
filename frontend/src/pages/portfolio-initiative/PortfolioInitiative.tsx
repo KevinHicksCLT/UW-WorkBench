@@ -13,6 +13,8 @@ import { STAGE_ORDER, STAGE_LABELS } from '../../lib/format';
 import PageHeader from '../../components/PageHeader';
 import { Button, Card, ErrorMessage, LoadingState, Select, StatusPill } from '../../components/ui';
 import { type Initiative } from '../../lib/portfolio';
+import ImpactPanel from '../workspace-map/impact/ImpactPanel';
+import { useImpactGate } from '../workspace-map/impact/useImpactGate';
 import { SummaryTab } from './SummaryTab';
 import { CharterTab } from './CharterTab';
 import { AlignmentTab } from './AlignmentTab';
@@ -45,6 +47,7 @@ export default function PortfolioInitiative() {
   const [tab, setTab] = useViewState<Tab>(`initiative.${id}.tab`, 'Summary');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const gate = useImpactGate();
 
   function load() {
     api
@@ -86,6 +89,22 @@ export default function PortfolioInitiative() {
         title={init.name}
         actions={
           <>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                gate.run(
+                  {
+                    changeType: 'RESCHEDULE',
+                    label: init.name,
+                    subject: { kind: 'plan', initiativeId: init.id },
+                    pickable: true,
+                  },
+                  () => {},
+                )
+              }
+            >
+              Assess Impact
+            </Button>
             {init.workflowAction === 'SUBMIT' && (
               <Button disabled={busy} onClick={() => workflow('APPROVE')}>
                 Approve → {STAGE_LABELS[STAGE_ORDER[stageIdx + 1]] ?? 'Done'}
@@ -146,6 +165,8 @@ export default function PortfolioInitiative() {
       {tab === 'Resources' && <ResourcesTab init={init} reload={load} />}
       {tab === 'RAID' && <RaidTab init={init} reload={load} />}
       {tab === 'Audit' && <AuditTab initId={init.id} />}
+
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

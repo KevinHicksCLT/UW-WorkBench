@@ -1,11 +1,15 @@
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { api } from '../../../lib/api';
 import {
   CATEGORY_LABELS,
   changeLabel,
   DOMAIN_META,
   isDestructive,
+  lensForKind,
   RECOMMENDATION_META,
   SEVERITY_META,
+  type ChangeLens,
   type DecisionScore,
   type GoalProgress,
   type Impact,
@@ -15,6 +19,80 @@ import {
 } from './types';
 import { AiAssessment, IMPACT_ANIM_CSS, LOGO_BLUE, ScannerView, useAiAnalysis } from './aiAnalysis';
 import type { ImpactGate } from './useImpactGate';
+
+// The per-lens change-type catalog (GET /impact/taxonomy), fetched once and
+// shared across every panel open — reference data that never changes in a
+// session, so a module-level promise is the whole cache.
+type TaxonomyEntry = { token: string; label: string; changeClass: string };
+type Taxonomy = Record<string, TaxonomyEntry[]>;
+let taxonomyPromise: Promise<Taxonomy> | null = null;
+function loadTaxonomy(): Promise<Taxonomy> {
+  if (!taxonomyPromise) {
+    taxonomyPromise = api
+      .get<{ byLens: Taxonomy }>('/impact/taxonomy')
+      .then((r) => r.byLens)
+      .catch(() => {
+        // Let a transient failure retry on the next open rather than caching {}.
+        taxonomyPromise = null;
+        return {} as Taxonomy;
+      });
+  }
+  return taxonomyPromise;
+}
+
+/** The lens change-type picker — a pure assessment lets the reviewer pick which
+ *  change they're weighing, and the report reshapes to that verb's blast-radius
+ *  profile (Change Impact v2, Workstream A / AC1). Board gates don't render
+ *  this; they pass a fixed verb. */
+function LensPicker({
+  lens,
+  value,
+  disabled,
+  onPick,
+}: {
+  lens: ChangeLens;
+  value: string;
+  disabled: boolean;
+  onPick: (token: string) => void;
+}) {
+  const [options, setOptions] = useState<TaxonomyEntry[]>([]);
+  useEffect(() => {
+    let alive = true;
+    loadTaxonomy().then((tax) => {
+      if (alive) setOptions(tax[lens] ?? []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [lens]);
+  return (
+    <select
+      value={value}
+      disabled={disabled}
+      onChange={(e) => onPick(e.target.value)}
+      aria-label="Change type"
+      style={{
+        font: 'inherit',
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: '#171717',
+        padding: '3px 8px',
+        borderRadius: 7,
+        border: `1px solid ${LOGO_BLUE}44`,
+        background: '#fff',
+        cursor: disabled ? 'default' : 'pointer',
+      }}
+    >
+      {/* Keep the current token selectable even before the catalog lands. */}
+      {options.length === 0 && <option value={value}>{changeLabel(value)}</option>}
+      {options.map((o) => (
+        <option key={o.token} value={o.token}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 // The common change-impact panel — rendered by every lens's decision surface
 // over the same gate. The report reads as the knock-on impact assessment from
@@ -402,9 +480,20 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   // The AI deep-dive kicks off as soon as the deterministic report lands and
   // its derived lines merge into the domain cards (graph lines first).
   const ai = useAiAnalysis(report, s?.request ?? null);
+  // Save-assessment state (pure assessments) — reset whenever the subject or
+  // change type changes so a reshaped report can be saved afresh.
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
+  const saveKey = s
+    ? `${s.request.subject.kind}:${s.request.changeType}:${JSON.stringify(s.request.subject)}`
+    : '';
+  useEffect(() => {
+    setSaveStatus('idle');
+  }, [saveKey]);
   if (!s) return null;
   const verb = changeLabel(s.request.changeType);
   const destructive = isDestructive(s.request.changeType, report?.changeClass);
+  const pickable = !!s.request.pickable;
+  const lens = lensForKind(s.request.subject.kind);
   // Product decisions: the panel IS the decision point — the footer offers
   // Retain · Standardize · Retire directly (no verb tag, no generic Proceed).
   const productDecision = s.request.subject.kind === 'product-element';
@@ -423,6 +512,28 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         ...[...ai.impacts].sort((a, b) => severityRank(a.severity) - severityRank(b.severity)),
       ]
     : [];
+
+  // Persist the packet (Workstream D) — snapshot the derived report and its
+  // staged artifacts as opaque jsonb. Saved in ASSESSED state; governance
+  // (RECOMMEND → maker-checker APPROVE) happens on the assessment record.
+  const saveAssessment = async () => {
+    if (!report) return;
+    setSaveStatus('saving');
+    try {
+      await api.post('/impact/assessments', {
+        subject: s.request.subject,
+        subjectName: report.subject.name,
+        changeType: report.changeType,
+        status: 'ASSESSED',
+        ...(report.score ? { recommendation: report.score.recommendation } : {}),
+        report,
+        ...(report.sections ? { artifacts: { sections: report.sections } } : {}),
+      });
+      setSaveStatus('done');
+    } catch {
+      setSaveStatus('error');
+    }
+  };
 
   return createPortal(
     <div
@@ -466,19 +577,28 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
             <span style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', flex: 1 }}>
               {subjectName}
             </span>
-            {!productDecision && (
-              <span
-                style={{
-                  padding: '2px 9px',
-                  borderRadius: 999,
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  color: '#fff',
-                  background: destructive ? '#dc2626' : LOGO_BLUE,
-                }}
-              >
-                {verb}
-              </span>
+            {pickable && !productDecision ? (
+              <LensPicker
+                lens={lens}
+                value={s.request.changeType}
+                disabled={s.busy || scanning}
+                onPick={gate.reassess}
+              />
+            ) : (
+              !productDecision && (
+                <span
+                  style={{
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: '#fff',
+                    background: destructive ? '#dc2626' : LOGO_BLUE,
+                  }}
+                >
+                  {verb}
+                </span>
+              )
             )}
           </div>
           {report?.subject.context && (
@@ -590,9 +710,40 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               cursor: 'pointer',
             }}
           >
-            Cancel
+            {pickable ? 'Close' : 'Cancel'}
           </button>
-          {productDecision ? (
+          {pickable ? (
+            // A pure assessment — persist the decision packet (Workstream D).
+            // Once saved, governance (RECOMMEND → maker-checker approval) runs
+            // on the stored record from the subject's assessment history.
+            <button
+              type="button"
+              onClick={() => {
+                if (saveStatus !== 'done') saveAssessment();
+              }}
+              disabled={!report || scanning || saveStatus === 'saving' || saveStatus === 'done'}
+              style={{
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '6px 16px',
+                borderRadius: 7,
+                border: 'none',
+                background: saveStatus === 'error' ? '#dc2626' : LOGO_BLUE,
+                color: '#fff',
+                cursor: !report || scanning || saveStatus === 'saving' ? 'default' : 'pointer',
+                opacity: !report || scanning ? 0.6 : 1,
+              }}
+            >
+              {saveStatus === 'saving'
+                ? 'Saving…'
+                : saveStatus === 'done'
+                  ? 'Saved ✓'
+                  : saveStatus === 'error'
+                    ? 'Retry save'
+                    : 'Save assessment'}
+            </button>
+          ) : productDecision ? (
             // The three board decisions, made from the report itself. They
             // unlock — and the recommended one earns its star — only once the
             // FULL analysis (graph walk + AI deep-dive) has landed.

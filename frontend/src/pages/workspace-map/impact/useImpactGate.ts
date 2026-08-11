@@ -26,6 +26,9 @@ export interface ImpactGate {
     proceed: (chosen?: string) => void | Promise<void>,
     onCancel?: () => void,
   ) => void;
+  /** Re-run the assessment with a different change type — the lens picker in
+   *  the panel (pure assessments only). Keeps the pending proceed callback. */
+  reassess: (changeType: string) => void;
   cancel: () => void;
   confirm: (chosen?: string) => Promise<void>;
 }
@@ -37,14 +40,10 @@ export function useImpactGate(): ImpactGate {
   // Guards a stale assessment response from resurrecting a cancelled panel.
   const seqRef = useRef(0);
 
-  const run = (
-    request: ImpactRequest,
-    proceed: (chosen?: string) => void | Promise<void>,
-    onCancel?: () => void,
-  ) => {
+  // Post the assessment for a request and fold the report (or error) back into
+  // state, guarding against a stale response resurrecting a cancelled panel.
+  const assess = (request: ImpactRequest) => {
     const seq = ++seqRef.current;
-    proceedRef.current = proceed;
-    cancelRef.current = onCancel ?? null;
     setState({ request, report: null, loading: true, error: '', busy: false });
     api
       .post('/impact/assess', request, { invalidate: 'none' })
@@ -64,6 +63,22 @@ export function useImpactGate(): ImpactGate {
             : s,
         );
       });
+  };
+
+  const run = (
+    request: ImpactRequest,
+    proceed: (chosen?: string) => void | Promise<void>,
+    onCancel?: () => void,
+  ) => {
+    proceedRef.current = proceed;
+    cancelRef.current = onCancel ?? null;
+    assess(request);
+  };
+
+  // Swap the change type and re-derive — the report reshapes to the new verb's
+  // blast-radius profile. Only reachable from the picker (pure assessments).
+  const reassess = (changeType: string) => {
+    if (state) assess({ ...state.request, changeType });
   };
 
   const cancel = () => {
@@ -91,5 +106,5 @@ export function useImpactGate(): ImpactGate {
     }
   };
 
-  return { state, run, cancel, confirm };
+  return { state, run, reassess, cancel, confirm };
 }
