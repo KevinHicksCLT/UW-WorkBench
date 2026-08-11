@@ -1,4 +1,4 @@
-import { LAYERS, GREEN, AMBER, INDIGO } from './types';
+import { GREEN, AMBER, INDIGO } from './types';
 import type {
   Finding,
   Layer,
@@ -9,6 +9,8 @@ import type {
 } from './types';
 import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './NormalizeCards';
 import { CORE_AREA } from './compare';
+import { normalizeHeaderStats } from './stats';
+import { useBoardVocab } from './vocabulary';
 
 /** Functional-area model for the "all screens" walk (null = single-screen walk). */
 export type AreaModel = { areaOf: Map<string, string>; order: string[] } | null;
@@ -44,15 +46,6 @@ interface Props {
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
 }
-
-/** What the layer covers, in the section subtitle (mirrors the design comp). */
-const LAYER_TITLE: Record<Layer, string> = {
-  UI: 'UI Components / Fields',
-  Integration: 'Integration Logic',
-  'Business Service': 'Business Service Logic',
-  Data: 'Data Schema & Payload',
-  Infrastructure: 'Infra Security Rules & Logs',
-};
 
 /** Small group divider: shared / application-specific / pass-through. */
 function GroupHead({ kind, count }: { kind: 'shared' | 'unique' | 'passthrough'; count: number }) {
@@ -139,6 +132,8 @@ function LayerSection({
   open: boolean;
   onToggle: () => void;
 }) {
+  // What the layer covers, in the section title (vocabulary SCAFFOLD meta).
+  const { layerTitle } = useBoardVocab();
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   const rows = findings.filter((f) => f.layer === layer);
@@ -245,7 +240,7 @@ function LayerSection({
           >
             ▾
           </span>
-          {LAYER_TITLE[layer]}
+          {layerTitle(layer)}
         </span>
         <span style={{ fontSize: 12, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
           {apps.length > 1 && (
@@ -356,6 +351,8 @@ export default function NormalizeColumn({
   expandedLayers,
   onToggleLayer,
 }: Props) {
+  // Row axis in DB order (vocabulary LAYER rows; falls back to LAYERS).
+  const { layers } = useBoardVocab();
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   // The header pill totals the full comparison scope (every picked app);
@@ -379,6 +376,13 @@ export default function NormalizeColumn({
   const awaiting = scopedEntries.filter(
     (e) => e.matchStatus === 'REVIEW' || e.matchStatus === 'HELD',
   ).length;
+  // v3 header roll-up — the server's numbers when the column shows the whole
+  // board it counted; a narrowed walk / cross-board merge recomputes above.
+  const stats = normalizeHeaderStats(
+    board.normalizeStats,
+    { raw: current, normalized, awaitingReview: awaiting },
+    findings.length === board.findings.length,
+  );
   // Comparison verdict: with several applications in scope and not a single
   // shared entry, say so plainly — nothing consolidates, everything migrates
   // application-specific.
@@ -408,12 +412,15 @@ export default function NormalizeColumn({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{current} current combined steps</b> →{' '}
-          <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized steps</b>
-          {awaiting > 0 && (
+          <b style={{ fontWeight: 700, color: '#171717' }}>{stats.raw} raw steps</b> →{' '}
+          <b style={{ fontWeight: 700, color: GREEN }}>{stats.normalized} normalized</b>
+          {stats.awaitingReview > 0 && (
             <>
               {' '}
-              · <b style={{ fontWeight: 600, color: AMBER }}>{awaiting} awaiting review</b>
+              ·{' '}
+              <b style={{ fontWeight: 600, color: AMBER }}>
+                {stats.awaitingReview} awaiting review
+              </b>
             </>
           )}
           {apps.length > 1 && sharedTotal === 0 && (
@@ -428,7 +435,7 @@ export default function NormalizeColumn({
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {LAYERS.map((layer) => (
+        {layers.map((layer) => (
           <LayerSection
             key={layer}
             layer={layer}

@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { MENU_TREE, type MenuNode } from '@cascade/shared';
 import { Select } from '../../components/ui';
-import { ALL_SCREENS, LAYERS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
+import { ALL_SCREENS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
 import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
 import { ScreenPreview, WhyDetail } from './ScreenDetail';
+import { useBoardVocab } from './vocabulary';
 
 // Per-screen decomposition of the current state: pick one screen of the
 // application and see the full stack underneath it — every tech layer is
@@ -35,15 +36,6 @@ interface Props {
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
 }
-
-/** What the layer means for a single screen (subtitle in each section). */
-const LAYER_SUBTITLE: Record<Layer, string> = {
-  UI: 'what the screen captures',
-  Integration: 'APIs — how data is sent',
-  'Business Service': 'processing & validations',
-  Data: "what's stored",
-  Infrastructure: 'security & ops',
-};
 
 /** Screens sort in the order they appear in the app nav (MENU_TREE). */
 function navOrder(): Map<string, number> {
@@ -107,6 +99,8 @@ export default function ScreenView(props: Props) {
     expandedLayers,
     onToggleLayer,
   } = props;
+  // Layer order + per-layer subtitle come from the vocabulary (plan §3-A).
+  const { layers, layerSubtitle } = useBoardVocab();
   const options = screenOptions(screens, findings);
   const multiApp = apps.length > 1;
   // SCRUM-222: on a multi-application board the screen picker groups per app,
@@ -179,7 +173,7 @@ export default function ScreenView(props: Props) {
         </Select>
       </div>
 
-      {LAYERS.map((layer: Layer) => {
+      {layers.map((layer: Layer) => {
         const layerRows = rows.filter((f) => f.layer === layer);
         const accent = LAYER_ACCENT[layer];
         const stays = layerRows.filter((f) => !findingMoves(f)).length;
@@ -228,7 +222,7 @@ export default function ScreenView(props: Props) {
               </span>
               <span style={{ width: 9, height: 9, borderRadius: 999, background: accent.line }} />
               <span style={{ fontSize: 12.5, fontWeight: 700 }}>{layer}</span>
-              <span style={{ fontSize: 10, color: '#a3a3a3' }}>{LAYER_SUBTITLE[layer]}</span>
+              <span style={{ fontSize: 10, color: '#a3a3a3' }}>{layerSubtitle(layer)}</span>
               <span
                 style={{
                   marginLeft: 'auto',
