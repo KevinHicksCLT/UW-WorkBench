@@ -377,6 +377,8 @@ model Company {
   scenarios                     Scenario[]
   telemetrySignals              TelemetrySignal[]
   analysisStatuses              AnalysisStatus[]
+  // Change-impact decision packets
+  impactAssessments             ImpactAssessment[]
 
   @@unique([tenantId, slug])
 }
@@ -1914,6 +1916,42 @@ model RaidItem {
 
   @@index([initiativeId])
   @@index([ownerRoleId])
+}
+
+// ─── CHANGE-IMPACT DECISION PACKETS ─────────────────────────────────────
+// A persisted change-impact assessment (Change Impact v2, Workstream D). The
+// report itself stays DERIVED — this table only snapshots a decision packet so
+// there is an audit trail and a maker-checker approval step. Following erd_v5
+// discipline it holds NO denormalized copies of graph rows: `subjectRef`,
+// `report` and `artifacts` are opaque jsonb; live data is always re-derived
+// from the closures/junctions. `createdBy` (maker) ≠ `decidedBy` (checker) is
+// enforced at the API layer for RECOMMENDED → APPROVED transitions.
+model ImpactAssessment {
+  id          String   @id @default(cuid())
+  tenantId    String
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // process-nodes | role | application | product-element | deliverable | plan
+  subjectKind String
+  subjectRef  Json // the ImpactSubject discriminated union
+  subjectName String
+  changeType  String
+  intent      String? // the Intent Statement free text
+  // DRAFT | ASSESSED | RECOMMENDED | APPROVED | REJECTED | FURTHER_ANALYSIS
+  status         String    @default("DRAFT")
+  recommendation String? // decision recommendation captured at RECOMMEND
+  report         Json? // ImpactReport snapshot (jsonb)
+  artifacts      Json? // staged artifacts, edited per stage (jsonb)
+  createdBy      String // User id (maker)
+  decidedBy      String? // User id (checker)
+  decidedAt      DateTime?
+  decisionNote   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([companyId, subjectKind])
+  @@index([companyId, createdAt])
+  @@index([companyId, status])
 }
 
 // ─── APP RATIONALIZATION ("How") ────────────────────────────────────────

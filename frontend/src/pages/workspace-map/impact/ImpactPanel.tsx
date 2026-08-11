@@ -1,18 +1,98 @@
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { api } from '../../../lib/api';
 import {
   CATEGORY_LABELS,
-  CHANGE_LABELS,
-  DESTRUCTIVE,
+  changeLabel,
   DOMAIN_META,
+  isDestructive,
+  lensForKind,
   RECOMMENDATION_META,
   SEVERITY_META,
+  type ChangeLens,
   type DecisionScore,
   type GoalProgress,
   type Impact,
+  type ImpactSection,
   type ImpactSeverity,
+  type Stakeholder,
 } from './types';
 import { AiAssessment, IMPACT_ANIM_CSS, LOGO_BLUE, ScannerView, useAiAnalysis } from './aiAnalysis';
 import type { ImpactGate } from './useImpactGate';
+
+// The per-lens change-type catalog (GET /impact/taxonomy), fetched once and
+// shared across every panel open — reference data that never changes in a
+// session, so a module-level promise is the whole cache.
+type TaxonomyEntry = { token: string; label: string; changeClass: string };
+type Taxonomy = Record<string, TaxonomyEntry[]>;
+let taxonomyPromise: Promise<Taxonomy> | null = null;
+function loadTaxonomy(): Promise<Taxonomy> {
+  if (!taxonomyPromise) {
+    taxonomyPromise = api
+      .get<{ byLens: Taxonomy }>('/impact/taxonomy')
+      .then((r) => r.byLens)
+      .catch(() => {
+        // Let a transient failure retry on the next open rather than caching {}.
+        taxonomyPromise = null;
+        return {} as Taxonomy;
+      });
+  }
+  return taxonomyPromise;
+}
+
+/** The lens change-type picker — a pure assessment lets the reviewer pick which
+ *  change they're weighing, and the report reshapes to that verb's blast-radius
+ *  profile (Change Impact v2, Workstream A / AC1). Board gates don't render
+ *  this; they pass a fixed verb. */
+function LensPicker({
+  lens,
+  value,
+  disabled,
+  onPick,
+}: {
+  lens: ChangeLens;
+  value: string;
+  disabled: boolean;
+  onPick: (token: string) => void;
+}) {
+  const [options, setOptions] = useState<TaxonomyEntry[]>([]);
+  useEffect(() => {
+    let alive = true;
+    loadTaxonomy().then((tax) => {
+      if (alive) setOptions(tax[lens] ?? []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [lens]);
+  return (
+    <select
+      value={value}
+      disabled={disabled}
+      onChange={(e) => onPick(e.target.value)}
+      aria-label="Change type"
+      style={{
+        font: 'inherit',
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: '#171717',
+        padding: '3px 8px',
+        borderRadius: 7,
+        border: `1px solid ${LOGO_BLUE}44`,
+        background: '#fff',
+        cursor: disabled ? 'default' : 'pointer',
+      }}
+    >
+      {/* Keep the current token selectable even before the catalog lands. */}
+      {options.length === 0 && <option value={value}>{changeLabel(value)}</option>}
+      {options.map((o) => (
+        <option key={o.token} value={o.token}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 // The common change-impact panel — rendered by every lens's decision surface
 // over the same gate. The report reads as the knock-on impact assessment from
@@ -178,6 +258,138 @@ function GoalStrip({ goal }: { goal: GoalProgress }) {
   );
 }
 
+/** The review function each stakeholder kind maps onto — the docs prescribe
+ *  exactly these five (Process Owner, Business Architect, Operations Leader,
+ *  Risk, Technology). Colour keeps them scannable in the reviewer strip. */
+const STAKEHOLDER_TONE: Record<Stakeholder['kind'], string> = {
+  'Process Owner': '#4f46e5',
+  'Business Architect': '#0891b2',
+  'Operations Leader': '#0f766e',
+  'Risk & Compliance': '#b91c1c',
+  Technology: '#7c3aed',
+};
+
+/** Auto-identified reviewers — who must sign off, derived from the graph (owner
+ *  roles, org units, Risk on control-touching, Technology on app-touching).
+ *  Present on every v2 report so the change never proceeds without its
+ *  reviewers named. */
+function Stakeholders({ stakeholders }: { stakeholders: Stakeholder[] }) {
+  return (
+    <div style={{ margin: '10px 16px 0' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+        STAKEHOLDERS — who reviews this change
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+        {stakeholders.map((sh, i) => {
+          const tone = STAKEHOLDER_TONE[sh.kind] ?? '#525252';
+          // The chip's bold label is the review function (kind); the secondary
+          // text names the concrete thing reviewed. Suppress it when it would
+          // just echo the function (e.g. old "Technology · Technology" packets).
+          const showName = !!sh.name && sh.name.toLowerCase() !== sh.kind.toLowerCase();
+          return (
+            <span
+              key={`${sh.kind}:${sh.entityId ?? sh.name}:${i}`}
+              title={sh.why}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: 5,
+                maxWidth: '100%',
+                padding: '3px 9px',
+                borderRadius: 999,
+                border: `1px solid ${tone}33`,
+                background: `${tone}0d`,
+                fontSize: 11,
+              }}
+            >
+              <span style={{ fontWeight: 700, color: tone }}>{sh.kind}</span>
+              {showName && (
+                <span
+                  style={{
+                    color: '#404040',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  <span aria-hidden style={{ color: `${tone}80`, marginRight: 4 }}>
+                    ·
+                  </span>
+                  {sh.name}
+                </span>
+              )}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** A lens-specific staged artifact — Producers / Consumers / Information
+ *  Components for a deliverable, Milestone / Funding impact for a plan, etc.
+ *  One generic renderer covers every lens's stages (Workstream C). */
+function SectionCard({ section }: { section: ImpactSection }) {
+  return (
+    <div
+      style={{
+        borderRadius: 8,
+        border: '1px solid #e2e8f0',
+        background: '#fff',
+        padding: '9px 11px',
+      }}
+    >
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: '#171717' }}>{section.title}</div>
+      {section.blurb && (
+        <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 2, lineHeight: 1.4 }}>
+          {section.blurb}
+        </div>
+      )}
+      {section.rows.length === 0 ? (
+        <div style={{ fontSize: 11, color: '#a3a3a3', marginTop: 6 }}>None identified.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 7 }}>
+          {section.rows.map((r, i) => (
+            <div
+              key={`${r.label}:${r.entityId ?? i}`}
+              style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 11.5 }}
+            >
+              <span style={{ fontWeight: 600, color: '#334155', flexShrink: 0 }}>{r.label}</span>
+              {r.detail && <span style={{ color: '#64748b', lineHeight: 1.4 }}>{r.detail}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The staged-artifact block — the named artifacts the docs prescribe per lens
+ *  (Dependency Map, Producers/Consumers, Milestone Impact, …), rendered under
+ *  the six-domain blast-radius grid. */
+function SectionStack({ sections }: { sections: ImpactSection[] }) {
+  return (
+    <div style={{ margin: '4px 16px 12px' }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: '#525252',
+          letterSpacing: 0.5,
+          marginBottom: 7,
+        }}
+      >
+        ANALYSIS ARTIFACTS
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {sections.map((section) => (
+          <SectionCard key={section.key} section={section} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** One knock-on impact domain. Always rendered — an empty card states its
  *  fixed coverage areas and "No impact detected". */
 function DomainCard({ label, areas, items }: { label: string; areas: string; items: Impact[] }) {
@@ -271,15 +483,87 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
   );
 }
 
+/** The Intent Statement stage (Change Impact v2, Workstream C, Common stage 1) —
+ *  a pure assessment's first artifact. The reviewer names why the change exists
+ *  and the outcome it creates before the graph is walked; the text is carried
+ *  into the saved packet. Editable while the report is on screen too. */
+function IntentEditor({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div style={{ margin: '10px 16px 0' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+        INTENT — why this change exists, the outcome it creates, is it regulatory
+      </div>
+      <textarea
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="State the intent behind this change and the outcome it should create…"
+        rows={2}
+        style={{
+          width: '100%',
+          marginTop: 5,
+          font: 'inherit',
+          fontSize: 12,
+          color: '#171717',
+          lineHeight: 1.45,
+          padding: '7px 9px',
+          borderRadius: 8,
+          border: '1px solid #e2e8f0',
+          background: disabled ? '#fafafa' : '#fff',
+          resize: 'vertical',
+        }}
+      />
+    </div>
+  );
+}
+
+/** A saved packet's stored Intent Statement, shown read-only on reopen. */
+function SavedIntent({ text }: { text: string }) {
+  return (
+    <div style={{ margin: '10px 16px 0' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+        INTENT
+      </div>
+      <div style={{ fontSize: 12, color: '#404040', lineHeight: 1.45, marginTop: 4 }}>{text}</div>
+    </div>
+  );
+}
+
 export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   const s = gate.state;
   const report = s?.report ?? null;
+  // A reopened packet shows its stored snapshot verbatim — never re-walk the
+  // graph or re-run the AI, so the saved view is stable and reproducible.
+  const savedView = !!s?.saved;
+  // The Intent stage — a pure assessment opened but not yet run. The reviewer
+  // picks the change type (per-lens taxonomy) and writes the intent first.
+  const awaitingIntent = !!s?.awaitingIntent;
   // The AI deep-dive kicks off as soon as the deterministic report lands and
-  // its derived lines merge into the domain cards (graph lines first).
-  const ai = useAiAnalysis(report, s?.request ?? null);
+  // its derived lines merge into the domain cards (graph lines first). Skipped
+  // for a reopened packet and before the assessment has been run.
+  const ai = useAiAnalysis(report, savedView || awaitingIntent ? null : (s?.request ?? null));
+  // Save-assessment state (pure assessments) — reset whenever the subject or
+  // change type changes so a reshaped report can be saved afresh.
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
+  const saveKey = s
+    ? `${s.request.subject.kind}:${s.request.changeType}:${JSON.stringify(s.request.subject)}`
+    : '';
+  useEffect(() => {
+    setSaveStatus('idle');
+  }, [saveKey]);
   if (!s) return null;
-  const verb = CHANGE_LABELS[s.request.changeType];
-  const destructive = DESTRUCTIVE.has(s.request.changeType);
+  const verb = changeLabel(s.request.changeType);
+  const destructive = isDestructive(s.request.changeType, report?.changeClass);
+  const pickable = !!s.request.pickable;
+  const lens = lensForKind(s.request.subject.kind);
   // Product decisions: the panel IS the decision point — the footer offers
   // Retain · Standardize · Retire directly (no verb tag, no generic Proceed).
   const productDecision = s.request.subject.kind === 'product-element';
@@ -298,6 +582,31 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         ...[...ai.impacts].sort((a, b) => severityRank(a.severity) - severityRank(b.severity)),
       ]
     : [];
+
+  // Persist the packet (Workstream D) — snapshot the derived report and its
+  // staged artifacts as opaque jsonb. Saved in ASSESSED state; governance
+  // (RECOMMEND → maker-checker APPROVE) happens on the assessment record.
+  // On success the panel closes: the packet now lives in the subject's
+  // assessment history, from where it can be reopened.
+  const saveAssessment = async () => {
+    if (!report) return;
+    setSaveStatus('saving');
+    try {
+      await api.post('/impact/assessments', {
+        subject: s.request.subject,
+        subjectName: report.subject.name,
+        changeType: report.changeType,
+        status: 'ASSESSED',
+        ...(s.intent.trim() ? { intent: s.intent.trim() } : {}),
+        ...(report.score ? { recommendation: report.score.recommendation } : {}),
+        report,
+        ...(report.sections ? { artifacts: { sections: report.sections } } : {}),
+      });
+      gate.cancel();
+    } catch {
+      setSaveStatus('error');
+    }
+  };
 
   return createPortal(
     <div
@@ -341,19 +650,30 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
             <span style={{ fontSize: 14.5, fontWeight: 700, color: '#171717', flex: 1 }}>
               {subjectName}
             </span>
-            {!productDecision && (
-              <span
-                style={{
-                  padding: '2px 9px',
-                  borderRadius: 999,
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  color: '#fff',
-                  background: destructive ? '#dc2626' : LOGO_BLUE,
-                }}
-              >
-                {verb}
-              </span>
+            {pickable && !productDecision && !savedView ? (
+              <LensPicker
+                lens={lens}
+                value={s.request.changeType}
+                disabled={s.busy || scanning}
+                // On the Intent stage the pick only reshapes the pending request
+                // (no assessment yet); once a report is up it re-derives live.
+                onPick={awaitingIntent ? gate.setChangeType : gate.reassess}
+              />
+            ) : (
+              !productDecision && (
+                <span
+                  style={{
+                    padding: '2px 9px',
+                    borderRadius: 999,
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: '#fff',
+                    background: destructive ? '#dc2626' : LOGO_BLUE,
+                  }}
+                >
+                  {verb}
+                </span>
+              )
             )}
           </div>
           {report?.subject.context && (
@@ -367,6 +687,30 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         {/* Body — full-screen scanner while assessing/deriving, the six-card
             report only once everything has landed. */}
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          {/* Intent Statement — editable on a pure assessment (Intent stage and
+              while the report is up); read-only on a reopened packet. */}
+          {savedView && s.intent.trim() && <SavedIntent text={s.intent.trim()} />}
+          {pickable && !savedView && !scanning && (
+            <IntentEditor value={s.intent} disabled={s.busy} onChange={gate.setIntent} />
+          )}
+          {awaitingIntent && !scanning && (
+            <div
+              style={{
+                margin: '14px 16px',
+                padding: '12px 14px',
+                borderRadius: 8,
+                background: '#f0f7fb',
+                border: '1px solid #dbeafe',
+                fontSize: 12.5,
+                color: '#334155',
+                lineHeight: 1.5,
+              }}
+            >
+              Pick the change type above and state the intent, then{' '}
+              <b style={{ color: LOGO_BLUE }}>Assess impact</b> to walk the graph and derive the
+              blast radius, stakeholders and recommendation for that specific change.
+            </div>
+          )}
           {scanning && !s.error && <ScannerView subjectName={subjectName} />}
           {!s.loading && s.error && !report && (
             <div
@@ -387,6 +731,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           {report && !scanning && (
             <>
               {report.score && <ScoreCard score={report.score} />}
+              {report.stakeholders && report.stakeholders.length > 0 && (
+                <Stakeholders stakeholders={report.stakeholders} />
+              )}
               <AiAssessment report={report} />
               {merged.length === 0 ? (
                 <div style={{ padding: '18px 16px', fontSize: 12.5, color: '#737373' }}>
@@ -411,6 +758,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                     />
                   ))}
                 </div>
+              )}
+              {report.sections && report.sections.length > 0 && (
+                <SectionStack sections={report.sections} />
               )}
               {report.goal && <GoalStrip goal={report.goal} />}
             </>
@@ -459,9 +809,60 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
               cursor: 'pointer',
             }}
           >
-            Cancel
+            {pickable || savedView ? 'Close' : 'Cancel'}
           </button>
-          {productDecision ? (
+          {savedView ? null : awaitingIntent ? (
+            // Intent stage — run the assessment for the chosen change type. The
+            // reviewer has picked the verb and (optionally) stated the intent in
+            // context before any graph walk happens.
+            <button
+              type="button"
+              onClick={gate.assessNow}
+              disabled={scanning}
+              style={{
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '6px 16px',
+                borderRadius: 7,
+                border: 'none',
+                background: LOGO_BLUE,
+                color: '#fff',
+                cursor: scanning ? 'default' : 'pointer',
+                opacity: scanning ? 0.6 : 1,
+              }}
+            >
+              Assess impact
+            </button>
+          ) : pickable ? (
+            // A pure assessment — persist the decision packet (Workstream D) and
+            // close. The packet lands in the subject's assessment history, where
+            // governance (RECOMMEND → maker-checker approval) runs and from where
+            // it can be reopened. Saveable any time a report is on screen.
+            <button
+              type="button"
+              onClick={saveAssessment}
+              disabled={!report || scanning || saveStatus === 'saving'}
+              style={{
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '6px 16px',
+                borderRadius: 7,
+                border: 'none',
+                background: saveStatus === 'error' ? '#dc2626' : LOGO_BLUE,
+                color: '#fff',
+                cursor: !report || scanning || saveStatus === 'saving' ? 'default' : 'pointer',
+                opacity: !report || scanning ? 0.6 : 1,
+              }}
+            >
+              {saveStatus === 'saving'
+                ? 'Saving…'
+                : saveStatus === 'error'
+                  ? 'Retry save'
+                  : 'Save assessment'}
+            </button>
+          ) : productDecision ? (
             // The three board decisions, made from the report itself. They
             // unlock — and the recommended one earns its star — only once the
             // FULL analysis (graph walk + AI deep-dive) has landed.

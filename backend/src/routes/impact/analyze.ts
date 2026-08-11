@@ -34,7 +34,7 @@ const reportLineSchema = z.object({
   description: z.string().max(500),
 });
 const bodySchema = z.object({
-  changeType: z.string().max(20),
+  changeType: z.string().max(40),
   subject: subjectSchema,
   subjectName: z.string().max(300),
   subjectContext: z.string().max(400).nullable().optional(),
@@ -128,6 +128,52 @@ async function contextPack(companyId: string, subject: Subject): Promise<string[
     for (const n of nodes) {
       lines.push(`Process ${n.isTask ? 'task' : 'node'}: ${n.displayValue}`);
       if (n.description) lines.push(`  ${n.description.slice(0, 250)}`);
+    }
+  } else if (subject.kind === 'deliverable') {
+    const delivs = await prisma.deliverable.findMany({
+      where: { id: { in: subject.deliverableIds }, companyId },
+      select: {
+        title: true,
+        description: true,
+        automatability: true,
+        roleDeliverables: {
+          select: { role_: true, role: { select: { displayValue: true } } },
+          take: 8,
+        },
+      },
+      take: 12,
+    });
+    for (const d of delivs) {
+      lines.push(`Deliverable: ${d.title}${d.automatability ? ` (${d.automatability})` : ''}`);
+      if (d.description) lines.push(`  ${d.description.slice(0, 300)}`);
+      const roles = d.roleDeliverables.map((r) => `${r.role.displayValue} (${r.role_})`);
+      if (roles.length) lines.push(`  Roles: ${roles.join(', ')}`);
+    }
+  } else if (subject.kind === 'plan') {
+    const inits = await prisma.portfolioInitiative.findMany({
+      where: {
+        companyId,
+        ...(subject.initiativeId
+          ? { id: subject.initiativeId }
+          : subject.workstreamId
+            ? { workstreamId: subject.workstreamId }
+            : subject.programId
+              ? { workstream: { programId: subject.programId } }
+              : {}),
+      },
+      select: {
+        name: true,
+        description: true,
+        stage: true,
+        status: true,
+        valueStreamNode: { select: { displayValue: true } },
+      },
+      take: 12,
+    });
+    for (const i of inits) {
+      lines.push(`Initiative: ${i.name} [${i.stage}/${i.status}]`);
+      if (i.valueStreamNode) lines.push(`  Drives value stream: ${i.valueStreamNode.displayValue}`);
+      if (i.description) lines.push(`  ${i.description.slice(0, 250)}`);
     }
   } else {
     const lob = await prisma.productNode.findFirst({
