@@ -483,16 +483,73 @@ function DomainCard({ label, areas, items }: { label: string; areas: string; ite
   );
 }
 
+/** The Intent Statement stage (Change Impact v2, Workstream C, Common stage 1) —
+ *  a pure assessment's first artifact. The reviewer names why the change exists
+ *  and the outcome it creates before the graph is walked; the text is carried
+ *  into the saved packet. Editable while the report is on screen too. */
+function IntentEditor({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div style={{ margin: '10px 16px 0' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+        INTENT — why this change exists, the outcome it creates, is it regulatory
+      </div>
+      <textarea
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="State the intent behind this change and the outcome it should create…"
+        rows={2}
+        style={{
+          width: '100%',
+          marginTop: 5,
+          font: 'inherit',
+          fontSize: 12,
+          color: '#171717',
+          lineHeight: 1.45,
+          padding: '7px 9px',
+          borderRadius: 8,
+          border: '1px solid #e2e8f0',
+          background: disabled ? '#fafafa' : '#fff',
+          resize: 'vertical',
+        }}
+      />
+    </div>
+  );
+}
+
+/** A saved packet's stored Intent Statement, shown read-only on reopen. */
+function SavedIntent({ text }: { text: string }) {
+  return (
+    <div style={{ margin: '10px 16px 0' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#525252', letterSpacing: 0.5 }}>
+        INTENT
+      </div>
+      <div style={{ fontSize: 12, color: '#404040', lineHeight: 1.45, marginTop: 4 }}>{text}</div>
+    </div>
+  );
+}
+
 export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
   const s = gate.state;
   const report = s?.report ?? null;
   // A reopened packet shows its stored snapshot verbatim — never re-walk the
   // graph or re-run the AI, so the saved view is stable and reproducible.
   const savedView = !!s?.saved;
+  // The Intent stage — a pure assessment opened but not yet run. The reviewer
+  // picks the change type (per-lens taxonomy) and writes the intent first.
+  const awaitingIntent = !!s?.awaitingIntent;
   // The AI deep-dive kicks off as soon as the deterministic report lands and
   // its derived lines merge into the domain cards (graph lines first). Skipped
-  // for a reopened packet — its snapshot already carries what was assessed.
-  const ai = useAiAnalysis(report, savedView ? null : (s?.request ?? null));
+  // for a reopened packet and before the assessment has been run.
+  const ai = useAiAnalysis(report, savedView || awaitingIntent ? null : (s?.request ?? null));
   // Save-assessment state (pure assessments) — reset whenever the subject or
   // change type changes so a reshaped report can be saved afresh.
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle');
@@ -540,6 +597,7 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         subjectName: report.subject.name,
         changeType: report.changeType,
         status: 'ASSESSED',
+        ...(s.intent.trim() ? { intent: s.intent.trim() } : {}),
         ...(report.score ? { recommendation: report.score.recommendation } : {}),
         report,
         ...(report.sections ? { artifacts: { sections: report.sections } } : {}),
@@ -597,7 +655,9 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
                 lens={lens}
                 value={s.request.changeType}
                 disabled={s.busy || scanning}
-                onPick={gate.reassess}
+                // On the Intent stage the pick only reshapes the pending request
+                // (no assessment yet); once a report is up it re-derives live.
+                onPick={awaitingIntent ? gate.setChangeType : gate.reassess}
               />
             ) : (
               !productDecision && (
@@ -627,6 +687,30 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
         {/* Body — full-screen scanner while assessing/deriving, the six-card
             report only once everything has landed. */}
         <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          {/* Intent Statement — editable on a pure assessment (Intent stage and
+              while the report is up); read-only on a reopened packet. */}
+          {savedView && s.intent.trim() && <SavedIntent text={s.intent.trim()} />}
+          {pickable && !savedView && !scanning && (
+            <IntentEditor value={s.intent} disabled={s.busy} onChange={gate.setIntent} />
+          )}
+          {awaitingIntent && !scanning && (
+            <div
+              style={{
+                margin: '14px 16px',
+                padding: '12px 14px',
+                borderRadius: 8,
+                background: '#f0f7fb',
+                border: '1px solid #dbeafe',
+                fontSize: 12.5,
+                color: '#334155',
+                lineHeight: 1.5,
+              }}
+            >
+              Pick the change type above and state the intent, then{' '}
+              <b style={{ color: LOGO_BLUE }}>Assess impact</b> to walk the graph and derive the
+              blast radius, stakeholders and recommendation for that specific change.
+            </div>
+          )}
           {scanning && !s.error && <ScannerView subjectName={subjectName} />}
           {!s.loading && s.error && !report && (
             <div
@@ -727,7 +811,30 @@ export default function ImpactPanel({ gate }: { gate: ImpactGate }) {
           >
             {pickable || savedView ? 'Close' : 'Cancel'}
           </button>
-          {savedView ? null : pickable ? (
+          {savedView ? null : awaitingIntent ? (
+            // Intent stage — run the assessment for the chosen change type. The
+            // reviewer has picked the verb and (optionally) stated the intent in
+            // context before any graph walk happens.
+            <button
+              type="button"
+              onClick={gate.assessNow}
+              disabled={scanning}
+              style={{
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '6px 16px',
+                borderRadius: 7,
+                border: 'none',
+                background: LOGO_BLUE,
+                color: '#fff',
+                cursor: scanning ? 'default' : 'pointer',
+                opacity: scanning ? 0.6 : 1,
+              }}
+            >
+              Assess impact
+            </button>
+          ) : pickable ? (
             // A pure assessment — persist the decision packet (Workstream D) and
             // close. The packet lands in the subject's assessment history, where
             // governance (RECOMMEND → maker-checker approval) runs and from where

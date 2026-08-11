@@ -12,12 +12,14 @@ export async function reopenAssessment(gate: ImpactGate, id: string): Promise<vo
     subjectRef: ImpactSubject;
     changeType: string;
     subjectName: string;
+    intent: string | null;
     report: ImpactReport | null;
   }>(`/impact/assessments/${id}`);
   if (!a.report || !a.report.subject) return;
   gate.openSaved(
     { changeType: a.changeType, subject: a.subjectRef, label: a.subjectName, pickable: false },
     a.report,
+    a.intent ?? '',
   );
 }
 
