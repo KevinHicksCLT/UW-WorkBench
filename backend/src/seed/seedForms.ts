@@ -1,204 +1,52 @@
-// ── Forms Rationalization demo library (FORMS-RATION) ──
-// Six client-owned GL endorsement variants that echo a real carrier problem:
-// the same additional-insured / primary-noncontributory / cancellation
-// provisions drafted slightly differently across regional programs. Ingested
-// through the SAME segmentation + hashing pipeline the API uses, so clause
-// offsets and hashes are production-identical. Plus the field plane: a
-// starter dictionary (ACORD-aware, one do-not-map, one calculated composite)
-// with extracted fields on three forms and τ-routed mapping suggestions.
-// Idempotent: rows are replaced wholesale per company.
+// ── Forms Rationalization library seed (FORMS-RATION + SCRUM-229) ──
+// Populates the Forms module with a real library:
+//   • the nine client manuscript forms (backend/data/forms/manuscripts.json) as
+//     anchors, ingested VERBATIM through the segmentClauses + clauseTextHash
+//     pipeline the API uses;
+//   • SERFF-informed synthetic variant families around each anchor with the
+//     controlled-divergence recipe (backend/src/seed/forms/families.ts);
+//   • the original six GL demo endorsements, kept alongside.
+// It then wires every module surface: working sets (per-family reading sets, an
+// all-lines portfolio set, a mode-override spotlight, the GL set), cluster runs,
+// citation-backed findings, sample dispositions with event history, preferred
+// wordings, the field plane (dictionary + extracted fields + τ-routed mappings)
+// and the six-dimension graph links (FormProcessNode / FormApplication).
+// Idempotent: every row is replaced wholesale per company.
 import type { PrismaClient } from '@prisma/client';
 import { segmentClauses, meanSegConfidence } from '../lib/forms/segmentation.js';
 import { clauseTextHash } from '../lib/forms/similarity.js';
 import { suggestMapping, type MappingCandidate } from '../lib/forms/fieldMapping.js';
-import { routeMappingStatus, QUARANTINE_THRESHOLD } from '../lib/forms/trust.js';
+import {
+  routeMappingStatus,
+  routeFindingStatus,
+  QUARANTINE_THRESHOLD,
+} from '../lib/forms/trust.js';
+import type { FindingCitation } from '../routes/forms/helpers.js';
+import { buildFamilies, type BuiltForm } from './forms/generate.js';
+import { GL_FORMS } from './forms/glDemo.js';
+import { DICTIONARY, FIELDS, type FieldSpec } from './forms/fieldPlane.js';
+import { runClusterRun, type CreatedCluster } from './forms/clusterRun.js';
 
 type Ctx = { tenantId: string; companyId: string };
 
-const AI_GRANT_A =
-  'A. Who Is An Insured is amended to include as an additional insured the person or organization shown in the Schedule, but only with respect to liability for bodily injury or property damage caused in whole or in part by your acts or omissions in the performance of your ongoing operations for the additional insured.';
-const AI_GRANT_B =
-  'A. Who Is An Insured is amended to include as an additional insured the person or organization shown in the Schedule, but only with respect to liability for bodily injury or property damage caused in whole or in part by your acts or omissions in the performance of your ongoing operations at the location designated above for the additional insured.';
-const AI_GRANT_C =
-  'A. Who Is An Insured is amended to include as an additional insured any person or organization with whom you have agreed in a written contract to provide such coverage, but only with respect to liability arising out of your ongoing operations performed for that person or organization.';
+const DEFAULT_THETA = 0.55;
 
-const PRIMARY_A =
-  'B. This insurance is primary to and will not seek contribution from any other insurance available to the additional insured, provided that the additional insured is a named insured under such other insurance and you have agreed in writing in a contract or agreement that this insurance would be primary and would not seek contribution.';
-const PRIMARY_B =
-  'B. This insurance is primary and noncontributory with respect to any other insurance available to the additional insured when you have agreed in a written contract or written agreement that this insurance will be primary and will not seek contribution from such insurance.';
-
-const CANCEL_A =
-  'C. We will not cancel this policy without first providing thirty days advance written notice to the first named insured, or ten days notice when cancellation is for nonpayment of premium.';
-const CANCEL_B =
-  'C. We will not cancel this policy without first providing sixty days advance written notice to the first named insured, or ten days notice when cancellation is for nonpayment of premium.';
-
-const WAIVER =
-  'D. We waive any right of recovery we may have against the person or organization shown in the Schedule because of payments we make for injury or damage arising out of your ongoing operations, but only to the extent you are required by written contract to obtain this waiver.';
-
-const SEVERABILITY =
-  'E. Except with respect to the Limits of Insurance, this insurance applies as if each named insured were the only named insured, and separately to each insured against whom claim is made or suit is brought.';
-
-type FormDef = {
+type IngestForm = {
   formNumber: string;
   title: string;
   lob: string;
   states: string[] | null;
   editionDate: string;
   filingStatus: string;
-  provenance?: string;
-  clauses: string[];
-};
-
-const FORMS: FormDef[] = [
-  {
-    formNumber: 'GL 20 10 A',
-    title: 'Additional Insured — Ongoing Operations (National)',
-    lob: 'General Liability',
-    states: null,
-    editionDate: '04 13',
-    filingStatus: 'Approved',
-    clauses: [AI_GRANT_A, PRIMARY_A, CANCEL_A, WAIVER, SEVERABILITY],
-  },
-  {
-    formNumber: 'GL 20 10 E',
-    title: 'Additional Insured — Ongoing Operations (East Program)',
-    lob: 'General Liability',
-    states: ['NY', 'NJ', 'CT'],
-    editionDate: '07 19',
-    filingStatus: 'Approved',
-    clauses: [AI_GRANT_B, PRIMARY_B, CANCEL_B, WAIVER, SEVERABILITY],
-  },
-  {
-    formNumber: 'GL 20 10 W',
-    title: 'Additional Insured — Ongoing Operations (West Program)',
-    lob: 'General Liability',
-    states: ['CA', 'OR', 'WA'],
-    editionDate: '01 21',
-    filingStatus: 'Filed',
-    clauses: [AI_GRANT_C, PRIMARY_B, CANCEL_A, SEVERABILITY],
-  },
-  {
-    formNumber: 'GL 24 04',
-    title: 'Waiver of Transfer of Rights (Blanket)',
-    lob: 'General Liability',
-    states: null,
-    editionDate: '05 09',
-    filingStatus: 'Approved',
-    clauses: [WAIVER, SEVERABILITY, CANCEL_A],
-  },
-  {
-    formNumber: 'GL 02 20',
-    title: 'Notice of Cancellation — Extended (Texas Program)',
-    lob: 'General Liability',
-    states: ['TX'],
-    editionDate: '11 17',
-    filingStatus: 'Approved',
-    clauses: [CANCEL_B, PRIMARY_A, SEVERABILITY],
-  },
-  {
-    formNumber: 'CG 20 10',
-    title: 'Additional Insured — Owners, Lessees or Contractors (ISO base)',
-    lob: 'General Liability',
-    states: null,
-    editionDate: '04 13',
-    filingStatus: 'Approved',
-    provenance: 'iso-flagged',
-    clauses: [AI_GRANT_A, PRIMARY_A, SEVERABILITY],
-  },
-];
-
-// Field-plane starter dictionary. insured.name.full is a calculated composite
-// (get-only, INV-F2); legacy.insured.fein is do-not-map (INV-F1); FEIN and
-// state carry ACORD refs (semantic deference, INV-F4).
-const DICTIONARY = [
-  { key: 'insured.name.first', dataSetType: 'Insured', dataType: 'string' },
-  { key: 'insured.name.last', dataSetType: 'Insured', dataType: 'string' },
-  {
-    key: 'insured.name.full',
-    dataSetType: 'Insured',
-    dataType: 'string',
-    compositionParts: ['insured.name.first', 'insured.name.last'],
-    compositionFormat: '{First} {Last}',
-  },
-  {
-    key: 'insured.tax.fein',
-    dataSetType: 'Identification',
-    dataType: 'string',
-    acordRef: 'ACORD:FEIN',
-  },
-  {
-    key: 'policy.number',
-    dataSetType: 'Policy',
-    dataType: 'string',
-    acordRef: 'ACORD:PolicyNumber',
-  },
-  {
-    key: 'policy.date.effective',
-    dataSetType: 'Policy',
-    dataType: 'date',
-    acordRef: 'ACORD:EffectiveDt',
-  },
-  {
-    key: 'policy.address.state',
-    dataSetType: 'Location',
-    dataType: 'choice',
-    acordRef: 'ACORD:StateProvCd',
-  },
-  { key: 'producer.name.full', dataSetType: 'Producer', dataType: 'string' },
-  { key: 'signature.insured.sign', dataSetType: 'Signature', dataType: 'signature' },
-  {
-    key: 'legacy.insured.fein',
-    dataSetType: 'Identification',
-    dataType: 'string',
-    stability: 'do-not-map',
-  },
-] as const;
-
-const STATE_OPTIONS = ['NY', 'NJ', 'CT', 'CA', 'OR', 'WA', 'TX'].map((s) => ({
-  label: s,
-  exportValue: s,
-}));
-
-// Divergently-named fields asking the SAME questions across three forms —
-// the seed for the "same question, N phrasings" report (FORMS-HLR-020).
-const FIELDS: Record<
-  string,
-  {
-    sourceName: string;
-    label: string;
-    widgetType?: string;
-    options?: { label: string; exportValue: string }[];
-    required?: boolean;
-  }[]
-> = {
-  'GL 20 10 A': [
-    { sourceName: 'InsuredFirstName', label: 'Insured First Name', required: true },
-    { sourceName: 'InsuredLastName', label: 'Insured Last Name', required: true },
-    { sourceName: 'InsuredFEIN', label: 'FEIN', required: true },
-    { sourceName: 'PolicyNumber', label: 'Policy Number', required: true },
-    { sourceName: 'EffectiveDate', label: 'Effective Date', widgetType: 'date' },
-    { sourceName: 'State', label: 'State', widgetType: 'choice', options: STATE_OPTIONS },
-    { sourceName: 'InsuredSignature', label: 'Signature of Insured', widgetType: 'signature' },
-  ],
-  'GL 20 10 E': [
-    { sourceName: 'FirstNameOfInsured', label: 'First Name of Named Insured', required: true },
-    { sourceName: 'LastNameOfInsured', label: 'Last Name of Named Insured', required: true },
-    { sourceName: 'FederalEIN', label: 'Federal Employer ID Number', required: true },
-    { sourceName: 'PolicyNo', label: 'Policy No.' },
-    { sourceName: 'PolEffDate', label: 'Policy Effective Date', widgetType: 'date' },
-    { sourceName: 'RiskState', label: 'Risk State', widgetType: 'choice', options: STATE_OPTIONS },
-  ],
-  'GL 02 20': [
-    { sourceName: 'NamedInsuredFEIN', label: 'Named Insured FEIN' },
-    { sourceName: 'PolicyNumberField', label: 'Policy #', required: true },
-    { sourceName: 'EffDt', label: 'Eff. Date', widgetType: 'date' },
-    { sourceName: 'ProducerFullName', label: 'Producer Name' },
-  ],
+  provenance: string;
+  sourceText: string;
+  fields: FieldSpec[];
 };
 
 export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
   const { tenantId, companyId } = ctx;
-  // Wholesale replace (cascades take versions/clauses/fields/clusters/etc.).
+  // Wholesale replace (cascades take versions/clauses/fields/clusters/findings/
+  // dispositions/mappings/links).
   await p.formWorkingSet.deleteMany({ where: { companyId } });
   await p.policyForm.deleteMany({ where: { companyId } });
   await p.fieldDefinition.deleteMany({ where: { companyId } });
@@ -209,11 +57,40 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
     select: { id: true },
   });
 
-  const versionIds: string[] = [];
+  const families = buildFamilies();
+
+  // ── 1. Ingest every form (GL demo + manuscript anchors + synthetic variants) ──
+  const glForms: IngestForm[] = GL_FORMS.map((f) => ({
+    formNumber: f.formNumber,
+    title: f.title,
+    lob: f.lob,
+    states: f.states,
+    editionDate: f.editionDate,
+    filingStatus: f.filingStatus,
+    provenance: f.provenance ?? 'client',
+    sourceText: f.clauses.join('\n'),
+    fields: FIELDS[f.formNumber] ?? [],
+  }));
+  const manuscriptForms: IngestForm[] = families.flatMap((fam) =>
+    fam.forms.map((f: BuiltForm) => ({
+      formNumber: f.formNumber,
+      title: f.title,
+      lob: f.lob,
+      states: f.states,
+      editionDate: f.editionDate,
+      filingStatus: f.filingStatus,
+      provenance: f.provenance,
+      sourceText: f.sourceText,
+      fields: FIELDS[f.formNumber] ?? [],
+    })),
+  );
+  const allForms = [...glForms, ...manuscriptForms];
+
   const versionIdByForm: Record<string, string> = {};
-  for (const def of FORMS) {
-    const sourceText = def.clauses.join('\n');
-    const segmented = segmentClauses(sourceText);
+  const formIdByForm: Record<string, string> = {};
+  const allVersionIds: string[] = [];
+  for (const def of allForms) {
+    const segmented = segmentClauses(def.sourceText);
     const segConfidence = meanSegConfidence(segmented);
     const form = await p.policyForm.create({
       data: {
@@ -225,7 +102,7 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
         states: def.states ?? undefined,
         editionDate: def.editionDate,
         filingStatus: def.filingStatus,
-        provenance: def.provenance ?? 'client',
+        provenance: def.provenance,
         ownerRoleId: ownerRole?.id,
         versions: {
           create: {
@@ -233,7 +110,7 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
             companyId,
             versionNo: 1,
             status: segConfidence < QUARANTINE_THRESHOLD ? 'quarantined' : 'ready',
-            sourceText,
+            sourceText: def.sourceText,
             segConfidence,
             clauses: {
               create: segmented.map((c) => ({
@@ -250,7 +127,7 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
               })),
             },
             fields: {
-              create: (FIELDS[def.formNumber] ?? []).map((f) => ({
+              create: def.fields.map((f) => ({
                 tenantId,
                 companyId,
                 sourceName: f.sourceName,
@@ -268,28 +145,436 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
       },
       include: { versions: { select: { id: true } } },
     });
-    versionIds.push(form.versions[0].id);
     versionIdByForm[def.formNumber] = form.versions[0].id;
+    formIdByForm[def.formNumber] = form.id;
+    allVersionIds.push(form.versions[0].id);
   }
 
-  // Working set over the five client-owned forms (Reading-mode scale).
-  await p.formWorkingSet.create({
-    data: {
-      tenantId,
-      companyId,
-      name: 'GL endorsement rationalization',
-      description:
-        'Additional-insured, primary-and-noncontributory and cancellation wording variants across the regional GL programs.',
-      members: {
-        create: FORMS.filter((f) => f.provenance !== 'iso-flagged').map((f) => ({
-          companyId,
-          formVersionId: versionIdByForm[f.formNumber],
-        })),
+  // ── 2. Working sets ──
+  const createSet = async (
+    name: string,
+    description: string,
+    formNumbers: string[],
+    modeOverride?: 'reading' | 'portfolio',
+  ) => {
+    return p.formWorkingSet.create({
+      data: {
+        tenantId,
+        companyId,
+        name,
+        description,
+        modeOverride,
+        clusterThreshold: DEFAULT_THETA,
+        members: {
+          create: formNumbers
+            .filter((fn) => versionIdByForm[fn])
+            .map((fn) => ({ companyId, formVersionId: versionIdByForm[fn] })),
+        },
       },
-    },
+    });
+  };
+
+  // GL demo set (client-owned only, iso-flagged excluded) — unchanged behavior.
+  const glSet = await createSet(
+    'GL endorsement rationalization',
+    'Additional-insured, primary-and-noncontributory and cancellation wording variants across the regional GL programs.',
+    GL_FORMS.filter((f) => f.provenance !== 'iso-flagged').map((f) => f.formNumber),
+  );
+
+  // One reading-mode set per manuscript family.
+  const familySetIdByKey: Record<string, string> = {};
+  for (const fam of families) {
+    const set = await createSet(
+      `${fam.anchor.title} family`,
+      `${fam.anchor.lob} — ${fam.anchor.formNumber} and its SERFF-informed variant editions; controlled clause divergence for rationalization.`,
+      fam.forms.map((f) => f.formNumber),
+    );
+    familySetIdByKey[fam.family.key] = set.id;
+  }
+
+  // Portfolio-mode set: all nine manuscript anchors (8+ ⇒ portfolio default).
+  const portfolioSet = await createSet(
+    'All Manuscript Lines',
+    'Every manuscript line anchor in one portfolio-scale set — triage the library across LOBs.',
+    families.map((fam) => fam.anchor.formNumber),
+  );
+
+  // Mode-override spotlight: a small cross-line set forced to portfolio mode so
+  // the override-wins path is exercised (FORMS-HLR-008).
+  const spotlightSet = await createSet(
+    'Catastrophe & limits spotlight',
+    'Cross-line set of property/marine/energy anchors and their limit-divergent editions; pinned to portfolio mode via modeOverride.',
+    ['CPP 1016', 'CPP 1114', 'CAR 1220', 'CAR 1316', 'EL 1018', 'EL 1113'],
+    'portfolio',
+  );
+
+  // ── 3. Cluster runs (production-identical pipeline) ──
+  const clustersBySet: Record<string, CreatedCluster[]> = {};
+  clustersBySet[glSet.id] = await runClusterRun(p, ctx, glSet.id, DEFAULT_THETA);
+  for (const fam of families) {
+    const setId = familySetIdByKey[fam.family.key];
+    clustersBySet[setId] = await runClusterRun(p, ctx, setId, DEFAULT_THETA);
+  }
+  clustersBySet[portfolioSet.id] = await runClusterRun(p, ctx, portfolioSet.id, DEFAULT_THETA);
+  clustersBySet[spotlightSet.id] = await runClusterRun(p, ctx, spotlightSet.id, DEFAULT_THETA);
+
+  // ── 4. Explicit citation-backed findings (materially-divergent, missing-clause) ──
+  const clauseByFormHeading = await loadClauseIndex(p, allVersionIds, versionIdByForm);
+  for (const fam of families) {
+    const setId = familySetIdByKey[fam.family.key];
+    for (const marker of fam.markers) {
+      if (marker.kind === 'materially-divergent') {
+        const anchorClause = clauseByFormHeading.get(
+          key(marker.anchorFormNumber, marker.clauseHeading),
+        );
+        const variantClause = clauseByFormHeading.get(key(marker.formNumber, marker.clauseHeading));
+        if (!anchorClause || !variantClause) continue;
+        await p.formFinding.create({
+          data: {
+            tenantId,
+            companyId,
+            workingSetId: setId,
+            formVersionId: versionIdByForm[marker.formNumber],
+            subjectKind: 'clausePair',
+            claim: `Materially divergent: "${marker.clauseHeading}" in ${marker.formNumber} changes a limit / notice term versus anchor ${marker.anchorFormNumber} — the wording is close but the economic term differs, so it cannot be standardized without a decision.`,
+            citations: [citation(anchorClause), citation(variantClause)],
+            confidence: marker.confidence,
+            status: routeFindingStatus(marker.confidence),
+            agentSkill: 'divergence-check-v1',
+            traceRef: `divergence:${marker.familyKey}:${marker.formNumber}`,
+          },
+        });
+      } else {
+        const anchorClause = clauseByFormHeading.get(
+          key(marker.anchorFormNumber, marker.clauseHeading),
+        );
+        if (!anchorClause) continue;
+        await p.formFinding.create({
+          data: {
+            tenantId,
+            companyId,
+            workingSetId: setId,
+            formVersionId: versionIdByForm[marker.formNumber],
+            subjectKind: 'form',
+            claim: `Missing clause: ${marker.formNumber} omits the "${marker.clauseHeading}" provision that ${marker.presentIn.length} sibling edition(s) carry — confirm the omission is intentional before rationalizing.`,
+            citations: [citation(anchorClause)],
+            confidence: marker.confidence,
+            status: routeFindingStatus(marker.confidence),
+            agentSkill: 'coverage-gap-v1',
+            traceRef: `missing:${marker.familyKey}:${marker.formNumber}`,
+          },
+        });
+      }
+    }
+  }
+
+  // ── 5. Sample dispositions with append-only event history ──
+  await seedDispositions(p, ctx, {
+    ownerRoleId: ownerRole?.id,
+    formIdByForm,
+    clustersBySet,
+    familySetIdByKey,
   });
 
-  // Field dictionary + τ-routed mapping suggestions over extracted fields.
+  // ── 6. Preferred wordings on a few resolved clusters ──
+  await seedPreferredWordings(p, ctx, { clustersBySet, familySetIdByKey });
+
+  // ── 7. Field plane: dictionary + τ-routed mapping suggestions ──
+  await seedFieldPlane(p, ctx, allVersionIds);
+
+  // ── 8. Six-dimension graph links (connected-additions rule: no orphans) ──
+  await seedGraphLinks(p, ctx, { families, formIdByForm });
+}
+
+// ── helpers ──────────────────────────────────────────────────────────────
+
+const key = (formNumber: string, heading: string) => `${formNumber}::${heading}`;
+
+type IndexedClause = {
+  id: string;
+  formVersionId: string;
+  charStart: number;
+  charEnd: number;
+  text: string;
+};
+
+function citation(c: IndexedClause): FindingCitation {
+  return {
+    formVersionId: c.formVersionId,
+    clauseId: c.id,
+    charStart: c.charStart,
+    charEnd: c.charEnd,
+    quote: c.text,
+  };
+}
+
+async function loadClauseIndex(
+  p: PrismaClient,
+  versionIds: string[],
+  versionIdByForm: Record<string, string>,
+): Promise<Map<string, IndexedClause>> {
+  const formByVersion = new Map(Object.entries(versionIdByForm).map(([fn, vid]) => [vid, fn]));
+  const clauses = await p.formClause.findMany({
+    where: { formVersionId: { in: versionIds } },
+    select: {
+      id: true,
+      formVersionId: true,
+      heading: true,
+      text: true,
+      charStart: true,
+      charEnd: true,
+    },
+  });
+  const map = new Map<string, IndexedClause>();
+  for (const c of clauses) {
+    const fn = formByVersion.get(c.formVersionId);
+    if (!fn || !c.heading) continue;
+    map.set(key(fn, c.heading), {
+      id: c.id,
+      formVersionId: c.formVersionId,
+      charStart: c.charStart,
+      charEnd: c.charEnd,
+      text: c.text,
+    });
+  }
+  return map;
+}
+
+async function seedDispositions(
+  p: PrismaClient,
+  ctx: Ctx,
+  args: {
+    ownerRoleId?: string;
+    formIdByForm: Record<string, string>;
+    clustersBySet: Record<string, CreatedCluster[]>;
+    familySetIdByKey: Record<string, string>;
+  },
+): Promise<void> {
+  const { tenantId, companyId } = ctx;
+  const { ownerRoleId, formIdByForm, clustersBySet, familySetIdByKey } = args;
+
+  // Append-only history helper.
+  const withEvents = (events: { event: string; note?: string }[]) => ({
+    create: events.map((e) => ({
+      companyId,
+      event: e.event,
+      actorKind: 'agent',
+      actorId: 'forms-seed',
+      note: e.note,
+    })),
+  });
+
+  // (a) RETIRE — approved & executed: the superseded CYB 1008 edition.
+  if (formIdByForm['CYB 1008']) {
+    await p.formDisposition.create({
+      data: {
+        tenantId,
+        companyId,
+        subjectKind: 'form',
+        formId: formIdByForm['CYB 1008'],
+        type: 'retire',
+        ownerRoleId,
+        rationale:
+          'CYB 1008 is superseded by CYB 1009 (higher aggregate limit); retire the prior edition.',
+        status: 'executed',
+        events: withEvents([
+          { event: 'proposed', note: 'Superseded edition still active in the library.' },
+          { event: 'approved', note: 'Product committee approved retirement.' },
+          { event: 'executed', note: 'Withdrawn from active use; kept for audit history.' },
+        ]),
+      },
+    });
+  }
+
+  // (b) MERGE — proposed, with target: DO 1108 (core) into DO 1011 (anchor).
+  if (formIdByForm['DO 1108'] && formIdByForm['DO 1011']) {
+    await p.formDisposition.create({
+      data: {
+        tenantId,
+        companyId,
+        subjectKind: 'form',
+        formId: formIdByForm['DO 1108'],
+        type: 'merge',
+        targetFormId: formIdByForm['DO 1011'],
+        ownerRoleId,
+        rationale:
+          'DO 1108 differs from DO 1011 only in equivalent wording; propose merging into the anchor.',
+        status: 'proposed',
+        events: withEvents([
+          { event: 'proposed', note: 'Near-duplicate coverage clause; merge candidate.' },
+        ]),
+      },
+    });
+  }
+
+  // (c) REDRAFT — proposed, on a divergent cluster in the CYB family set.
+  const cybClusters = clustersBySet[familySetIdByKey['CYB']] ?? [];
+  const redraftCluster =
+    cybClusters.find((c) => c.label.toLowerCase().includes('exclusion')) ??
+    cybClusters
+      .filter((c) => c.memberClauseIds.length > 1)
+      .sort((a, b) => b.divergenceScore - a.divergenceScore)[0];
+  if (redraftCluster) {
+    await p.formDisposition.create({
+      data: {
+        tenantId,
+        companyId,
+        subjectKind: 'cluster',
+        clusterId: redraftCluster.id,
+        type: 'redraft',
+        ownerRoleId,
+        rationale: `Cluster "${redraftCluster.label}" diverges across editions; redraft one standard wording.`,
+        status: 'proposed',
+        events: withEvents([
+          { event: 'proposed', note: 'Divergent exclusion wording flagged for a single redraft.' },
+        ]),
+      },
+    });
+  }
+
+  // (d) KEEP — proposed, on the CPP 1016 anchor (system of record).
+  if (formIdByForm['CPP 1016']) {
+    await p.formDisposition.create({
+      data: {
+        tenantId,
+        companyId,
+        subjectKind: 'form',
+        formId: formIdByForm['CPP 1016'],
+        type: 'keep',
+        ownerRoleId,
+        rationale:
+          'CPP 1016 is the countrywide system-of-record program form; keep as the family anchor.',
+        status: 'proposed',
+        events: withEvents([{ event: 'proposed', note: 'Anchor edition; keep.' }]),
+      },
+    });
+  }
+}
+
+async function seedPreferredWordings(
+  p: PrismaClient,
+  ctx: Ctx,
+  args: {
+    clustersBySet: Record<string, CreatedCluster[]>;
+    familySetIdByKey: Record<string, string>;
+  },
+): Promise<void> {
+  const { tenantId, companyId } = ctx;
+  const { clustersBySet, familySetIdByKey } = args;
+  // One resolved cluster per ~3 families: pick the highest-divergence multi-member
+  // cluster in three family sets and adopt its representative as the standard.
+  const chosenKeys = ['CAN', 'CPP', 'PE'];
+  for (const famKey of chosenKeys) {
+    const setId = familySetIdByKey[famKey];
+    const clusters = (clustersBySet[setId] ?? [])
+      .filter((c) => c.memberClauseIds.length > 1 && c.representativeClauseId)
+      .sort((a, b) => b.divergenceScore - a.divergenceScore);
+    const target = clusters[0];
+    if (!target || !target.representativeClauseId) continue;
+    const rep = await p.formClause.findUnique({
+      where: { id: target.representativeClauseId },
+      select: { id: true, text: true },
+    });
+    if (!rep) continue;
+    await p.preferredWording.upsert({
+      where: { clusterId: target.id },
+      create: {
+        tenantId,
+        companyId,
+        clusterId: target.id,
+        sourceClauseId: rep.id,
+        clauseText: rep.text,
+        status: 'active',
+      },
+      update: { sourceClauseId: rep.id, clauseText: rep.text, status: 'active' },
+    });
+  }
+}
+
+async function seedGraphLinks(
+  p: PrismaClient,
+  ctx: Ctx,
+  args: { families: ReturnType<typeof buildFamilies>; formIdByForm: Record<string, string> },
+): Promise<void> {
+  const { companyId } = ctx;
+  const { families, formIdByForm } = args;
+
+  // GL demo wiring (Underwriting + Product & Delivery; policy-admin + UW apps).
+  const glValueStreams = ['Underwriting', 'Product & Delivery'];
+  const glApps: { name: string; role_: 'implementedBy' | 'feedsApplication' }[] = [
+    { name: 'Policy Administration Platform', role_: 'implementedBy' },
+    { name: 'Underwriting Platform', role_: 'feedsApplication' },
+  ];
+
+  // Resolve every referenced L2 value stream + application id in one pass.
+  const vsNames = new Set<string>(glValueStreams);
+  const appNames = new Set<string>(glApps.map((a) => a.name));
+  for (const fam of families) {
+    fam.family.valueStreams.forEach((v) => vsNames.add(v));
+    fam.family.applications.forEach((a) => appNames.add(a.name));
+  }
+  const [nodes, apps, formTask] = await Promise.all([
+    p.processNode.findMany({
+      where: {
+        companyId,
+        displayValue: { in: [...vsNames] },
+        processLevelType: { levelNumber: 2 },
+      },
+      select: { id: true, displayValue: true },
+    }),
+    p.application.findMany({
+      where: { companyId, name: { in: [...appNames] } },
+      select: { id: true, name: true },
+    }),
+    p.processNode.findFirst({
+      where: {
+        companyId,
+        isTask: true,
+        displayValue: { contains: 'form versions', mode: 'insensitive' },
+      },
+      select: { id: true },
+    }),
+  ]);
+  const nodeByName = new Map(nodes.map((n) => [n.displayValue, n.id]));
+  const appByName = new Map(apps.map((a) => [a.name, a.id]));
+
+  const processRows: { companyId: string; formId: string; processNodeId: string; role_: string }[] =
+    [];
+  const appRows: { companyId: string; formId: string; applicationId: string; role_: string }[] = [];
+
+  const wire = (
+    formNumber: string,
+    valueStreams: string[],
+    applications: { name: string; role_: 'implementedBy' | 'feedsApplication' }[],
+  ) => {
+    const formId = formIdByForm[formNumber];
+    if (!formId) return;
+    for (const vs of valueStreams) {
+      const nodeId = nodeByName.get(vs);
+      if (nodeId)
+        processRows.push({ companyId, formId, processNodeId: nodeId, role_: 'servesValueStream' });
+    }
+    // Change-impact hop: forms impact the "apply state-specific form versions" task.
+    if (formTask)
+      processRows.push({ companyId, formId, processNodeId: formTask.id, role_: 'impactsTask' });
+    for (const a of applications) {
+      const appId = appByName.get(a.name);
+      if (appId) appRows.push({ companyId, formId, applicationId: appId, role_: a.role_ });
+    }
+  };
+
+  for (const f of GL_FORMS) wire(f.formNumber, glValueStreams, glApps);
+  for (const fam of families) {
+    for (const f of fam.forms) wire(f.formNumber, fam.family.valueStreams, fam.family.applications);
+  }
+
+  if (processRows.length)
+    await p.formProcessNode.createMany({ data: processRows, skipDuplicates: true });
+  if (appRows.length) await p.formApplication.createMany({ data: appRows, skipDuplicates: true });
+}
+
+async function seedFieldPlane(p: PrismaClient, ctx: Ctx, versionIds: string[]): Promise<void> {
+  const { tenantId, companyId } = ctx;
   const defIdByKey: Record<string, string> = {};
   for (const d of DICTIONARY) {
     const row = await p.fieldDefinition.create({
@@ -298,11 +583,11 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
         companyId,
         key: d.key,
         dataSetType: d.dataSetType,
-        dataType: d.dataType,
-        acordRef: 'acordRef' in d ? d.acordRef : undefined,
-        stability: 'stability' in d ? d.stability : 'stable',
-        compositionParts: 'compositionParts' in d ? [...d.compositionParts] : undefined,
-        compositionFormat: 'compositionFormat' in d ? d.compositionFormat : undefined,
+        dataType: d.dataType ?? 'string',
+        acordRef: d.acordRef,
+        stability: d.stability ?? 'stable',
+        compositionParts: d.compositionParts ?? undefined,
+        compositionFormat: d.compositionFormat,
       },
     });
     defIdByKey[d.key] = row.id;
@@ -310,7 +595,7 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
   const candidates: MappingCandidate[] = DICTIONARY.map((d) => ({
     id: defIdByKey[d.key],
     key: d.key,
-    stability: 'stability' in d ? d.stability : 'stable',
+    stability: d.stability ?? 'stable',
     optionValues: [],
   }));
   const fields = await p.formField.findMany({
