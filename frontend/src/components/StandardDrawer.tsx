@@ -47,34 +47,20 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-// Ordered plan keys split into labeled generic (pattern) and specific (this
-// item) groups; numbering runs continuously across the two groups.
-const PlanKeyList = ({ keys, className }: { keys: PlanKey[]; className?: string }) => {
-  const generic = keys.filter((k) => k.generic);
-  const specific = keys.filter((k) => !k.generic);
-  const group = (label: string, rows: PlanKey[], start: number) =>
-    rows.length > 0 && (
-      <div>
-        <div className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#8a94a0] mb-0.5">
-          {label}
-        </div>
-        <ol
-          start={start}
-          className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1"
-        >
-          {rows.map((k, i) => (
-            <li key={i}>{k.key}</li>
-          ))}
-        </ol>
-      </div>
-    );
-  return (
-    <div className={'space-y-1.5' + (className ? ` ${className}` : '')}>
-      {group('Generic steps · pattern', generic, 1)}
-      {group('Specific steps · this item', specific, generic.length + 1)}
-    </div>
-  );
-};
+// Ordered plan keys — item-specific steps only; generic pattern keys are not
+// surfaced to users.
+const PlanKeyList = ({ keys, className }: { keys: PlanKey[]; className?: string }) => (
+  <ol
+    className={
+      'text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1' +
+      (className ? ` ${className}` : '')
+    }
+  >
+    {keys.map((k, i) => (
+      <li key={i}>{k.key}</li>
+    ))}
+  </ol>
+);
 
 export default function StandardDrawer({
   areaId,
@@ -115,6 +101,10 @@ export default function StandardDrawer({
     : null;
   const isSub = !!group && !!item && group.id !== item.id;
   const gates = item?.sdlcGates ? item.sdlcGates.split(/;\s*/).filter(Boolean) : [];
+  // Only item-specific plan steps surface here — generic pattern keys are not
+  // displayed to users.
+  const planChecklist = item?.plan?.checklist.filter((k) => !k.generic) ?? [];
+  const planTesting = item?.plan?.testing.filter((k) => !k.generic) ?? [];
 
   return (
     <DrawerShell
@@ -291,19 +281,19 @@ export default function StandardDrawer({
           )}
 
           {/* Work Library plan — checklist + testing keys (values filled there),
-                  generic pattern keys and item-specific steps as labeled groups */}
-          {item.plan?.checklist.length || item.plan?.testing.length ? (
+                  item-specific steps only */}
+          {planChecklist.length || planTesting.length ? (
             <div>
-              {item.plan!.checklist.length > 0 && (
+              {planChecklist.length > 0 && (
                 <>
                   <SectionLabel>Checklist</SectionLabel>
-                  <PlanKeyList keys={item.plan!.checklist} className="mb-2" />
+                  <PlanKeyList keys={planChecklist} className="mb-2" />
                 </>
               )}
-              {item.plan!.testing.length > 0 && (
+              {planTesting.length > 0 && (
                 <>
                   <SectionLabel>Testing</SectionLabel>
-                  <PlanKeyList keys={item.plan!.testing} />
+                  <PlanKeyList keys={planTesting} />
                 </>
               )}
             </div>
