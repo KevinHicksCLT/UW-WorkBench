@@ -5,6 +5,7 @@
 // and grades each by the change class. No per-row fan-out.
 import { prisma } from '../../db/prisma.js';
 import { appsForNodes, rolesForNodes, streamAncestry } from '../../lib/resolvers/index.js';
+import { deriveStakeholders } from './stakeholders.js';
 import {
   buildReport,
   classOf,
@@ -64,7 +65,7 @@ export async function assessProcessNodes(
     testPlanCount,
   ] = await Promise.all([
     prisma.processNode.count({ where: { id: { in: scopeIds }, isTask: true } }),
-    rolesForNodes(scopeIds),
+    rolesForNodes(scopeIds, { withOrgUnit: true }),
     appsForNodes(scopeIds),
     prisma.nodeDeliverable.findMany({
       where: { processNodeId: { in: scopeIds } },
@@ -186,11 +187,14 @@ export async function assessProcessNodes(
 
   // Roles — aggregate owner/participant footprint per role across the scope.
   const byRole = new Map<string, { name: string; owner: number; participant: number }>();
+  const ownerOrgUnits = new Map<string, string>();
   for (const entries of roleMap.values()) {
     for (const e of entries) {
       const cur = byRole.get(e.id) ?? { name: e.name, owner: 0, participant: 0 };
-      if (e.role_ === 'Owner') cur.owner += 1;
-      else cur.participant += 1;
+      if (e.role_ === 'Owner') {
+        cur.owner += 1;
+        if (e.orgUnit) ownerOrgUnits.set(e.orgUnit.id, e.orgUnit.displayValue);
+      } else cur.participant += 1;
       byRole.set(e.id, cur);
     }
   }
@@ -379,6 +383,12 @@ export async function assessProcessNodes(
   const streams = [
     ...new Set([...ancestry.values()].map((a) => a.valueStreamName).filter(Boolean)),
   ];
+  const stakeholders = deriveStakeholders(impacts, {
+    changeType,
+    lens: 'value-stream',
+    ownerRoles: owners.map(([id, v]) => ({ id, name: v.name })),
+    orgUnits: [...ownerOrgUnits.entries()].map(([id, name]) => ({ id, name })),
+  });
   return buildReport(
     {
       kind: 'process-nodes',
@@ -390,5 +400,6 @@ export async function assessProcessNodes(
     },
     changeType,
     impacts,
+    { stakeholders },
   );
 }

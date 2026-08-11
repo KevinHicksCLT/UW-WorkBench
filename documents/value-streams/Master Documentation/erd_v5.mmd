@@ -660,6 +660,18 @@ erDiagram
     string dependsOnId FK "self (nullable)"
     string status
   }
+  ImpactAssessment {
+    string id PK
+    string companyId FK
+    string subjectKind "process-nodes|role|application|product-element|deliverable|plan"
+    json subjectRef "ImpactSubject union (no denormalized graph rows)"
+    string changeType
+    string status "DRAFT|ASSESSED|RECOMMENDED|APPROVED|REJECTED|FURTHER_ANALYSIS"
+    json report "ImpactReport snapshot"
+    json artifacts "staged artifacts"
+    string createdBy "maker (User id)"
+    string decidedBy FK "checker (User id, nullable)"
+  }
   ChangeRequest {
     string status "FB-27 — CR register per initiative (cost + schedule impact)"
     string id PK
@@ -1360,6 +1372,7 @@ erDiagram
   PortfolioInitiative ||--o{ Milestone : "has"
   PortfolioInitiative ||--o{ RaidItem : "has"
   Role |o--o{ RaidItem : "owns"
+  Company ||--o{ ImpactAssessment : "records"
   PortfolioInitiative ||--o{ WorkplanActivity : "plans"
   WorkplanActivity |o--o{ WorkplanActivity : "depends-on"
   PortfolioInitiative ||--o{ ChangeRequest : "change-register"
@@ -1490,6 +1503,7 @@ erDiagram
   style MetricValue fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style Milestone fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style RaidItem fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
+  style ImpactAssessment fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style WorkplanActivity fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style ChangeRequest fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style StrategicObjective fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
