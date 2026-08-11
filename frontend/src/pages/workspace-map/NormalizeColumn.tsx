@@ -1,4 +1,4 @@
-import { LAYERS, GREEN, AMBER, INDIGO } from './types';
+import { GREEN, AMBER, INDIGO } from './types';
 import type {
   Finding,
   Layer,
@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './NormalizeCards';
 import { CORE_AREA } from './compare';
+import { useBoardVocab } from './vocabulary';
 
 /** Functional-area model for the "all screens" walk (null = single-screen walk). */
 export type AreaModel = { areaOf: Map<string, string>; order: string[] } | null;
@@ -44,15 +45,6 @@ interface Props {
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
 }
-
-/** What the layer covers, in the section subtitle (mirrors the design comp). */
-const LAYER_TITLE: Record<Layer, string> = {
-  UI: 'UI Components / Fields',
-  Integration: 'Integration Logic',
-  'Business Service': 'Business Service Logic',
-  Data: 'Data Schema & Payload',
-  Infrastructure: 'Infra Security Rules & Logs',
-};
 
 /** Small group divider: shared / application-specific / pass-through. */
 function GroupHead({ kind, count }: { kind: 'shared' | 'unique' | 'passthrough'; count: number }) {
@@ -139,6 +131,8 @@ function LayerSection({
   open: boolean;
   onToggle: () => void;
 }) {
+  // What the layer covers, in the section title (vocabulary SCAFFOLD meta).
+  const { layerTitle } = useBoardVocab();
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   const rows = findings.filter((f) => f.layer === layer);
@@ -245,7 +239,7 @@ function LayerSection({
           >
             ▾
           </span>
-          {LAYER_TITLE[layer]}
+          {layerTitle(layer)}
         </span>
         <span style={{ fontSize: 12, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
           {apps.length > 1 && (
@@ -356,6 +350,8 @@ export default function NormalizeColumn({
   expandedLayers,
   onToggleLayer,
 }: Props) {
+  // Row axis in DB order (vocabulary LAYER rows; falls back to LAYERS).
+  const { layers } = useBoardVocab();
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   // The header pill totals the full comparison scope (every picked app);
@@ -428,7 +424,7 @@ export default function NormalizeColumn({
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {LAYERS.map((layer) => (
+        {layers.map((layer) => (
           <LayerSection
             key={layer}
             layer={layer}

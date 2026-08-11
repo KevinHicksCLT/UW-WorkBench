@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { LAYERS, GREEN, STATUS_WEIGHT, formatTargetDate } from './types';
+import { GREEN, STATUS_WEIGHT, formatTargetDate } from './types';
 import { entryAppIds } from './NormalizeCards';
+import { useBoardVocab } from './vocabulary';
 import type {
   BoardComponent,
   BoardMicroservice,
@@ -333,6 +334,7 @@ function MicrositeCard({
   // lands on — keeps the card short so the layer rows across the three columns
   // sit close together. Expanding reveals stack/owner/target/progress.
   const [open, setOpen] = useState(false);
+  const { layers } = useBoardVocab();
   const tone = statusTone(ms.status);
   const mine = components.filter((c) => c.microserviceId === ms.id);
   const byLayer = new Map<Layer, BoardComponent>(mine.map((c) => [c.layer, c]));
@@ -347,7 +349,7 @@ function MicrositeCard({
   const msTarget = formatTargetDate(ms.targetDate);
   // Only floors the comparison feeds (findings/entries arrive pre-scoped to
   // the picked applications); a card nothing in scope lands on hides entirely.
-  const floors = LAYERS.filter((layer) => {
+  const floors = layers.filter((layer) => {
     const comp = byLayer.get(layer);
     if (!comp) return false;
     return (
@@ -525,12 +527,13 @@ export default function GreenfieldColumn({
   // Stack the service cards in LAYER order (a card sorts by the highest layer
   // it hosts) so the connectors from the Normalize bands never cross between
   // cards — the UI card sits above the Data card, mirroring the band order.
+  const { layers } = useBoardVocab();
   const layerRank = (ms: BoardMicroservice): number => {
     const idxs = components
       .filter((c) => c.microserviceId === ms.id)
-      .map((c) => LAYERS.indexOf(c.layer))
+      .map((c) => layers.indexOf(c.layer))
       .filter((i) => i >= 0);
-    return idxs.length ? Math.min(...idxs) : LAYERS.length;
+    return idxs.length ? Math.min(...idxs) : layers.length;
   };
   const orderedMs = [...microservices].sort((a, b) => layerRank(a) - layerRank(b));
   return (
