@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { api } from '../../lib/api';
 import { useViewState } from '../../lib/viewState';
@@ -12,6 +13,7 @@ import {
   ErrorMessage,
   Input,
   Label,
+  LinkButton,
   Select,
   StatusPill,
   Textarea,
@@ -232,6 +234,7 @@ function FormDrawer({
 }) {
   const { data: form, error, refetch } = useApi<FormDetail>(`/forms/${id}`);
   const [ingesting, setIngesting] = useState(false);
+  const navigate = useNavigate();
   if (error) return null;
 
   return (
@@ -252,6 +255,11 @@ function FormDrawer({
     >
       {form && (
         <div className="space-y-5">
+          {form.latestSourceText && (
+            <LinkButton onClick={() => navigate(`/forms/${form.id}/document`)}>
+              View form document →
+            </LinkButton>
+          )}
           <div className="grid grid-cols-3 gap-4">
             <Section label="Filing status">
               <StatusPill tone={FILING_TONE[form.filingStatus] ?? 'slate'}>

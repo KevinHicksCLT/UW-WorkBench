@@ -40,6 +40,9 @@ export type FormDetail = PolicyFormRow & {
     text: string;
     segConfidence: number;
   }[];
+  /** Canonical text of the latest version — the form document view. */
+  latestSourceText: string | null;
+  latestSourceUri: string | null;
 };
 
 export type WorkingSetRow = {

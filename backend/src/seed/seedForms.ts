@@ -26,6 +26,9 @@ import { buildFamilies, type BuiltForm } from './forms/generate.js';
 import { GL_FORMS } from './forms/glDemo.js';
 import { DICTIONARY, FIELDS, type FieldSpec } from './forms/fieldPlane.js';
 import { runClusterRun, type CreatedCluster } from './forms/clusterRun.js';
+import { loadSpecimens } from './forms/specimens.js';
+import { buildProductLibrary } from './forms/productLibrary.js';
+import { invalidateSpine } from '../lib/resolvers/productBoard.js';
 
 type Ctx = { tenantId: string; companyId: string };
 
@@ -40,6 +43,7 @@ type IngestForm = {
   filingStatus: string;
   provenance: string;
   sourceText: string;
+  sourceUri?: string;
   fields: FieldSpec[];
 };
 
@@ -84,12 +88,25 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
       fields: FIELDS[f.formNumber] ?? [],
     })),
   );
-  const allForms = [...glForms, ...manuscriptForms];
+  // The eleven uploaded specimen examples ingest VERBATIM (fictional carriers).
+  const specimenForms: IngestForm[] = loadSpecimens().map((s) => ({
+    formNumber: s.formNumber,
+    title: s.title,
+    lob: s.lob,
+    states: s.states,
+    editionDate: s.editionDate,
+    filingStatus: s.filingStatus,
+    provenance: s.provenance,
+    sourceText: s.sourceText,
+    sourceUri: `documents/forms/form_examples/${s.sourceFile}`,
+    fields: FIELDS[s.formNumber] ?? [],
+  }));
+  const allForms = [...glForms, ...manuscriptForms, ...specimenForms];
 
   const versionIdByForm: Record<string, string> = {};
   const formIdByForm: Record<string, string> = {};
   const allVersionIds: string[] = [];
-  for (const def of allForms) {
+  const ingest = async (def: IngestForm): Promise<void> => {
     const segmented = segmentClauses(def.sourceText);
     const segConfidence = meanSegConfidence(segmented);
     const form = await p.policyForm.create({
@@ -111,6 +128,7 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
             versionNo: 1,
             status: segConfidence < QUARANTINE_THRESHOLD ? 'quarantined' : 'ready',
             sourceText: def.sourceText,
+            sourceUri: def.sourceUri,
             segConfidence,
             clauses: {
               create: segmented.map((c) => ({
@@ -148,7 +166,49 @@ export async function seedForms(p: PrismaClient, ctx: Ctx): Promise<void> {
     versionIdByForm[def.formNumber] = form.versions[0].id;
     formIdByForm[def.formNumber] = form.id;
     allVersionIds.push(form.versions[0].id);
+  };
+  for (const def of allForms) await ingest(def);
+
+  // ── 1b. Product form families: the per-product base/dec/endorsement/state-
+  // amendatory papers every product-spine surface renders, plus the junction
+  // links that make the library THE source of truth for product forms. ──
+  const manuscriptStates = new Map<string, string[] | null>(
+    families.flatMap((fam) => fam.forms.map((f) => [f.formNumber, f.states] as const)),
+  );
+  const productLib = await buildProductLibrary(
+    p,
+    companyId,
+    new Set(Object.keys(formIdByForm)),
+    manuscriptStates,
+  );
+  for (const def of productLib.defs) await ingest({ ...def, fields: [] });
+  const productLinkRows = productLib.links
+    .filter((l) => formIdByForm[l.formNumber])
+    .map((l) => ({
+      companyId,
+      formId: formIdByForm[l.formNumber],
+      productNodeId: l.productNodeId,
+      role_: l.role_,
+    }));
+  if (productLinkRows.length) {
+    await p.formProductNode.createMany({ data: productLinkRows, skipDuplicates: true });
   }
+  // Retire the legacy attribute-borne form lists: the L5 "Forms" nodes keep
+  // their place in the model structure but carry no elements — the library
+  // (via FormProductNode) is the single source the resolvers read.
+  for (const nodeId of productLib.formsNodeIds) {
+    const node = await p.productNode.findUnique({
+      where: { id: nodeId },
+      select: { attributes: true },
+    });
+    const attrs = (node?.attributes as Record<string, unknown> | null) ?? {};
+    delete attrs.elements;
+    await p.productNode.update({
+      where: { id: nodeId },
+      data: { attributes: { ...attrs, formsSource: 'policyFormLibrary' } },
+    });
+  }
+  invalidateSpine(companyId);
 
   // ── 2. Working sets ──
   const createSet = async (

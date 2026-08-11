@@ -47,6 +47,7 @@ const FormsLibrary = lazy(() => import('./pages/forms/FormsLibrary'));
 const FormsWorkingSets = lazy(() => import('./pages/forms/FormsWorkingSets'));
 const FormsWorkingSet = lazy(() => import('./pages/forms/FormsWorkingSet'));
 const FormsFieldDictionary = lazy(() => import('./pages/forms/FormsFieldDictionary'));
+const FormDocument = lazy(() => import('./pages/forms/FormDocument'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
 const RequirementDetail = lazy(() => import('./pages/regulations/RequirementDetail'));
@@ -467,6 +468,14 @@ export default function App() {
                     element={
                       <G k="forms">
                         <FormsFieldDictionary />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/forms/:id/document"
+                    element={
+                      <G k="forms">
+                        <FormDocument />
                       </G>
                     }
                   />

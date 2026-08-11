@@ -1268,6 +1268,13 @@ erDiagram
     string processNodeId FK
     string role_ "servesValueStream|impactsTask"
   }
+  FormProductNode {
+    string id PK
+    string companyId
+    string formId FK
+    string productNodeId FK "product spine L4 version node"
+    string role_ "baseForm|declarations|endorsement|stateAmendatory"
+  }
   %% ---------- IDENTITY & ENTITLEMENTS (RBAC/ABAC + preferences) ----------
   Tenant {
     string id PK
@@ -1651,6 +1658,8 @@ erDiagram
   Application ||--o{ FormApplication : "renders/consumes"
   PolicyForm ||--o{ FormProcessNode : "serves/impacts"
   ProcessNode ||--o{ FormProcessNode : "linked from"
+  PolicyForm ||--o{ FormProductNode : "attaches to product version"
+  ProductNode ||--o{ FormProductNode : "renders forms from"
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style OrgUnitClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style ProcessNodeClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21

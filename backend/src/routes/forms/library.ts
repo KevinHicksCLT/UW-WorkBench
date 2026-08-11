@@ -321,21 +321,35 @@ export function registerLibraryRoutes(router: Router): void {
       });
       if (!form) return res.status(404).json({ error: 'Not found' });
       const latest = form.versions[0] ?? null;
-      const clauses = latest
-        ? await prisma.formClause.findMany({
-            where: { formVersionId: latest.id },
-            orderBy: { ordinal: 'asc' },
-            select: {
-              id: true,
-              ordinal: true,
-              level: true,
-              heading: true,
-              text: true,
-              segConfidence: true,
-            },
-          })
-        : [];
-      res.json({ ...form, latestClauses: clauses });
+      const [clauses, latestVersion] = await Promise.all([
+        latest
+          ? prisma.formClause.findMany({
+              where: { formVersionId: latest.id },
+              orderBy: { ordinal: 'asc' },
+              select: {
+                id: true,
+                ordinal: true,
+                level: true,
+                heading: true,
+                text: true,
+                segConfidence: true,
+              },
+            })
+          : Promise.resolve([]),
+        // The document view renders the canonical text of the latest version.
+        latest
+          ? prisma.policyFormVersion.findUnique({
+              where: { id: latest.id },
+              select: { sourceText: true, sourceUri: true },
+            })
+          : Promise.resolve(null),
+      ]);
+      res.json({
+        ...form,
+        latestClauses: clauses,
+        latestSourceText: latestVersion?.sourceText ?? null,
+        latestSourceUri: latestVersion?.sourceUri ?? null,
+      });
     } catch (e) {
       next(e);
     }

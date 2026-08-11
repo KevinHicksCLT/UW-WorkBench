@@ -653,6 +653,8 @@ model ProductNode {
   ancestorEdges   ProductNodeClosure[] @relation("ProductNodeClosureAncestor")
   descendantEdges ProductNodeClosure[] @relation("ProductNodeClosureDescendant")
 
+  formLinks FormProductNode[]
+
   @@index([companyId, productLevelTypeId])
   @@index([parentId])
 }
@@ -2991,6 +2993,7 @@ model PolicyForm {
   mergeTargets FormDisposition[]   @relation("DispositionTargetForm")
   applications FormApplication[]
   processLinks FormProcessNode[]
+  productLinks FormProductNode[]
 
   @@unique([companyId, formNumber])
   @@index([companyId])
@@ -3332,5 +3335,25 @@ model FormProcessNode {
   @@unique([formId, processNodeId, role_])
   @@index([formId])
   @@index([processNodeId])
+  @@index([companyId, formId])
+}
+
+// PolicyForm to ProductNode (product spine L4 version node): the form set a
+// product version attaches. THE single source of truth for every form the
+// workspace Products grid and the Product Model tabs render — those surfaces
+// resolve forms through this junction; ProductNode.attributes carries no form
+// content (no free-text form lists anywhere else).
+model FormProductNode {
+  id            String      @id @default(cuid())
+  companyId     String
+  formId        String
+  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  productNodeId String
+  productNode   ProductNode @relation(fields: [productNodeId], references: [id], onDelete: Cascade)
+  role_         String      @default("baseForm") // baseForm | declarations | endorsement | stateAmendatory
+
+  @@unique([formId, productNodeId, role_])
+  @@index([formId])
+  @@index([productNodeId])
   @@index([companyId, formId])
 }
