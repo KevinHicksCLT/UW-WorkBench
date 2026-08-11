@@ -366,54 +366,50 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
         </div>
       )}
 
-      {/* Work Library plan — checklist + testing keys (✓ defined / ✗ missing);
-          item-specific steps only, generic pattern keys are not surfaced. */}
+      {/* Work Library plan — checklist + testing keys combined into one Actions
+          list (✓ defined / ✗ missing); item-specific steps only, generic
+          pattern keys are not surfaced. */}
       {detail.kind === 'task' &&
         detail.plan &&
-        (detail.plan.checklist.some((r) => !r.generic) ||
-          detail.plan.testing.some((r) => !r.generic)) && (
-          <>
-            {(['Checklist', 'Testing'] as const).map((label) => {
-              const rows = (
-                label === 'Checklist' ? detail.plan!.checklist : detail.plan!.testing
-              ).filter((r) => !r.generic);
-              if (!rows.length) return null;
-              return (
-                <Field key={label} label={label}>
-                  <ul className="space-y-1">
-                    {rows.map((r, i) => (
-                      <li key={i} className="text-sm flex gap-1.5 items-start">
-                        <span
-                          className={
-                            (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
-                          }
-                        >
-                          {r.defined ? '✓' : '✗'}
-                        </span>
-                        {r.defined ? (
-                          <span>
-                            <span className="text-[#8a94a0]">{r.key}: </span>
-                            <span className="text-[#171717]">
-                              <ProcedureValue value={r.value ?? ''} />
-                            </span>
+        (() => {
+          const rows = [...detail.plan.checklist, ...detail.plan.testing].filter((r) => !r.generic);
+          if (!rows.length) return null;
+          return (
+            <>
+              <Field label="Actions">
+                <ul className="space-y-1">
+                  {rows.map((r, i) => (
+                    <li key={i} className="text-sm flex gap-1.5 items-start">
+                      <span
+                        className={
+                          (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
+                        }
+                      >
+                        {r.defined ? '✓' : '✗'}
+                      </span>
+                      {r.defined ? (
+                        <span>
+                          <span className="text-[#8a94a0]">{r.key}: </span>
+                          <span className="text-[#171717]">
+                            <ProcedureValue value={r.value ?? ''} />
                           </span>
-                        ) : (
-                          <span className="text-[#6b7785]">{r.key}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Field>
-              );
-            })}
-            <Link
-              to={`/work-library?type=task&id=${detail.id}`}
-              className="text-sm font-medium text-[#2563eb] hover:underline"
-            >
-              Edit plan in Work library ↗
-            </Link>
-          </>
-        )}
+                        </span>
+                      ) : (
+                        <span className="text-[#6b7785]">{r.key}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Field>
+              <Link
+                to={`/work-library?type=task&id=${detail.id}`}
+                className="text-sm font-medium text-[#2563eb] hover:underline"
+              >
+                Edit plan in Work library ↗
+              </Link>
+            </>
+          );
+        })()}
       {/* Linked work — each task row drills into the task detail. */}
       {detail.kind === 'deliverable' ? (
         <div>

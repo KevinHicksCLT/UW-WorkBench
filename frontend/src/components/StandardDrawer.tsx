@@ -102,9 +102,12 @@ export default function StandardDrawer({
   const isSub = !!group && !!item && group.id !== item.id;
   const gates = item?.sdlcGates ? item.sdlcGates.split(/;\s*/).filter(Boolean) : [];
   // Only item-specific plan steps surface here — generic pattern keys are not
-  // displayed to users.
-  const planChecklist = item?.plan?.checklist.filter((k) => !k.generic) ?? [];
-  const planTesting = item?.plan?.testing.filter((k) => !k.generic) ?? [];
+  // displayed to users. Checklist and testing keys are combined into one
+  // "Actions" list rather than shown as separate groups.
+  const planActions = [
+    ...(item?.plan?.checklist.filter((k) => !k.generic) ?? []),
+    ...(item?.plan?.testing.filter((k) => !k.generic) ?? []),
+  ];
 
   return (
     <DrawerShell
@@ -280,24 +283,14 @@ export default function StandardDrawer({
             </div>
           )}
 
-          {/* Work Library plan — checklist + testing keys (values filled there),
-                  item-specific steps only */}
-          {planChecklist.length || planTesting.length ? (
+          {/* Work Library plan — checklist + testing keys combined into one
+                  Actions list (values filled there), item-specific steps only */}
+          {planActions.length > 0 && (
             <div>
-              {planChecklist.length > 0 && (
-                <>
-                  <SectionLabel>Checklist</SectionLabel>
-                  <PlanKeyList keys={planChecklist} className="mb-2" />
-                </>
-              )}
-              {planTesting.length > 0 && (
-                <>
-                  <SectionLabel>Testing</SectionLabel>
-                  <PlanKeyList keys={planTesting} />
-                </>
-              )}
+              <SectionLabel>Actions</SectionLabel>
+              <PlanKeyList keys={planActions} />
             </div>
-          ) : null}
+          )}
 
           {/* Applies to value streams */}
           {item.valueStreams.length > 0 && (
@@ -323,7 +316,7 @@ export default function StandardDrawer({
             to={`/work-library?type=standard&id=${itemId}`}
             className="inline-block w-full text-center rounded-md border border-[#9fb6e8] px-3 py-1.5 text-xs font-semibold text-[#2563eb] hover:bg-[#f0f6ff]"
           >
-            Checklist &amp; testing plan in Work library ↗
+            Actions plan in Work library ↗
           </Link>
           <Link
             to={`/standards/${areaId}`}

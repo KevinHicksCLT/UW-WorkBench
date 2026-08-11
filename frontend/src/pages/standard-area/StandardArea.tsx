@@ -365,29 +365,24 @@ function StandardMeta({
   onViewSkill: (skill: string) => void;
 }) {
   const openRole = useOpenRole();
-  const checklist = (item.plan?.checklist ?? []).filter((k) => !k.generic);
-  const testing = (item.plan?.testing ?? []).filter((k) => !k.generic);
-  if (!checklist.length && !testing.length && !item.appliers.length && !item.agentSkill)
-    return null;
+  // Checklist and testing keys are combined into one "Actions" group rather
+  // than shown as separate labeled groups.
+  const actions = [
+    ...(item.plan?.checklist ?? []).filter((k) => !k.generic),
+    ...(item.plan?.testing ?? []).filter((k) => !k.generic),
+  ];
+  if (!actions.length && !item.appliers.length && !item.agentSkill) return null;
   return (
     <div className="mt-1.5 space-y-1.5">
-      {checklist.length > 0 && (
+      {actions.length > 0 && (
         <div className="flex items-start gap-1.5">
           <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">
-            Checklist
+            Actions
           </span>
-          <PlanKeyList keys={checklist} />
+          <PlanKeyList keys={actions} />
         </div>
       )}
-      {testing.length > 0 && (
-        <div className="flex items-start gap-1.5">
-          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">
-            Testing
-          </span>
-          <PlanKeyList keys={testing} />
-        </div>
-      )}
-      {(checklist.length > 0 || testing.length > 0) && (
+      {actions.length > 0 && (
         <Link
           to={`/work-library?type=standard&id=${item.id}`}
           onClick={(e) => e.stopPropagation()}
