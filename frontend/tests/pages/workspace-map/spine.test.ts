@@ -81,6 +81,10 @@ describe('elementsOf', () => {
       format: 'Excel',
       mandate: null,
       mandateCitation: null,
+      formId: null,
+      formNumber: null,
+      formRole: null,
+      formState: null,
     });
   });
 

@@ -126,6 +126,9 @@ export type ComponentElement = {
   description: string | null; // what the item IS (coverage / factor / rule …)
   livesIn: string;
   format: string;
+  /** PolicyForm library identity (Forms components only) — opens the actual
+   *  form document. */
+  formId: string | null;
 };
 export type ComponentFacts = {
   owner: string | null;
@@ -146,6 +149,7 @@ export function componentFacts(attributes: unknown): ComponentFacts {
             description: asText(er.description),
             livesIn: asText(er.livesIn) ?? '',
             format: asText(er.format) ?? '',
+            formId: asText(er.formId),
           };
         })
         .filter((e) => e.element !== '' || e.livesIn !== '' || e.format !== '')

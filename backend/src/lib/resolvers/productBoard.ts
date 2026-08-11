@@ -736,51 +736,30 @@ function formElement(link: {
   };
 }
 
-export async function loadSpine(companyId: string): Promise<LoadedSpine> {
-  const hit = spineMemo.get(companyId);
-  if (hit && Date.now() - hit.at < SPINE_TTL_MS) return hit.spine;
-
-  const [levelTypes, nodes, formLinks] = await Promise.all([
-    prisma.productLevelType.findMany({
-      where: { companyId },
-      orderBy: { levelNumber: 'asc' },
-      select: { id: true, levelNumber: true, dbValue: true, displayValue: true },
-    }),
-    prisma.productNode.findMany({
-      where: { companyId },
-      orderBy: [{ sortOrder: 'asc' }, { displayValue: 'asc' }],
-      select: {
-        id: true,
-        parentId: true,
-        displayValue: true,
-        status: true,
-        sortOrder: true,
-        code: true,
-        attributes: true,
-        productLevelTypeId: true,
-      },
-    }),
-    prisma.formProductNode.findMany({
-      where: { companyId },
-      orderBy: [{ role_: 'asc' }, { id: 'asc' }],
-      select: {
-        productNodeId: true,
-        role_: true,
-        form: {
-          select: {
-            id: true,
-            formNumber: true,
-            title: true,
-            states: true,
-            editionDate: true,
-            filingStatus: true,
-          },
+/** Batch-load every FormProductNode link for a company as synthesized Forms
+ *  elements, grouped by the L4 version node they attach to. Ordered base →
+ *  declarations → endorsements → state amendatories, then form number. */
+export async function loadFormElementsByVersionNode(
+  companyId: string,
+): Promise<Map<string, SpineElement[]>> {
+  const formLinks = await prisma.formProductNode.findMany({
+    where: { companyId },
+    orderBy: [{ role_: 'asc' }, { id: 'asc' }],
+    select: {
+      productNodeId: true,
+      role_: true,
+      form: {
+        select: {
+          id: true,
+          formNumber: true,
+          title: true,
+          states: true,
+          editionDate: true,
+          filingStatus: true,
         },
       },
-    }),
-  ]);
-
-  // Base → declarations → endorsements → state amendatories, then form number.
+    },
+  });
   const roleOrder: Record<string, number> = {
     baseForm: 0,
     declarations: 1,
@@ -800,6 +779,35 @@ export async function loadSpine(companyId: string): Promise<LoadedSpine> {
         (a.formNumber ?? '').localeCompare(b.formNumber ?? ''),
     );
   }
+  return formsByVersionNode;
+}
+
+export async function loadSpine(companyId: string): Promise<LoadedSpine> {
+  const hit = spineMemo.get(companyId);
+  if (hit && Date.now() - hit.at < SPINE_TTL_MS) return hit.spine;
+
+  const [levelTypes, nodes, formsByVersionNode] = await Promise.all([
+    prisma.productLevelType.findMany({
+      where: { companyId },
+      orderBy: { levelNumber: 'asc' },
+      select: { id: true, levelNumber: true, dbValue: true, displayValue: true },
+    }),
+    prisma.productNode.findMany({
+      where: { companyId },
+      orderBy: [{ sortOrder: 'asc' }, { displayValue: 'asc' }],
+      select: {
+        id: true,
+        parentId: true,
+        displayValue: true,
+        status: true,
+        sortOrder: true,
+        code: true,
+        attributes: true,
+        productLevelTypeId: true,
+      },
+    }),
+    loadFormElementsByVersionNode(companyId),
+  ]);
 
   const levelOf = new Map(levelTypes.map((l) => [l.id, l.levelNumber]));
   type Node = (typeof nodes)[number];

@@ -5,6 +5,7 @@
 // portfolio scale); what a form CONTAINS — coverages, coverage parts,
 // endorsements, clauses — lives in its drill-down review list, one click away.
 
+import { useNavigate } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
 import { FORM_LAYER_META } from './formsModel';
 import { denseCells, type BoardColumn, type BoardFormRow, type BoardForms } from './boardApi';
@@ -80,6 +81,7 @@ function FormRegisterRow({
   notesOpen: boolean;
   onOpenDrill: (rowKey: string) => void;
 }) {
+  const navigate = useNavigate();
   return (
     <HeatGridRow
       rowKey={row.key}
@@ -135,6 +137,33 @@ function FormRegisterRow({
                 }}
               >
                 {row.sub}
+              </span>
+            )}
+            {row.formId && (
+              <span
+                role="link"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/forms/${row.formId}/document`);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.stopPropagation();
+                    navigate(`/forms/${row.formId}/document`);
+                  }
+                }}
+                title="open the actual form document from the forms library"
+                style={{
+                  display: 'inline-block',
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: '#2563eb',
+                  marginTop: 2,
+                  cursor: 'pointer',
+                }}
+              >
+                Form document ↗
               </span>
             )}
           </span>

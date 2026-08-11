@@ -54,6 +54,9 @@ export interface FormRow extends FormRowData {
   isBase: boolean;
   /** Latest reviewer comment among the row's decisions. */
   note: string | null;
+  /** PolicyForm id when the row IS one library form (null for aggregates) —
+   *  opens the actual form document. */
+  formId: string | null;
   /** Register payload ships no inline contents — the drill carries them. */
   contents: [];
 }
@@ -330,6 +333,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
           state: null,
           isBase: false,
           note: r.decision?.comment ?? null,
+          formId: null,
           contents: [],
         };
         const drill: FormsDrill = {
@@ -363,6 +367,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
       state: cls.state,
       isBase,
       note: r.decision?.comment ?? null,
+      formId: Object.values(r.group.perVersion)[0]?.formId ?? null,
       contents: [],
     };
     sections[FORM_LAYER_ORDER.indexOf(cls.layer)].rows.push(formRow);

@@ -95,6 +95,9 @@ export interface BoardFormRow extends HeatCounts {
   isBase: boolean;
   /** Latest reviewer comment among the row's decisions (server-computed). */
   note: string | null;
+  /** PolicyForm id when the row IS one library form (null for aggregates) —
+   *  opens the actual form document at /forms/:id/document. */
+  formId: string | null;
 }
 
 export interface BoardForms {

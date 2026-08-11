@@ -279,7 +279,17 @@ function ElementsSection({ node }: { node: DetailNode }) {
               className={`${ELEMENT_GRID} divide-x divide-[#f5f5f5] border-b border-[#f5f5f5] last:border-0`}
             >
               <div className="px-4 py-2 text-sm font-medium text-[#171717]">
-                {el.element || '—'}
+                {el.formId ? (
+                  <Link
+                    to={`/forms/${el.formId}/document`}
+                    className="hover:text-[#2563eb] hover:underline"
+                    title="open the actual form document from the forms library"
+                  >
+                    {el.element || '—'}
+                  </Link>
+                ) : (
+                  el.element || '—'
+                )}
               </div>
               <div className="px-4 py-2 text-sm text-[#525252]">{el.description ?? '—'}</div>
               <div className="px-4 py-2 text-sm text-[#525252]">{el.livesIn || '—'}</div>
