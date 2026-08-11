@@ -21,6 +21,7 @@ import {
   LoadingState,
   StatusPill,
 } from '../../components/ui';
+import SubjectImpact from '../workspace-map/impact/SubjectImpact';
 
 type ScanSummary = {
   fetchedAt?: string;
@@ -319,6 +320,19 @@ export default function ApplicationDetail() {
     <div>
       <BackButton className="mb-3" />
       <PageHeader eyebrow="Application" title={app.name} subtitle={sub || undefined} />
+
+      {/* Change-impact assessment for this application — the technology-lens
+          rationalization vocabulary, staged report and saved-packet history. */}
+      {id && (
+        <SubjectImpact
+          className="mb-4 space-y-2"
+          subject={{ kind: 'application', applicationIds: [id] }}
+          subjectKind="application"
+          subjectId={id}
+          label={app.name}
+          changeType="RETIRE"
+        />
+      )}
 
       <div className="flex flex-wrap items-center gap-1.5 -mt-2 mb-4">
         <StatusPill tone="blue">{app.kind}</StatusPill>
