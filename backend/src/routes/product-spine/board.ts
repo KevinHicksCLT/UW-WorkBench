@@ -23,6 +23,7 @@ import { activeCompany } from '../explorer/helpers.js';
 import {
   buildHeatmap,
   loadDecisions,
+  loadFormElementsByVersionNode,
   loadSpine,
   scopeLobs,
   type HeatCell,
@@ -292,7 +293,7 @@ export function registerProductBoardRoutes(router: Router): void {
             })
           : Promise.resolve(null),
       ]);
-      const [components, segNode] = await Promise.all([
+      const [components, segNode, formsByVersionNode] = await Promise.all([
         prisma.productNode.findMany({
           where: { parentId: { in: versions.map((v) => v.id) }, companyId: company.id },
           orderBy: { sortOrder: 'asc' },
@@ -304,6 +305,9 @@ export function registerProductBoardRoutes(router: Router): void {
               select: { id: true, displayValue: true },
             })
           : Promise.resolve(null),
+        // The Forms component renders the PolicyForm library (FormProductNode)
+        // — node attributes carry no form lists.
+        loadFormElementsByVersionNode(company.id),
       ]);
 
       const compsOf = (versionId: string): Map<string, SpineComponent> => {
@@ -313,7 +317,10 @@ export function registerProductBoardRoutes(router: Router): void {
           map.set(c.displayValue, {
             name: c.displayValue,
             sortOrder: c.sortOrder,
-            elements: parseElements(c.attributes),
+            elements:
+              c.displayValue === FORMS_COMPONENT
+                ? (formsByVersionNode.get(versionId) ?? [])
+                : parseElements(c.attributes),
           });
         }
         return map;
@@ -356,16 +363,25 @@ export function registerProductBoardRoutes(router: Router): void {
       const countrywide = inGeneration.find((v) => v.state === NO_STATE) ?? inGeneration[0] ?? null;
       if (!countrywide) return res.status(404).json({ error: 'Product has no versions' });
 
+      // Overlay = only what the state ADDS over the countrywide core (its
+      // amendatory paper) — the shared base/dec/endorsements never repeat.
+      const coreFormIds = new Set(
+        (countrywide.components.get(FORMS_COMPONENT)?.elements ?? [])
+          .map((e) => e.formId)
+          .filter(Boolean),
+      );
       const stateOverlays = inGeneration
         .filter((v) => v.id !== countrywide.id && v.state !== NO_STATE)
         .map((v) => ({
           state: v.state,
           versionId: v.id,
           status: v.status,
-          forms: (v.components.get(FORMS_COMPONENT)?.elements ?? []).map((e) => ({
-            ...e,
-            layer: classifyForm(e.element, e, false).layer,
-          })),
+          forms: (v.components.get(FORMS_COMPONENT)?.elements ?? [])
+            .filter((e) => !e.formId || !coreFormIds.has(e.formId))
+            .map((e) => ({
+              ...e,
+              layer: classifyForm(e.element, e, false).layer,
+            })),
           filings: v.components.get('Filings')?.elements ?? [],
         }));
 

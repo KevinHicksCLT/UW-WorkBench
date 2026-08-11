@@ -41,6 +41,12 @@ export interface ComponentElement {
    *  specific requirements the state imposes, with its statutory citation. */
   mandate?: string | null;
   mandateCitation?: string | null;
+  /** Forms-component elements are the PolicyForm library (FormProductNode) —
+   *  formId opens the actual form document at /forms/:id/document. */
+  formId?: string | null;
+  formNumber?: string | null;
+  formRole?: string | null;
+  formState?: string | null;
 }
 
 /** A version column: one L4 node with its product/LOB ancestry flattened. */
@@ -184,6 +190,10 @@ export function elementsOf(node: SpineNode): ComponentElement[] {
       format: typeof e.format === 'string' ? e.format : null,
       mandate: typeof e.mandate === 'string' ? e.mandate : null,
       mandateCitation: typeof e.mandateCitation === 'string' ? e.mandateCitation : null,
+      formId: typeof e.formId === 'string' ? e.formId : null,
+      formNumber: typeof e.formNumber === 'string' ? e.formNumber : null,
+      formRole: typeof e.formRole === 'string' ? e.formRole : null,
+      formState: typeof e.formState === 'string' ? e.formState : null,
     }))
     .filter((e) => e.element.length > 0);
 }

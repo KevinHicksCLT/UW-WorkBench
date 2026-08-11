@@ -1095,6 +1095,186 @@ erDiagram
     string lineOfBusiness "Commercial Package|Personal Auto|... (nullable)"
     bool illustrative
   }
+  %% ---------- FORMS RATIONALIZATION (clause plane + field plane) ----------
+  PolicyForm {
+    string id PK
+    string tenantId
+    string companyId FK
+    string formNumber "unique per company"
+    string title
+    string lob "General Liability|Property|Auto|... (nullable)"
+    json states "state postal codes; null = countrywide"
+    string editionDate "e.g. 04 13 (nullable)"
+    string filingStatus "Draft|Filed|Approved|Withdrawn"
+    string provenance "client|iso-flagged (ISO firewall, ADR-005)"
+    string ownerRoleId FK "-> Role (nullable)"
+  }
+  PolicyFormVersion {
+    string id PK
+    string tenantId
+    string companyId
+    string formId FK
+    int versionNo "unique per form"
+    string status "ingesting|ready|quarantined"
+    string sourceText "canonical text; clause offsets index into it"
+    float segConfidence
+    string createdById "User id (nullable)"
+  }
+  FormClause {
+    string id PK
+    string tenantId
+    string companyId
+    string formVersionId FK
+    int ordinal "unique per version"
+    int level
+    string heading "nullable"
+    string text
+    int charStart
+    int charEnd
+    string textHash "sha256(normalized) - dedup short-circuit"
+    float segConfidence
+  }
+  FormWorkingSet {
+    string id PK
+    string tenantId
+    string companyId FK
+    string name "unique per company"
+    string modeOverride "reading|portfolio|null = derive from size"
+    float clusterThreshold "lexical-similarity theta"
+    string clusterStatus "none|running|done|failed"
+    datetime clusteredAt "nullable"
+  }
+  FormWorkingSetMember {
+    string id PK
+    string companyId
+    string workingSetId FK
+    string formVersionId FK
+  }
+  ClauseCluster {
+    string id PK
+    string tenantId
+    string companyId
+    string workingSetId FK
+    string label
+    string representativeClauseId FK "-> FormClause medoid (nullable)"
+    float divergenceScore "1 - min pairwise similarity"
+  }
+  ClauseClusterMember {
+    string id PK
+    string companyId
+    string clusterId FK
+    string clauseId FK
+    float similarity "to representative"
+    bool outlier
+  }
+  FormFinding {
+    string id PK
+    string tenantId
+    string companyId
+    string workingSetId FK "nullable"
+    string clusterId FK "nullable"
+    string formVersionId FK "nullable"
+    string subjectKind "cluster|clausePair|form|fieldMapping"
+    string claim
+    json citations "formVersionId+clauseId+offsets+quote"
+    float confidence "lt 0.70 forces needs-human"
+    string status "new|needs-human|accepted|rejected|superseded"
+    string agentSkill
+    string decidedById "User id (nullable)"
+  }
+  FormDisposition {
+    string id PK
+    string tenantId
+    string companyId
+    string subjectKind "form|cluster"
+    string formId FK "nullable"
+    string clusterId FK "nullable"
+    string type "keep|merge|retire|redraft"
+    string targetFormId FK "-> PolicyForm merge target (nullable)"
+    string ownerRoleId FK "-> Role (nullable)"
+    string status "cache of latest event"
+  }
+  FormDispositionEvent {
+    string id PK
+    string companyId
+    string dispositionId FK
+    string event "proposed|approved|rejected|executed"
+    string actorKind "user|agent"
+    string actorId "User id or agent slug (nullable)"
+    datetime at "append-only"
+  }
+  PreferredWording {
+    string id PK
+    string tenantId
+    string companyId
+    string clusterId FK "unique - one standard per cluster"
+    string sourceClauseId FK "-> FormClause (nullable)"
+    string clauseText
+    string status "active|superseded"
+    string approvedById "User id (nullable)"
+  }
+  FieldDefinition {
+    string id PK
+    string tenantId
+    string companyId FK
+    string key "role.entity.attribute - unique per company"
+    string dataSetType "Insured|Policy|Producer|Coverage|..."
+    string dataType "string|number|date|boolean|choice|signature"
+    string acordRef "ACORD element id; semantics defer (nullable)"
+    string scope "global|tenant|form"
+    string stability "stable|do-not-map (INV-F1)"
+    json compositionParts "non-null = calculated, get-only (INV-F2)"
+    string compositionFormat "nullable"
+    int version
+  }
+  FormField {
+    string id PK
+    string tenantId
+    string companyId
+    string formVersionId FK
+    string sourceName "AcroForm/XFA name, prefix-normalized"
+    string label "nullable"
+    int page
+    string widgetType "text|checkbox|radio|choice|signature|date"
+    json options "label+exportValue pairs (nullable)"
+    string selectMode "single|multi (nullable)"
+    bool required
+    int instance "occurrence counter"
+  }
+  FieldMapping {
+    string id PK
+    string tenantId
+    string companyId
+    string formFieldId FK
+    string fieldDefinitionId FK
+    float confidence "weighted signal blend"
+    float nameSim
+    float labelSim
+    float optionOverlap
+    string status "suggested|needs-human|confirmed|rejected"
+    string reviewerId "User id (nullable, INV-F3)"
+  }
+  FormApplication {
+    string id PK
+    string companyId
+    string formId FK
+    string applicationId FK
+    string role_ "implementedBy|feedsApplication"
+  }
+  FormProcessNode {
+    string id PK
+    string companyId
+    string formId FK
+    string processNodeId FK
+    string role_ "servesValueStream|impactsTask"
+  }
+  FormProductNode {
+    string id PK
+    string companyId
+    string formId FK
+    string productNodeId FK "product spine L4 version node"
+    string role_ "baseForm|declarations|endorsement|stateAmendatory"
+  }
   %% ---------- IDENTITY & ENTITLEMENTS (RBAC/ABAC + preferences) ----------
   Tenant {
     string id PK
@@ -1448,6 +1628,38 @@ erDiagram
   User ||--o{ UserPreference : "prefers"
   %% ================= COLOR CODING =================
   %% red=connection tables · blue=value stream · orange=org · green=work · purple=other · teal=peripheral
+  %% ---------- FORMS RATIONALIZATION relationships ----------
+  Company ||--o{ PolicyForm : "owns"
+  Company ||--o{ FormWorkingSet : "owns"
+  Company ||--o{ FieldDefinition : "owns dictionary"
+  Role ||--o{ PolicyForm : "owns form"
+  PolicyForm ||--o{ PolicyFormVersion : "has versions"
+  PolicyFormVersion ||--o{ FormClause : "segments into"
+  PolicyFormVersion ||--o{ FormField : "extracts fields"
+  FormWorkingSet ||--o{ FormWorkingSetMember : "scopes"
+  PolicyFormVersion ||--o{ FormWorkingSetMember : "member of"
+  FormWorkingSet ||--o{ ClauseCluster : "clusters"
+  ClauseCluster ||--o{ ClauseClusterMember : "groups"
+  FormClause ||--o{ ClauseClusterMember : "member of"
+  FormClause ||--o{ ClauseCluster : "represents (medoid)"
+  FormWorkingSet ||--o{ FormFinding : "analyzed as"
+  ClauseCluster ||--o{ FormFinding : "subject of"
+  PolicyFormVersion ||--o{ FormFinding : "subject of"
+  PolicyForm ||--o{ FormDisposition : "decided by"
+  ClauseCluster ||--o{ FormDisposition : "decided by"
+  PolicyForm ||--o{ FormDisposition : "merge target of"
+  Role ||--o{ FormDisposition : "owns decision"
+  FormDisposition ||--o{ FormDispositionEvent : "append-only history"
+  ClauseCluster ||--|| PreferredWording : "standardized by"
+  FormClause ||--o{ PreferredWording : "source of"
+  FieldDefinition ||--o{ FieldMapping : "maps to"
+  FormField ||--o{ FieldMapping : "maps from"
+  PolicyForm ||--o{ FormApplication : "implemented by"
+  Application ||--o{ FormApplication : "renders/consumes"
+  PolicyForm ||--o{ FormProcessNode : "serves/impacts"
+  ProcessNode ||--o{ FormProcessNode : "linked from"
+  PolicyForm ||--o{ FormProductNode : "attaches to product version"
+  ProductNode ||--o{ FormProductNode : "renders forms from"
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style OrgUnitClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style ProcessNodeClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
@@ -1564,3 +1776,19 @@ erDiagram
   style ApprovalPolicyStage fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style ApprovalRequest fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style ApprovalAssignment fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style PolicyForm fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style PolicyFormVersion fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FormClause fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FormWorkingSet fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FormWorkingSetMember fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style ClauseCluster fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ClauseClusterMember fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style FormFinding fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FormDisposition fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FormDispositionEvent fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style PreferredWording fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FieldDefinition fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FormField fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style FieldMapping fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style FormApplication fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style FormProcessNode fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21

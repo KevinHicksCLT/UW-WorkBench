@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { stateLabel } from '../../lib/usStates';
 import { Card, Chip, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
@@ -24,6 +24,9 @@ interface ModelElement {
   description: string | null;
   livesIn: string | null;
   format: string | null;
+  /** PolicyForm library identity (forms elements only) — opens the actual
+   *  form document at /forms/:id/document. */
+  formId?: string | null;
 }
 
 interface StateOverlay {
@@ -146,7 +149,17 @@ function ElementRows({
         >
           <td className="py-2 px-3">
             <div className="font-medium text-[#171717] flex items-center gap-2 flex-wrap">
-              {e.element}
+              {e.formId ? (
+                <Link
+                  to={`/forms/${e.formId}/document`}
+                  className="text-[#171717] hover:text-[#2563eb] hover:underline"
+                  title="open the actual form document from the forms library"
+                >
+                  {e.element}
+                </Link>
+              ) : (
+                e.element
+              )}
               {e.from && (
                 <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 rounded px-1.5 py-0.5">
                   {e.from}
