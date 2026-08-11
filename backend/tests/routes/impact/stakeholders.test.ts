@@ -50,6 +50,40 @@ describe('deriveStakeholders', () => {
     expect(out.some((s) => s.kind === 'Technology')).toBe(true);
   });
 
+  it('names the concrete systems a Technology reviewer owns (no repeated label)', () => {
+    const out = deriveStakeholders(
+      [
+        line({ domain: 'technology', category: 'applications', entityName: 'Guidewire' }),
+        line({ domain: 'technology', category: 'applications', entityName: 'Duck Creek' }),
+      ],
+      { changeType: 'AUTOMATE_ACTIVITY', lens: 'value-stream' },
+    );
+    const tech = out.find((s) => s.kind === 'Technology');
+    expect(tech?.name).toBe('Guidewire, Duck Creek');
+    // The secondary line must not just echo the function name.
+    expect(tech?.name.toLowerCase()).not.toBe('technology');
+  });
+
+  it('names the concrete controls a Risk & Compliance reviewer signs off', () => {
+    const out = deriveStakeholders([line({ domain: 'compliance', entityName: 'SOX 404' })], {
+      changeType: 'REMOVE_APPROVAL',
+      lens: 'value-stream',
+    });
+    const risk = out.find((s) => s.kind === 'Risk & Compliance');
+    expect(risk?.name).toBe('SOX 404');
+  });
+
+  it('gives Business Architecture a lens scope, not a repeated label', () => {
+    const out = deriveStakeholders([line({})], {
+      changeType: 'CONSOLIDATE_VALUE_STREAMS',
+      lens: 'value-stream',
+      subjectName: 'Claims Intake',
+    });
+    const ba = out.find((s) => s.kind === 'Business Architect');
+    expect(ba?.name).toBe('Value-stream design');
+    expect(ba?.why).toContain('Claims Intake');
+  });
+
   it('adds Business Architect for structural VS/role/plan changes only', () => {
     const structural = deriveStakeholders([line({})], {
       changeType: 'CONSOLIDATE_VALUE_STREAMS',

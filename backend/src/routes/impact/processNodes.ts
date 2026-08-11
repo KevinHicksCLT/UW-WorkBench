@@ -386,6 +386,7 @@ export async function assessProcessNodes(
   const stakeholders = deriveStakeholders(impacts, {
     changeType,
     lens: 'value-stream',
+    subjectName: label ?? roots.map((r) => r.displayValue).join(' · '),
     ownerRoles: owners.map(([id, v]) => ({ id, name: v.name })),
     orgUnits: [...ownerOrgUnits.entries()].map(([id, name]) => ({ id, name })),
   });

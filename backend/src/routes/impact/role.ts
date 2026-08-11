@@ -261,6 +261,7 @@ export async function assessRole(
   const stakeholders = deriveStakeholders(impacts, {
     changeType,
     lens: 'role',
+    subjectName: label ?? role.displayValue,
     orgUnits: role.orgUnit ? [{ id: role.orgUnit.id, name: role.orgUnit.displayValue }] : [],
   });
   return buildReport(

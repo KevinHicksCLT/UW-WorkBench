@@ -352,6 +352,7 @@ export async function assessPlan(
   const stakeholders = deriveStakeholders(impacts, {
     changeType,
     lens: 'plan',
+    subjectName: planName,
     ownerRoles: [...ownerRoles.entries()].map(([id, name]) => ({ id, name })),
     orgUnits: [...orgUnits.entries()].map(([id, name]) => ({ id, name })),
   });
