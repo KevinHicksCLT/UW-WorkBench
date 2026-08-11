@@ -15,6 +15,7 @@ import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../..
 import { StatusPill } from '../../components/ui';
 import ImpactPanel from '../workspace-map/impact/ImpactPanel';
 import { useImpactGate } from '../workspace-map/impact/useImpactGate';
+import AssessmentHistory from '../workspace-map/impact/AssessmentHistory';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -252,10 +253,12 @@ function DetailBody({
   detail,
   onOpenTask,
   onAssess,
+  assessmentRefresh,
 }: {
   detail: Detail;
   onOpenTask?: (id: string) => void;
   onAssess?: () => void;
+  assessmentRefresh?: number;
 }) {
   // When every task shares one owner, name it once in the list header instead
   // of repeating the same chip on all rows.
@@ -306,6 +309,14 @@ function DetailBody({
       </div>
 
       {detail.kind === 'deliverable' && <DeliverableStats detail={detail} />}
+
+      {detail.kind === 'deliverable' && (
+        <AssessmentHistory
+          subjectKind="deliverable"
+          subjectId={detail.id}
+          refreshToken={assessmentRefresh}
+        />
+      )}
 
       {/* Agent-automatability assessment (tasks only) */}
       {detail.kind === 'task' && (
@@ -511,6 +522,15 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
   const gate = useImpactGate();
+  // Bump when the impact panel closes so a freshly-saved packet shows in the
+  // deliverable's assessment history without a manual reload.
+  const [assessRefresh, setAssessRefresh] = useState(0);
+  const panelWasOpen = useRef(false);
+  useEffect(() => {
+    const open = !!gate.state;
+    if (panelWasOpen.current && !open) setAssessRefresh((n) => n + 1);
+    panelWasOpen.current = open;
+  }, [gate.state]);
   useEffect(() => {
     if (companyLoading) return;
     const cacheKey = `${companyId ?? ''}:${tab}`;
@@ -824,6 +844,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
         >
           <DetailBody
             detail={detail}
+            assessmentRefresh={assessRefresh}
             onOpenTask={(id) => openDrill('task', id)}
             onAssess={
               detail.kind === 'deliverable'

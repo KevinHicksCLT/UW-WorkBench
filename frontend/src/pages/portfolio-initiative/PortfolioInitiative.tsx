@@ -3,7 +3,7 @@
  * tab strip. Each tab's content lives in pages/portfolio-initiative/
  * (pure code motion split; behavior unchanged).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { isHeldResponse, notifyHeld } from '../../lib/approvals';
@@ -15,6 +15,7 @@ import { Button, Card, ErrorMessage, LoadingState, Select, StatusPill } from '..
 import { type Initiative } from '../../lib/portfolio';
 import ImpactPanel from '../workspace-map/impact/ImpactPanel';
 import { useImpactGate } from '../workspace-map/impact/useImpactGate';
+import AssessmentHistory from '../workspace-map/impact/AssessmentHistory';
 import { SummaryTab } from './SummaryTab';
 import { CharterTab } from './CharterTab';
 import { AlignmentTab } from './AlignmentTab';
@@ -48,6 +49,14 @@ export default function PortfolioInitiative() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const gate = useImpactGate();
+  // Refresh the assessment history when the impact panel closes after a save.
+  const [assessRefresh, setAssessRefresh] = useState(0);
+  const panelWasOpen = useRef(false);
+  useEffect(() => {
+    const open = !!gate.state;
+    if (panelWasOpen.current && !open) setAssessRefresh((n) => n + 1);
+    panelWasOpen.current = open;
+  }, [gate.state]);
 
   function load() {
     api
@@ -135,6 +144,10 @@ export default function PortfolioInitiative() {
           )}
         </div>
       </Card>
+
+      <div className="mb-6">
+        <AssessmentHistory subjectKind="plan" subjectId={init.id} refreshToken={assessRefresh} />
+      </div>
 
       {/* Tabs */}
       <div className="border-b border-[#eaeaea] mb-5 overflow-x-auto">
