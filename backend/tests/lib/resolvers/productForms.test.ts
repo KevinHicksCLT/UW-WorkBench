@@ -20,6 +20,18 @@ const el = (element: string, livesIn = 'Forms library'): SpineElement => ({
   format: null,
 });
 
+const libEl = (
+  element: string,
+  formRole: 'baseForm' | 'declarations' | 'endorsement' | 'stateAmendatory',
+  formState: string | null = null,
+): SpineElement => ({
+  ...el(element),
+  formId: `form-${element.replace(/\W+/g, '-')}`,
+  formNumber: element.split(' — ')[0],
+  formRole,
+  formState,
+});
+
 let seq = 0;
 const nextSeq = (): number => {
   seq += 1;
@@ -60,6 +72,30 @@ describe('classifyForm', () => {
     expect(classifyForm('Homeowners policy — countrywide base form', null, false).layer).toBe(
       'core',
     );
+  });
+
+  it('routes library-backed forms by their FormProductNode role', () => {
+    // Base papers and declarations are countrywide core even when uniquely
+    // carried — the product-count judgement only demotes endorsements.
+    expect(
+      classifyForm('X', libEl('NM-PA-0001 — Personal Auto Policy', 'baseForm'), true).layer,
+    ).toBe('core');
+    expect(classifyForm('X', libEl('NM-PA-DEC — Declarations', 'declarations'), true).layer).toBe(
+      'core',
+    );
+    expect(classifyForm('X', libEl('NSA 2114 — TNC Exclusion', 'endorsement'), true).layer).toBe(
+      'product',
+    );
+    expect(classifyForm('X', libEl('CAF 2101 — Hired Auto', 'endorsement'), false).layer).toBe(
+      'core',
+    );
+    const state = classifyForm(
+      'X',
+      libEl('HM 8100PA — Special Provisions', 'stateAmendatory', 'PA'),
+      false,
+    );
+    expect(state.layer).toBe('state');
+    expect(state.state).toBe('PA');
   });
 });
 
@@ -133,6 +169,83 @@ describe('buildFormsModel', () => {
     expect(bands.has('Endorsements')).toBe(true);
     // 2 coverages + 1 clause + 3 endorsements (water backup + 2 state).
     expect(drill.reviewRows).toHaveLength(6);
+  });
+
+  it('anchors one base per product and scopes each base drill to its own product', () => {
+    const autoDef = { id: 'lobA', name: 'Auto / Motor', segment: 'Personal Lines' };
+    const withForms = (v: SpineVersion, forms: SpineElement[]): SpineVersion => {
+      v.components.set('Forms', { name: 'Forms', sortOrder: 0, elements: forms });
+      return v;
+    };
+    const auto: SpineLob = {
+      id: autoDef.id,
+      name: autoDef.name,
+      segmentName: autoDef.segment,
+      versions: [
+        withForms(
+          version(
+            'p1',
+            'v1 — Countrywide',
+            autoDef,
+            { Coverages: ['P1 Liability'] },
+            'Personal Auto',
+          ),
+          [
+            libEl('NM-PA-0001 — Personal Auto Policy', 'baseForm'),
+            libEl('NM-PA-2114 — TNC Exclusion', 'endorsement'),
+          ],
+        ),
+        withForms(
+          version(
+            'p2',
+            'v1 — Countrywide',
+            autoDef,
+            { Coverages: ['P2 Liability'] },
+            'Non-Standard Auto',
+          ),
+          [libEl('NSA 1001 — Non-Standard Auto Policy', 'baseForm')],
+        ),
+        withForms(version('p3', 'v1 — Countrywide', autoDef, {}, 'Rideshare'), [
+          libEl('TNC 1001 — Rideshare Policy', 'baseForm'),
+        ]),
+      ],
+    };
+    // Same LOB name under another segment — labels must disambiguate.
+    const commDef = { id: 'lobB', name: 'Auto / Motor', segment: 'Commercial Lines' };
+    const comm: SpineLob = {
+      id: commDef.id,
+      name: commDef.name,
+      segmentName: commDef.segment,
+      versions: [
+        withForms(version('c1', 'v1 — Countrywide', commDef, {}, 'Commercial Auto Fleet'), [
+          libEl('CAF 1001 — Commercial Auto Fleet Policy', 'baseForm'),
+        ]),
+      ],
+    };
+    const lobs = [auto, comm];
+    const model = buildFormsModel(buildHeatmap(lobs, new Map()), lobs)!;
+    const sections = Object.fromEntries(model.sections.map((s) => [s.layer, s.rows]));
+
+    // Every product's base paper is core + anchored, none demoted to
+    // product-specific by the carriage count.
+    const core = sections.core;
+    expect(core.filter((r) => r.isBase)).toHaveLength(4);
+    expect(core.map((r) => r.label)).toContain('NM-PA-0001 — Personal Auto Policy');
+    // The uniquely-carried endorsement still lands product-specific.
+    expect(sections.product.map((r) => r.label)).toEqual(['NM-PA-2114 — TNC Exclusion']);
+
+    // Ambiguous LOB names pick up their segment.
+    const pa = core.find((r) => r.label.startsWith('NM-PA-0001'))!;
+    expect(pa.sub).toContain('Auto / Motor (Personal Lines)');
+    expect(pa.sub).toContain('Personal Auto');
+
+    // The Personal Auto base drill holds ITS coverages/endorsements only.
+    const drill = model.byKey.get(pa.key)!;
+    const names = drill.reviewRows.map((r) => r.group.name);
+    expect(names).toContain('P1 Liability');
+    expect(names).toContain('NM-PA-2114 — TNC Exclusion');
+    expect(names).not.toContain('P2 Liability');
+    expect(names).not.toContain('NSA 1001 — Non-Standard Auto Policy');
   });
 
   it('returns null when the scope has no Forms component', () => {

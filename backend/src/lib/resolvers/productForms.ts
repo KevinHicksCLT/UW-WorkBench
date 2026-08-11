@@ -99,6 +99,12 @@ export function classifyForm(name: string, rep: SpineElement | null, unique: boo
     if (rep.formRole === 'stateAmendatory' && rep.formState) {
       return { layer: 'state', state: rep.formState, coverage: null };
     }
+    // A product's base paper and declarations ARE its countrywide core —
+    // carriage counts only demote optional endorsements. Without this, every
+    // base policy form in a 3+-product LOB lands in "product-specific".
+    if (rep.formRole === 'baseForm' || rep.formRole === 'declarations') {
+      return { layer: 'core', state: null, coverage: null };
+    }
     return unique
       ? { layer: 'product', state: null, coverage: null }
       : { layer: 'core', state: null, coverage: null };
@@ -215,31 +221,55 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
       productsInLob.set(l.id, set);
     }
   }
-  const productsCarrying = (r: ReviewRow): number => {
+  // The same LOB display name recurs across segments (Personal and Commercial
+  // both carry "Auto / Motor") — ambiguous names pick up their segment so the
+  // register's otherwise-identical rows stay tellable-apart.
+  const segmentOfLob = new Map(lobs.map((l) => [l.id, l.segmentName]));
+  const lobIdsByName = new Map<string, Set<string>>();
+  for (const l of lobs) {
+    const set = lobIdsByName.get(l.name) ?? new Set<string>();
+    set.add(l.id);
+    lobIdsByName.set(l.name, set);
+  }
+  const lobLabel = (lobId: string, lobName: string): string => {
+    const segment = segmentOfLob.get(lobId);
+    return (lobIdsByName.get(lobName)?.size ?? 1) > 1 && segment
+      ? `${lobName} (${segment})`
+      : lobName;
+  };
+  const productsOf = (r: ReviewRow): Set<string> => {
     const set = new Set<string>();
     for (const vid of Object.keys(r.group.perVersion)) {
       const p = productOfVersion.get(vid);
       if (p) set.add(p);
     }
-    return set.size;
+    return set;
   };
 
   const classified = formsRow.reviewRows.map((r) => {
     const rep = Object.values(r.group.perVersion)[0] ?? null;
-    const carrying = productsCarrying(r);
+    const carrying = productsOf(r).size;
     const inLob = productsInLob.get(r.lobId)?.size ?? 1;
     const unique = inLob > 2 && carrying <= 2;
     return { r, cls: classifyForm(r.group.name, rep, unique), carrying };
   });
 
-  // One base (containment anchor) per LOB, from its core-layer forms.
-  const baseByLob = new Map<string, string>();
-  const scoreByKey = new Map<string, number>();
-  for (const { r, cls } of classified) {
-    if (cls.layer !== 'core') continue;
-    scoreByKey.set(r.group.key, baseScore(r));
-    const cur = baseByLob.get(r.lobId);
-    if (!cur || baseScore(r) > (scoreByKey.get(cur) ?? -1)) baseByLob.set(r.lobId, r.group.key);
+  // One base (containment anchor) per PRODUCT, from its core-layer forms — a
+  // per-LOB anchor would leave every sibling product's paper un-anchored and
+  // pour their contents into one product's drill.
+  const baseKeys = new Set<string>();
+  {
+    const bestByProduct = new Map<string, { key: string; score: number }>();
+    for (const { r, cls } of classified) {
+      if (cls.layer !== 'core') continue;
+      const score = baseScore(r);
+      for (const product of productsOf(r)) {
+        const pk = `${r.lobId}::${product}`;
+        const cur = bestByProduct.get(pk);
+        if (!cur || score > cur.score) bestByProduct.set(pk, { key: rowKeyOf(r), score });
+      }
+    }
+    for (const { key } of bestByProduct.values()) baseKeys.add(key);
   }
 
   const byKey = new Map<string, FormsDrill>();
@@ -258,22 +288,32 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
       if (rows.length) out.push({ kind, rows });
     };
     if (isBase) {
+      // A base drill contains ITS product's contents only — in a multi-product
+      // LOB the sibling products' coverages/endorsements belong to their own
+      // base papers, not to whichever anchor the reader happened to open.
+      const baseProducts = productsOf(r);
+      const ownsRow = (c: ReviewRow): boolean =>
+        c.lobId === r.lobId &&
+        Object.keys(c.group.perVersion).some((vid) => {
+          const p = productOfVersion.get(vid);
+          return p !== undefined && baseProducts.has(p);
+        });
       push(
         'coverage',
         (coveragesRow?.reviewRows ?? [])
-          .filter((c) => c.lobId === r.lobId)
+          .filter(ownsRow)
           .map((c) => ({ data: rowFor(c, template, 'Coverage'), review: c })),
       );
       push(
         'clause',
         (termsRow?.reviewRows ?? [])
-          .filter((c) => c.lobId === r.lobId)
+          .filter(ownsRow)
           .map((c) => ({ data: rowFor(c, template, 'Clause'), review: c })),
       );
       push(
         'endorsement',
         classified
-          .filter((c) => c.r.lobId === r.lobId && c.r.group.key !== r.group.key)
+          .filter((c) => c.r.group.key !== r.group.key && ownsRow(c.r))
           .map((c) => ({
             data: rowFor(
               c.r,
@@ -307,13 +347,20 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
   };
 
   for (const { r, cls } of classified) {
-    const isBase = baseByLob.get(r.lobId) === r.group.key;
+    const isBase = baseKeys.has(rowKeyOf(r));
+    // Forms are per-product papers: name the owning product whenever the LOB
+    // holds more than one, so "Countrywide form · Auto / Motor" ×5 becomes
+    // five tellable rows.
+    const owners = [...productsOf(r)];
+    const owner =
+      owners.length === 1 && (productsInLob.get(r.lobId)?.size ?? 1) > 1 ? `${owners[0]} · ` : '';
+    const where = `${owner}${lobLabel(r.lobId, r.lobName)}`;
     const sub =
       cls.layer === 'state'
-        ? `State variation — ${STATE_NAMES[cls.state ?? ''] ?? cls.state} · ${r.lobName}`
+        ? `State variation — ${STATE_NAMES[cls.state ?? ''] ?? cls.state} · ${where}`
         : cls.layer === 'product'
-          ? `Product-specific · ${r.lobName}`
-          : `${isBase ? 'Core policy form' : cls.coverage ? `Attaches with ${cls.coverage} coverage` : 'Countrywide form'} · ${r.lobName}`;
+          ? `Product-specific · ${where}`
+          : `${isBase ? 'Core policy form' : cls.coverage ? `Attaches with ${cls.coverage} coverage` : 'Countrywide form'} · ${where}`;
     const own = rowFor(r, template, sub);
 
     if (cls.layer === 'state') {
@@ -408,7 +455,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
   for (const agg of stateAgg.values()) {
     const n = agg.states.size || agg.drill.reviewRows.length;
     agg.row.label = `State-required forms — ${n} state${n === 1 ? '' : 's'}`;
-    agg.row.sub = `${agg.drill.reviewRows.length} state form${agg.drill.reviewRows.length === 1 ? '' : 's'} · ${agg.row.lobName}`;
+    agg.row.sub = `${agg.drill.reviewRows.length} state form${agg.drill.reviewRows.length === 1 ? '' : 's'} · ${lobLabel(agg.row.lobId, agg.row.lobName)}`;
     agg.row.rag = ragOf(agg.row);
     agg.row.pct = pctOf(agg.row);
     agg.drill.label = agg.row.label;
@@ -417,11 +464,14 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
     agg.drill.pct = pctOf(agg.drill);
   }
 
+  // Group by LOB, base paper leading its LOB's run — a global bases-first sort
+  // would shuffle every LOB's papers apart once each product carries its own
+  // anchor.
   for (const s of sections)
     s.rows.sort(
       (a, b) =>
-        Number(b.isBase) - Number(a.isBase) ||
         a.lobName.localeCompare(b.lobName) ||
+        Number(b.isBase) - Number(a.isBase) ||
         (a.state ?? '').localeCompare(b.state ?? '') ||
         a.label.localeCompare(b.label),
     );
