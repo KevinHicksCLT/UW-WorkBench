@@ -366,62 +366,50 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
         </div>
       )}
 
-      {/* Work Library plan — checklist + testing keys (✓ defined / ✗ missing) */}
+      {/* Work Library plan — checklist + testing keys combined into one Actions
+          list (✓ defined / ✗ missing); item-specific steps only, generic
+          pattern keys are not surfaced. */}
       {detail.kind === 'task' &&
         detail.plan &&
-        (detail.plan.checklist.length > 0 || detail.plan.testing.length > 0) && (
-          <>
-            {(['Checklist', 'Testing'] as const).map((label) => {
-              const rows = label === 'Checklist' ? detail.plan!.checklist : detail.plan!.testing;
-              if (!rows.length) return null;
-              // Generic pattern keys vs task-specific steps as two labeled groups.
-              const groups = [
-                { name: 'Generic steps · pattern', rows: rows.filter((r) => r.generic) },
-                { name: 'Specific steps · this task', rows: rows.filter((r) => !r.generic) },
-              ].filter((g) => g.rows.length > 0);
-              return (
-                <Field key={label} label={label}>
-                  {groups.map((g) => (
-                    <div key={g.name} className="mt-1 first:mt-0">
-                      <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#8a94a0] mb-0.5">
-                        {g.name}
-                      </div>
-                      <ul className="space-y-1">
-                        {g.rows.map((r, i) => (
-                          <li key={i} className="text-sm flex gap-1.5 items-start">
-                            <span
-                              className={
-                                (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
-                              }
-                            >
-                              {r.defined ? '✓' : '✗'}
-                            </span>
-                            {r.defined ? (
-                              <span>
-                                <span className="text-[#8a94a0]">{r.key}: </span>
-                                <span className="text-[#171717]">
-                                  <ProcedureValue value={r.value ?? ''} />
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="text-[#6b7785]">{r.key}</span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+        (() => {
+          const rows = [...detail.plan.checklist, ...detail.plan.testing].filter((r) => !r.generic);
+          if (!rows.length) return null;
+          return (
+            <>
+              <Field label="Actions">
+                <ul className="space-y-1">
+                  {rows.map((r, i) => (
+                    <li key={i} className="text-sm flex gap-1.5 items-start">
+                      <span
+                        className={
+                          (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
+                        }
+                      >
+                        {r.defined ? '✓' : '✗'}
+                      </span>
+                      {r.defined ? (
+                        <span>
+                          <span className="text-[#8a94a0]">{r.key}: </span>
+                          <span className="text-[#171717]">
+                            <ProcedureValue value={r.value ?? ''} />
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[#6b7785]">{r.key}</span>
+                      )}
+                    </li>
                   ))}
-                </Field>
-              );
-            })}
-            <Link
-              to={`/work-library?type=task&id=${detail.id}`}
-              className="text-sm font-medium text-[#2563eb] hover:underline"
-            >
-              Edit plan in Work library ↗
-            </Link>
-          </>
-        )}
+                </ul>
+              </Field>
+              <Link
+                to={`/work-library?type=task&id=${detail.id}`}
+                className="text-sm font-medium text-[#2563eb] hover:underline"
+              >
+                Edit plan in Work library ↗
+              </Link>
+            </>
+          );
+        })()}
       {/* Linked work — each task row drills into the task detail. */}
       {detail.kind === 'deliverable' ? (
         <div>

@@ -541,10 +541,10 @@ export function ValueComplexityMatrix({ t }: { t: TransformationData }) {
                   title={`${i.name} (${i.programName}) — value ${i.valueScore ?? 0}, complexity ${i.complexityScore ?? 5}`}
                 >
                   <span
-                    className="block w-3 h-3 rounded-full border-2 border-white shadow"
+                    className="block w-5 h-5 rounded-full border-2 border-white shadow"
                     style={{ backgroundColor: i.color }}
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] text-[#525252] whitespace-nowrap bg-white/85 px-1 rounded group-hover:text-[#171717]">
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-[10px] text-[#525252] whitespace-nowrap bg-white/85 px-1 rounded group-hover:text-[#171717]">
                     {i.name}
                   </span>
                 </Link>

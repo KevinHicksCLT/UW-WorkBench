@@ -137,6 +137,8 @@ async function main() {
       tenantId: tenant.id,
       email: 'kevin.hicks@capgemini.com',
       name: 'Kevin Hicks',
+      firstName: 'Kevin',
+      lastName: 'Hicks',
       password: await bcrypt.hash('demo1234', 10),
       role: 'SITE_ADMIN',
     },

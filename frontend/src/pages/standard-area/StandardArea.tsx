@@ -341,29 +341,14 @@ export default function StandardArea() {
 // Surface a granular standard as an independently testable + applicable rule:
 // the ordered verification steps, the evidence they leave, who applies it, and
 // the tailored agent skill that enforces + tests it.
-// Ordered plan keys split into labeled generic (pattern) and specific (this
-// item) groups; numbering runs continuously across the two groups.
+// Only item-specific steps are shown — generic pattern keys are not surfaced.
 function PlanKeyList({ keys }: { keys: PlanKey[] }) {
-  const generic = keys.filter((k) => k.generic);
-  const specific = keys.filter((k) => !k.generic);
-  const group = (label: string, rows: PlanKey[], start: number) =>
-    rows.length > 0 && (
-      <div>
-        <div className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#8a94a0]">
-          {label}
-        </div>
-        <ol start={start} className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">
-          {rows.map((k, i) => (
-            <li key={i}>{k.key}</li>
-          ))}
-        </ol>
-      </div>
-    );
   return (
-    <div className="space-y-1">
-      {group('Generic steps · pattern', generic, 1)}
-      {group('Specific steps · this item', specific, generic.length + 1)}
-    </div>
+    <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">
+      {keys.map((k, i) => (
+        <li key={i}>{k.key}</li>
+      ))}
+    </ol>
   );
 }
 
@@ -380,29 +365,24 @@ function StandardMeta({
   onViewSkill: (skill: string) => void;
 }) {
   const openRole = useOpenRole();
-  const checklist = item.plan?.checklist ?? [];
-  const testing = item.plan?.testing ?? [];
-  if (!checklist.length && !testing.length && !item.appliers.length && !item.agentSkill)
-    return null;
+  // Checklist and testing keys are combined into one "Actions" group rather
+  // than shown as separate labeled groups.
+  const actions = [
+    ...(item.plan?.checklist ?? []).filter((k) => !k.generic),
+    ...(item.plan?.testing ?? []).filter((k) => !k.generic),
+  ];
+  if (!actions.length && !item.appliers.length && !item.agentSkill) return null;
   return (
     <div className="mt-1.5 space-y-1.5">
-      {checklist.length > 0 && (
+      {actions.length > 0 && (
         <div className="flex items-start gap-1.5">
           <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">
-            Checklist
+            Actions
           </span>
-          <PlanKeyList keys={checklist} />
+          <PlanKeyList keys={actions} />
         </div>
       )}
-      {testing.length > 0 && (
-        <div className="flex items-start gap-1.5">
-          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">
-            Testing
-          </span>
-          <PlanKeyList keys={testing} />
-        </div>
-      )}
-      {(checklist.length > 0 || testing.length > 0) && (
+      {actions.length > 0 && (
         <Link
           to={`/work-library?type=standard&id=${item.id}`}
           onClick={(e) => e.stopPropagation()}

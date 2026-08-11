@@ -41,7 +41,9 @@ model User {
   tenantId   String
   tenant     Tenant  @relation(fields: [tenantId], references: [id])
   email      String  @unique
-  name       String
+  name       String // full display name — kept as canonical (IAM/import supply it); admin UI composes it from firstName + lastName
+  firstName  String? // structured given name — set by the User Admin form; null for IAM/import-provisioned users that only carry a display name
+  lastName   String? // structured family name — see firstName
   password   String // bcrypt hash
   role       String  @default("MEMBER") // SITE_ADMIN | CORE_BUSINESS_ADMIN | TECHNOLOGY_ADMIN | CORPORATE_FUNCTIONS_ADMIN | SUPER_USER | MEMBER
   status     String  @default("ACTIVE") // ACTIVE | DEACTIVATED — soft-delete for IAM deprovisioning
