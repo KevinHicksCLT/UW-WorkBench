@@ -7,9 +7,10 @@ import {
   columnStatSummary,
   columnDeadLabel,
   deadCodeGroups,
+  floorLanding,
   normalizeHeaderStats,
 } from '../../../src/pages/workspace-map/stats';
-import type { BoardApp, Finding } from '../../../src/pages/workspace-map/types';
+import type { BoardApp, Finding, NormalizationEntry } from '../../../src/pages/workspace-map/types';
 
 const finding = (over: Partial<Finding>): Finding => ({
   id: 'f',
@@ -83,6 +84,36 @@ describe('normalizeHeaderStats', () => {
     expect(normalizeHeaderStats(server, client, false)).toBe(client);
     expect(normalizeHeaderStats(null, client, true)).toBe(client);
     expect(normalizeHeaderStats(undefined, client, true)).toBe(client);
+  });
+});
+
+describe('floorLanding', () => {
+  const entry = (id: string, findingIds: string[]): NormalizationEntry => ({
+    id,
+    layer: 'UI',
+    notation: null,
+    name: id,
+    matchStatus: 'AUTO',
+    matchBasis: null,
+    differenceNote: null,
+    proposedResolution: null,
+    sourceCards: null,
+    componentId: null,
+    findingIds,
+  });
+
+  it('counts entries plus the uncovered pass-through findings', () => {
+    const landed = [finding({ id: '1' }), finding({ id: '2' }), finding({ id: '3' })];
+    const { passThrough, inCount } = floorLanding([entry('e1', ['1', '2'])], landed);
+    expect(passThrough.map((f) => f.id)).toEqual(['3']);
+    expect(inCount).toBe(2); // one entry + one pass-through
+  });
+
+  it('is a pure 1→1 pass-through without entries', () => {
+    const landed = [finding({ id: '1' }), finding({ id: '2' })];
+    const { passThrough, inCount } = floorLanding([], landed);
+    expect(passThrough).toHaveLength(2);
+    expect(inCount).toBe(2);
   });
 });
 

@@ -3,7 +3,7 @@
 // grouping. Server-computed values (BoardDetail.columnStats / normalizeStats)
 // are authoritative when the shown scope matches what the server counted;
 // these helpers provide the client-side fallback and the formatting.
-import type { BoardApp, ColumnStat, Finding, NormalizeStats } from './types';
+import type { BoardApp, ColumnStat, Finding, NormalizationEntry, NormalizeStats } from './types';
 
 /** Client-side fallback for one source's column stats. Mirrors the backend's
  *  columnStatsOf semantics: dead code counts apart, then Relocate/Eliminate
@@ -37,6 +37,18 @@ export function normalizeHeaderStats(
   scopeIsFullBoard: boolean,
 ): NormalizeStats {
   return scopeIsFullBoard && server ? server : client;
+}
+
+/** What lands on one greenfield floor: the normalization entries living there
+ *  plus the findings no entry covers (those carry 1→1). inCount is the floor's
+ *  "N in" figure; a target's inbound total is the sum over its floors. */
+export function floorLanding(
+  lives: NormalizationEntry[],
+  landed: Finding[],
+): { passThrough: Finding[]; inCount: number } {
+  const covered = new Set(lives.flatMap((e) => e.findingIds));
+  const passThrough = landed.filter((f) => !covered.has(f.id));
+  return { passThrough, inCount: lives.length + passThrough.length };
 }
 
 /** Dead-code findings grouped per source application (apps order, no empties)
