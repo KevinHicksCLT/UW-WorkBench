@@ -8,6 +8,7 @@ import AppPicker, { type AppOption } from './AppPicker';
 import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
+import DeadCodeLane from './DeadCodeLane';
 import ProductBoard from './product/ProductBoard';
 import VsStreamBoard from './spine/VsStreamBoard';
 import RoleCompareBoard from './spine/RoleCompareBoard';
@@ -803,6 +804,9 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           <ZoomBtn label="⛶" onClick={() => setZoom(1)} />
         </div>
       </div>
+
+      {/* v3 dead-code lane — full width, every compared source, hidden at 0. */}
+      <DeadCodeLane findings={merged.findings} apps={merged.apps} />
     </div>
   );
 }
