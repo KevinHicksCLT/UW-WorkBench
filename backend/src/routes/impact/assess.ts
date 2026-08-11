@@ -6,11 +6,13 @@
 import type { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { activeCompany } from '../explorer/helpers.js';
-import { CHANGE_TYPES, type ImpactReport } from './types.js';
+import { ALL_CHANGE_TYPES, type ImpactReport } from './types.js';
 import { assessProcessNodes } from './processNodes.js';
 import { assessRole } from './role.js';
 import { assessApplication } from './application.js';
 import { assessProduct } from './product.js';
+import { assessDeliverable } from './deliverable.js';
+import { assessPlan } from './plan.js';
 
 const id = z.string().trim().min(1);
 /** Shared with /impact/analyze — the AI deep-dive takes the same subject. */
@@ -29,9 +31,18 @@ export const subjectSchema = z.discriminatedUnion('kind', [
     elementName: z.string().trim().max(300).optional(),
     componentNodeIds: z.array(id).max(100).optional(),
   }),
+  z.object({ kind: z.literal('deliverable'), deliverableIds: z.array(id).min(1).max(50) }),
+  z.object({
+    kind: z.literal('plan'),
+    programId: id.optional(),
+    workstreamId: id.optional(),
+    initiativeId: id.optional(),
+  }),
 ]);
 const bodySchema = z.object({
-  changeType: z.enum(CHANGE_TYPES),
+  // Accepts every token across all lens taxonomies; the walkers map each onto
+  // the shared changeClass machinery (Change Impact v2, Workstream A).
+  changeType: z.enum(ALL_CHANGE_TYPES),
   label: z.string().trim().max(300).optional(),
   subject: subjectSchema,
 });
@@ -54,6 +65,10 @@ export function registerAssessRoutes(router: Router): void {
         report = await assessRole(company.id, subject.roleId, subject.taskIds, changeType, label);
       } else if (subject.kind === 'application') {
         report = await assessApplication(company.id, subject, changeType, label);
+      } else if (subject.kind === 'deliverable') {
+        report = await assessDeliverable(company.id, subject.deliverableIds, changeType, label);
+      } else if (subject.kind === 'plan') {
+        report = await assessPlan(company.id, subject, changeType, label);
       } else {
         report = await assessProduct(company.id, subject, changeType, label);
       }

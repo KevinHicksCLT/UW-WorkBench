@@ -12,6 +12,7 @@ import {
   parseStates,
   scopeLobs,
 } from '../../lib/resolvers/productBoard.js';
+import { deriveStakeholders } from './stakeholders.js';
 import {
   buildReport,
   classOf,
@@ -340,6 +341,7 @@ export async function assessProduct(
       : `Scope of this check: ${versions.length} product version${versions.length === 1 ? '' : 's'} under ${lob.displayValue}, ${comps.length} with a ${subject.component} component.`,
   });
 
+  const stakeholders = deriveStakeholders(impacts, { changeType, lens: 'product' });
   return buildReport(
     {
       kind: 'product-element',
@@ -350,6 +352,7 @@ export async function assessProduct(
     changeType,
     impacts,
     {
+      stakeholders,
       score: scoreDecision(impacts, carriers.size, versions.length, live.length),
       goal: await goalProgress(companyId, lob.id, lob.displayValue),
     },

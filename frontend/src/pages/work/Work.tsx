@@ -13,6 +13,9 @@ import { useWorkToc, WorkGroupPicker } from './workToc';
 import WorkGroupDrill from './WorkGroupDrill';
 import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../../lib/automatable';
 import { StatusPill } from '../../components/ui';
+import ImpactPanel from '../workspace-map/impact/ImpactPanel';
+import { useImpactGate } from '../workspace-map/impact/useImpactGate';
+import AssessmentHistory, { reopenAssessment } from '../workspace-map/impact/AssessmentHistory';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -246,7 +249,19 @@ function DeliverableStats({ detail }: { detail: DeliverableDetail }) {
   );
 }
 
-function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: string) => void }) {
+function DetailBody({
+  detail,
+  onOpenTask,
+  onAssess,
+  onOpenAssessment,
+  assessmentRefresh,
+}: {
+  detail: Detail;
+  onOpenTask?: (id: string) => void;
+  onAssess?: () => void;
+  onOpenAssessment?: (id: string) => void;
+  assessmentRefresh?: number;
+}) {
   // When every task shares one owner, name it once in the list header instead
   // of repeating the same chip on all rows.
   const commonOwner =
@@ -282,9 +297,29 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
             </StatusPill>
           )}
         </div>
+        {/* Change-impact assessment — the deliverable's own producers, consumers,
+            information components and governance impact (Change Impact v2). */}
+        {detail.kind === 'deliverable' && onAssess && (
+          <button
+            type="button"
+            onClick={onAssess}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#2f6fb2]/40 bg-[#2f6fb2]/5 px-2.5 py-1.5 text-xs font-semibold text-[#2f6fb2] transition-colors duration-150 hover:bg-[#2f6fb2]/10"
+          >
+            Assess change impact
+          </button>
+        )}
       </div>
 
       {detail.kind === 'deliverable' && <DeliverableStats detail={detail} />}
+
+      {detail.kind === 'deliverable' && (
+        <AssessmentHistory
+          subjectKind="deliverable"
+          subjectId={detail.id}
+          refreshToken={assessmentRefresh}
+          onOpen={onOpenAssessment}
+        />
+      )}
 
       {/* Agent-automatability assessment (tasks only) */}
       {detail.kind === 'task' && (
@@ -489,6 +524,16 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
+  const gate = useImpactGate();
+  // Bump when the impact panel closes so a freshly-saved packet shows in the
+  // deliverable's assessment history without a manual reload.
+  const [assessRefresh, setAssessRefresh] = useState(0);
+  const panelWasOpen = useRef(false);
+  useEffect(() => {
+    const open = !!gate.state;
+    if (panelWasOpen.current && !open) setAssessRefresh((n) => n + 1);
+    panelWasOpen.current = open;
+  }, [gate.state]);
   useEffect(() => {
     if (companyLoading) return;
     const cacheKey = `${companyId ?? ''}:${tab}`;
@@ -800,9 +845,29 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
           title={detail.kind === 'deliverable' ? 'Deliverable' : 'Task'}
           onClose={closeDrill}
         >
-          <DetailBody detail={detail} onOpenTask={(id) => openDrill('task', id)} />
+          <DetailBody
+            detail={detail}
+            assessmentRefresh={assessRefresh}
+            onOpenTask={(id) => openDrill('task', id)}
+            onOpenAssessment={(id) => reopenAssessment(gate, id)}
+            onAssess={
+              detail.kind === 'deliverable'
+                ? () =>
+                    gate.run(
+                      {
+                        changeType: 'CONVERT_TO_STRUCTURED_DATA',
+                        label: detail.title,
+                        subject: { kind: 'deliverable', deliverableIds: [detail.id] },
+                        pickable: true,
+                      },
+                      () => {},
+                    )
+                : undefined
+            }
+          />
         </Sidebar>
       )}
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

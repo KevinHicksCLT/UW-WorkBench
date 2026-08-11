@@ -13,6 +13,16 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
+import { logger } from '../../lib/logger.js';
+
+// A product sign-off maps onto the shared change vocabulary and recommendation
+// so every lens's decisions land in one ImpactAssessment audit trail (Change
+// Impact v2, Workstream D).
+const DECISION_TO_CHANGE: Record<string, { changeType: string; recommendation: string }> = {
+  APPROVED: { changeType: 'ADOPT', recommendation: 'STANDARDIZE' },
+  HELD: { changeType: 'HOLD', recommendation: 'RETAIN' },
+  RETIRED: { changeType: 'RETIRE', recommendation: 'RETIRE' },
+};
 
 const putSchema = z.object({
   lobId: z.string().trim().min(1),
@@ -135,6 +145,34 @@ export function registerProductDecisionRoutes(router: Router): void {
         },
         select: { groupKey: true, component: true, status: true, comment: true, updatedAt: true },
       });
+
+      // Shadow the decision into the shared impact-assessment audit trail. Never
+      // let an audit-write failure fail the sign-off itself — the decision is
+      // the authoritative record; this is the cross-lens log alongside it.
+      const map = DECISION_TO_CHANGE[status];
+      if (map) {
+        try {
+          await prisma.impactAssessment.create({
+            data: {
+              tenantId: req.tenantId,
+              companyId: company.id,
+              subjectKind: 'product-element',
+              subjectRef: { kind: 'product-element', lobId, component },
+              subjectName: component,
+              changeType: map.changeType,
+              status: 'APPROVED',
+              recommendation: map.recommendation,
+              intent: comment ?? null,
+              createdBy: req.user.id,
+              decidedBy: req.user.id,
+              decidedAt: new Date(),
+            },
+          });
+        } catch (auditErr) {
+          logger.warn({ err: auditErr, lobId, component }, 'product decision audit-write failed');
+        }
+      }
+
       res.json({
         groupKey: saved.groupKey,
         component: saved.component,

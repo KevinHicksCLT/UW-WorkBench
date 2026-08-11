@@ -5,6 +5,7 @@
 // reports, checklist duties.
 import { prisma } from '../../db/prisma.js';
 import { streamAncestry } from '../../lib/resolvers/index.js';
+import { deriveStakeholders } from './stakeholders.js';
 import {
   buildReport,
   classOf,
@@ -30,7 +31,7 @@ export async function assessRole(
     select: {
       id: true,
       displayValue: true,
-      orgUnit: { select: { displayValue: true } },
+      orgUnit: { select: { id: true, displayValue: true } },
       _count: { select: { reports: true, checklistItems: true, ownedStandards: true } },
     },
   });
@@ -257,6 +258,12 @@ export async function assessRole(
     });
   }
 
+  const stakeholders = deriveStakeholders(impacts, {
+    changeType,
+    lens: 'role',
+    subjectName: label ?? role.displayValue,
+    orgUnits: role.orgUnit ? [{ id: role.orgUnit.id, name: role.orgUnit.displayValue }] : [],
+  });
   return buildReport(
     {
       kind: 'role',
@@ -274,5 +281,6 @@ export async function assessRole(
     },
     changeType,
     impacts,
+    { stakeholders },
   );
 }

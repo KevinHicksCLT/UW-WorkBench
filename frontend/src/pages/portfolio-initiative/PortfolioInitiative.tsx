@@ -3,7 +3,7 @@
  * tab strip. Each tab's content lives in pages/portfolio-initiative/
  * (pure code motion split; behavior unchanged).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { isHeldResponse, notifyHeld } from '../../lib/approvals';
@@ -13,6 +13,9 @@ import { STAGE_ORDER, STAGE_LABELS } from '../../lib/format';
 import PageHeader from '../../components/PageHeader';
 import { Button, Card, ErrorMessage, LoadingState, Select, StatusPill } from '../../components/ui';
 import { type Initiative } from '../../lib/portfolio';
+import ImpactPanel from '../workspace-map/impact/ImpactPanel';
+import { useImpactGate } from '../workspace-map/impact/useImpactGate';
+import AssessmentHistory, { reopenAssessment } from '../workspace-map/impact/AssessmentHistory';
 import { SummaryTab } from './SummaryTab';
 import { CharterTab } from './CharterTab';
 import { AlignmentTab } from './AlignmentTab';
@@ -45,6 +48,15 @@ export default function PortfolioInitiative() {
   const [tab, setTab] = useViewState<Tab>(`initiative.${id}.tab`, 'Summary');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const gate = useImpactGate();
+  // Refresh the assessment history when the impact panel closes after a save.
+  const [assessRefresh, setAssessRefresh] = useState(0);
+  const panelWasOpen = useRef(false);
+  useEffect(() => {
+    const open = !!gate.state;
+    if (panelWasOpen.current && !open) setAssessRefresh((n) => n + 1);
+    panelWasOpen.current = open;
+  }, [gate.state]);
 
   function load() {
     api
@@ -86,6 +98,22 @@ export default function PortfolioInitiative() {
         title={init.name}
         actions={
           <>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                gate.run(
+                  {
+                    changeType: 'RESCHEDULE',
+                    label: init.name,
+                    subject: { kind: 'plan', initiativeId: init.id },
+                    pickable: true,
+                  },
+                  () => {},
+                )
+              }
+            >
+              Assess Impact
+            </Button>
             {init.workflowAction === 'SUBMIT' && (
               <Button disabled={busy} onClick={() => workflow('APPROVE')}>
                 Approve → {STAGE_LABELS[STAGE_ORDER[stageIdx + 1]] ?? 'Done'}
@@ -117,6 +145,15 @@ export default function PortfolioInitiative() {
         </div>
       </Card>
 
+      <div className="mb-6">
+        <AssessmentHistory
+          subjectKind="plan"
+          subjectId={init.id}
+          refreshToken={assessRefresh}
+          onOpen={(id) => reopenAssessment(gate, id)}
+        />
+      </div>
+
       {/* Tabs */}
       <div className="border-b border-[#eaeaea] mb-5 overflow-x-auto">
         <nav className="flex gap-6 whitespace-nowrap">
@@ -146,6 +183,8 @@ export default function PortfolioInitiative() {
       {tab === 'Resources' && <ResourcesTab init={init} reload={load} />}
       {tab === 'RAID' && <RaidTab init={init} reload={load} />}
       {tab === 'Audit' && <AuditTab initId={init.id} />}
+
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

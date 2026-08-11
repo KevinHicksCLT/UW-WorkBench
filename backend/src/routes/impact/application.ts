@@ -5,6 +5,7 @@
 // dependents (shared-service capabilities, mapped screens).
 import { prisma } from '../../db/prisma.js';
 import { rolesForNodes, streamAncestry } from '../../lib/resolvers/index.js';
+import { deriveStakeholders } from './stakeholders.js';
 import {
   buildReport,
   classOf,
@@ -186,11 +187,16 @@ export async function assessApplication(
   );
 
   // People whose day-to-day runs through the app.
+  const ownerRoles = new Map<string, string>();
   const usageNodeIds = [...new Set(usage.map((u) => u.processNodeId))];
   if (usageNodeIds.length) {
     const roleMap = await rolesForNodes(usageNodeIds);
     const roles = new Set<string>();
-    for (const entries of roleMap.values()) for (const e of entries) roles.add(e.id);
+    for (const entries of roleMap.values())
+      for (const e of entries) {
+        roles.add(e.id);
+        if (e.role_ === 'Owner') ownerRoles.set(e.id, e.name);
+      }
     if (roles.size) {
       impacts.push({
         severity: grade('MEDIUM', cls),
@@ -273,6 +279,11 @@ export async function assessApplication(
   const name =
     label ??
     (apps.length ? apps.map((a) => a.name).join(', ') : rApps.map((r) => r.name).join(', '));
+  const stakeholders = deriveStakeholders(impacts, {
+    changeType,
+    lens: 'application',
+    ownerRoles: [...ownerRoles.entries()].map(([id, roleName]) => ({ id, name: roleName })),
+  });
   return buildReport(
     {
       kind: 'application',
@@ -284,5 +295,6 @@ export async function assessApplication(
     },
     changeType,
     impacts,
+    { stakeholders },
   );
 }
