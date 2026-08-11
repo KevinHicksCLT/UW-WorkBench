@@ -68,7 +68,14 @@ function baseSourceText(chassis: FormChassis, title: string, productName: string
     `We will provide the insurance described in this ${chassis.documentKind === 'policy' ? 'policy' : chassis.documentKind === 'binder' ? 'binder' : chassis.documentKind === 'treaty-wording' ? 'agreement' : 'coverage form'} for the ${productName} program in return for the premium and compliance with all applicable provisions.`,
   );
   out.push('DEFINITIONS');
-  for (const d of chassis.definitions) out.push(`"${d.term}" means ${d.text}`);
+  for (const d of chassis.definitions) {
+    // Chassis texts may already open with "Term means …" — never double it.
+    const body = d.text.replace(
+      new RegExp(`^${d.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+means\\s+`, 'i'),
+      '',
+    );
+    out.push(`"${d.term}" means ${body}`);
+  }
   out.push(
     chassis.documentKind === 'treaty-wording' ? 'REINSURING AGREEMENTS' : 'INSURING AGREEMENTS',
   );
@@ -230,9 +237,24 @@ export async function buildProductLibrary(
     const paper = PAPER_BY_PRODUCT[product.code] ?? {};
     const allNodeIds = product.versionNodes.map((v) => v.id);
     const flavor = PROVISION_FLAVOR[chassisKey] ?? 'generic';
+    // Prose references drop the lineage/marker suffix ("Homeowners — HM
+    // lineage" reads as the "Homeowners program" inside form text).
+    const programName = product.name.split(' — ')[0];
 
     // ── Base paper ──
-    const generatedBaseTitle = `${product.name} ${chassis.documentKind === 'binder' ? 'Binder Wording' : chassis.documentKind === 'treaty-wording' ? 'Treaty Wording' : 'Policy'}`;
+    const baseSuffix =
+      chassis.documentKind === 'binder'
+        ? product.name.endsWith('Binder')
+          ? 'Wording'
+          : 'Binder Wording'
+        : chassis.documentKind === 'treaty-wording'
+          ? /Treaty|Facultative/.test(product.name)
+            ? 'Wording'
+            : 'Treaty Wording'
+          : product.name.endsWith('Policy')
+            ? 'Form'
+            : 'Policy';
+    const generatedBaseTitle = `${product.name} ${baseSuffix}`;
     let baseTitle = generatedBaseTitle;
     if (paper.base?.length) {
       // Overridden papers: lineage numbers get generated lineage text; specimen
@@ -248,7 +270,7 @@ export async function buildProductLibrary(
             editionDate: '10 20',
             filingStatus: 'Approved',
             provenance: formNumber.startsWith('HO 00') ? 'iso-flagged' : 'client',
-            sourceText: baseSourceText(chassis, title, product.name),
+            sourceText: baseSourceText(chassis, title, programName),
           });
         }
         linkAll(formNumber, allNodeIds, 'baseForm');
@@ -264,7 +286,7 @@ export async function buildProductLibrary(
         editionDate: '01 25',
         filingStatus: 'Approved',
         provenance: 'client',
-        sourceText: baseSourceText(chassis, generatedBaseTitle, product.name),
+        sourceText: baseSourceText(chassis, generatedBaseTitle, programName),
       });
       linkAll(formNumber, allNodeIds, 'baseForm');
     }
@@ -273,7 +295,7 @@ export async function buildProductLibrary(
     if (paper.declarations?.length) {
       for (const formNumber of paper.declarations) {
         if (!existingFormNumbers.has(formNumber)) {
-          const title = `${product.name} Policy Declarations`;
+          const title = `${baseTitle} Declarations`;
           addDef({
             formNumber,
             title,
@@ -282,14 +304,14 @@ export async function buildProductLibrary(
             editionDate: '10 20',
             filingStatus: 'Approved',
             provenance: 'client',
-            sourceText: declarationsSourceText(title, chassis, product.name),
+            sourceText: declarationsSourceText(title, chassis, programName),
           });
         }
         linkAll(formNumber, allNodeIds, 'declarations');
       }
     } else if (!paper.suppressGenerated && chassis.documentKind === 'policy') {
       const formNumber = joinNumber(prefix, '1001D');
-      const title = `${product.name} Policy Declarations`;
+      const title = `${baseTitle} Declarations`;
       addDef({
         formNumber,
         title,
@@ -298,7 +320,7 @@ export async function buildProductLibrary(
         editionDate: '01 25',
         filingStatus: 'Approved',
         provenance: 'client',
-        sourceText: declarationsSourceText(title, chassis, product.name),
+        sourceText: declarationsSourceText(title, chassis, programName),
       });
       linkAll(formNumber, allNodeIds, 'declarations');
     }
