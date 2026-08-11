@@ -43,6 +43,38 @@ test.describe('product model workspace', () => {
     expect(failed, '5xx responses on /product-models').toEqual([]);
   });
 
+  test('legacy models master list renders seeded rows and row click opens the drawer', async ({
+    page,
+  }) => {
+    const failed = watchFor5xx(page);
+    await login(page);
+    await page.goto('/product-models?view=legacy');
+    await page.waitForLoadState('networkidle', { timeout: 90_000 }).catch(() => {});
+
+    // The four seeded LegacyProductModels arrive in the Sheet.
+    const seeded = [
+      'PolicyPro — Commercial Package (East)',
+      'QuoteMaster — Personal Auto',
+      'Mainframe Annuity Master',
+      'London Market Binder',
+    ];
+    for (const name of seeded) {
+      await expect(page.getByText(name, { exact: true }).first()).toBeVisible({
+        timeout: 30_000,
+      });
+    }
+
+    // Row click opens the detail drawer (DrawerShell = role="dialog") with the
+    // model's name and its disposition section.
+    await page.getByText(seeded[0], { exact: true }).first().click();
+    const drawer = page.getByRole('dialog');
+    await expect(drawer).toBeVisible({ timeout: 15_000 });
+    await expect(drawer.getByText(seeded[0], { exact: true }).first()).toBeVisible();
+    await expect(drawer.getByText('Disposition', { exact: true })).toBeVisible();
+
+    expect(failed, '5xx responses on /product-models?view=legacy').toEqual([]);
+  });
+
   test('workspace board honors the product-models domain deep link', async ({ page }) => {
     const failed = watchFor5xx(page);
     await login(page);
