@@ -10,6 +10,7 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import DeadCodeLane from './DeadCodeLane';
 import ProductBoard from './product/ProductBoard';
+import FormCompareBoard from './forms/FormCompareBoard';
 import VsStreamBoard from './spine/VsStreamBoard';
 import RoleCompareBoard from './spine/RoleCompareBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
@@ -39,7 +40,7 @@ import { BoardLegend, BoardVocabProvider, useBoardVocab } from './vocabulary';
 // aggregate every application in the comparison.
 
 function lensFromDomain(d?: string): WorkspaceLens {
-  if (d === 'value-streams' || d === 'roles' || d === 'products') return d;
+  if (d === 'value-streams' || d === 'roles' || d === 'products' || d === 'form-compare') return d;
   if (d === 'product-models') return 'products'; // e2e / legacy deep-link alias
   return 'applications';
 }
@@ -62,6 +63,11 @@ function WorkspaceLenses({ initialDomain }: { initialDomain?: string }) {
     lensFromDomain(initialDomain),
     !initialDomain,
   );
+  // A same-route navigation can change ?domain= while the map is mounted
+  // (e.g. the Products drill's "Compare wording" link) — follow it.
+  useOnChange(initialDomain, () => {
+    if (initialDomain) setLens(lensFromDomain(initialDomain));
+  });
   // A crash inside one comparison must never blank the whole tab — the
   // boundary shows a reset that remounts the board with fresh state.
   const [boardKey, setBoardKey] = useState(0);
@@ -70,6 +76,14 @@ function WorkspaceLenses({ initialDomain }: { initialDomain?: string }) {
   if (window.self !== window.top)
     return <EmptyState message="The Workspace board doesn't render inside screen previews." />;
   if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
+  // The Form Comparison lens diffs two PolicyForm library forms clause by
+  // clause (Beyond-Compare style) — no board list, picks ride in the URL.
+  if (lens === 'form-compare')
+    return (
+      <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+        <FormCompareBoard key={boardKey} lens={lens} onLens={setLens} />
+      </BoardErrorBoundary>
+    );
   // Spine lenses compare the REAL operating-model graph: N value streams or
   // N roles horizontally, with consolidation computed on the fly.
   if (lens === 'value-streams')

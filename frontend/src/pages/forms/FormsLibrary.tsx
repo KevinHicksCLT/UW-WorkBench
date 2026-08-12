@@ -19,7 +19,6 @@ import {
   Textarea,
   type PillTone,
 } from '../../components/ui';
-import { FormsTabs } from './FormsTabs';
 import type { FormDetail, FormsInsights, PolicyFormRow } from './types';
 
 // Forms Library (FORMS-LIB) — the governed system of record for proprietary
@@ -149,8 +148,6 @@ export default function FormsLibrary() {
         subtitle="Policy forms as a governed, machine-readable library — what your forms say, and what they ask."
         actions={<Button onClick={() => setAdding(true)}>Add form</Button>}
       />
-      <FormsTabs />
-
       {insights && <InsightTiles insights={insights} />}
 
       <Sheet

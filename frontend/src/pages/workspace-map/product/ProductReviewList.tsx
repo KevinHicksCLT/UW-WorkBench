@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { versionPlaceLabel } from '../../../lib/usStates';
+import { compareHref } from '../forms/compareApi';
 import { MATCH_META, groupCitations, type ProductDecisionStatus } from './spine';
 import type { BoardColumn, StateMandate } from './boardApi';
 import type { ReviewRow } from './gridModel';
@@ -116,7 +117,14 @@ function DecisionActions({
   onAct: (status: ProductDecisionStatus | null) => void;
 }) {
   if (!row.needsDecision)
-    return (
+    return row.contained ? (
+      <span
+        style={{ fontSize: 11.5, fontWeight: 600, color: '#525252' }}
+        title="Part of this form's own wording (from the forms library) — it standardizes or retires with the form's decision, never on its own."
+      >
+        Form wording — decided with the form
+      </span>
+    ) : (
       <span
         style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
         title="This coverage is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."
@@ -170,7 +178,16 @@ function ElementDetailModal({
 }) {
   const meta = MATCH_META[row.group.status];
   const cites = groupCitations(row.group);
-  const formId = Object.values(row.group.perVersion).find((el) => el?.formId)?.formId ?? null;
+  // Distinct library forms behind this element across the compared versions —
+  // the first opens the document, the first TWO pre-fill the comparison tool.
+  const formIds = [
+    ...new Set(
+      Object.values(row.group.perVersion)
+        .map((el) => el?.formId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const formId = formIds[0] ?? null;
   // The board's carriage rule: a coverage on the countrywide version COVERS
   // the product's state-form versions (state forms amend the base policy,
   // they don't drop its coverages). `presence` is that covered set — the same
@@ -239,19 +256,37 @@ function ElementDetailModal({
                 : ''}
             </div>
             {formId && (
-              <Link
-                to={`/forms/${formId}/document`}
-                style={{
-                  display: 'inline-block',
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  color: '#2563eb',
-                  marginTop: 4,
-                  textDecoration: 'none',
-                }}
-              >
-                Open the actual form document ↗
-              </Link>
+              <span style={{ display: 'inline-flex', gap: 12, marginTop: 4 }}>
+                <Link
+                  to={`/forms/${formId}/document`}
+                  style={{
+                    display: 'inline-block',
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: '#2563eb',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Open the actual form document ↗
+                </Link>
+                <Link
+                  to={compareHref(formId, formIds[1] ?? null)}
+                  title={
+                    formIds.length > 1
+                      ? 'diff the wording of the two forms behind this element'
+                      : 'open this form in the Form Comparison tool and pick the form to diff it against'
+                  }
+                  style={{
+                    display: 'inline-block',
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: '#2563eb',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Compare wording ⇄
+                </Link>
+              </span>
             )}
           </div>
           <div style={{ flex: 1 }} />

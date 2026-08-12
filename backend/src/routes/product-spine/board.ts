@@ -37,8 +37,11 @@ import { prisma } from '../../db/prisma.js';
 import {
   buildFormsModel,
   classifyForm,
+  clauseElement,
+  clauseReviewRows,
   CONTENT_LABEL,
   FORMS_COMPONENT,
+  loadLatestClausesByForm,
   ROLLED_UP_COMPONENTS,
   splitProductModel,
   type FormsModel,
@@ -187,7 +190,7 @@ export function registerProductBoardRoutes(router: Router): void {
     try {
       const inputs = await boardInputs(req);
       if (!inputs) return res.status(404).json({ error: 'No company' });
-      const { decisions, scoped } = inputs;
+      const { company, decisions, scoped } = inputs;
       const { drill, q } = z
         .object({ drill: z.string().min(1), q: z.string().optional() })
         .parse({ drill: req.query.drill, q: req.query.q });
@@ -208,6 +211,22 @@ export function registerProductBoardRoutes(router: Router): void {
         groupOf = payload.groupOf;
         selfRow = payload.self;
         pct = payload.pct;
+        // The drill's lowest level: a single library form ALWAYS lists its
+        // own wording — the clause rows from the PolicyForm library — so no
+        // form drill renders empty (base forms additionally carry their
+        // spine-derived coverages/terms/endorsements above these).
+        const selfFormId = selfRow
+          ? (Object.values(selfRow.group.perVersion).find((el) => el?.formId)?.formId ?? null)
+          : null;
+        if (selfRow && selfFormId) {
+          const lib = (await loadLatestClausesByForm(company.id, [selfFormId])).get(selfFormId);
+          if (lib) {
+            const clauses = clauseReviewRows(selfRow, selfFormId, lib);
+            groupOf = groupOf ?? {};
+            for (const cr of clauses) groupOf[`${cr.lobId}:${cr.group.key}`] = CONTENT_LABEL.clause;
+            rows = [...rows, ...clauses];
+          }
+        }
       } else {
         const row = heat.rows.find((r) => r.component === drill);
         if (!row) return res.status(404).json({ error: 'Unknown component drill' });
@@ -385,6 +404,18 @@ export function registerProductBoardRoutes(router: Router): void {
           filings: v.components.get('Filings')?.elements ?? [],
         }));
 
+      // Align the Clauses band with the forms library: a product whose Terms
+      // carry no clause-like elements reads its base form's OWN library
+      // clauses (PolicyFormVersion → FormClause) — never "none recorded".
+      const model = splitProductModel(countrywide.components);
+      if (model.forms.clauses.length === 0) {
+        const baseFormId = model.forms.base[0]?.formId ?? null;
+        if (baseFormId) {
+          const lib = (await loadLatestClausesByForm(company.id, [baseFormId])).get(baseFormId);
+          if (lib) model.forms.clauses = lib.clauses.map((c) => clauseElement(baseFormId, lib, c));
+        }
+      }
+
       const attrs = (product.attributes ?? {}) as { runsIn?: unknown };
       res.json({
         product: {
@@ -404,7 +435,7 @@ export function registerProductBoardRoutes(router: Router): void {
           status: countrywide.status,
           states: countrywide.states,
         },
-        model: splitProductModel(countrywide.components),
+        model,
         stateOverlays,
         generations,
         selectedVersion,

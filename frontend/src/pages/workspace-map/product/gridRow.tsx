@@ -5,6 +5,7 @@
 
 import type { ReactNode } from 'react';
 import type { HeatCell, Rag } from './gridModel';
+import { MATCH_META, type MatchStatus } from './spine';
 
 export const RAG_META: Record<Rag, { bg: string; label: string }> = {
   green: { bg: '#16a34a', label: 'rationalized' },
@@ -12,22 +13,43 @@ export const RAG_META: Record<Rag, { bg: string; label: string }> = {
   red: { bg: '#dc2626', label: 'not started' },
 };
 
-// Cell color = the SHARE of common elements inside it (one rule at every
-// level of the board): green = everything common, amber = more than half
-// common, red = half or less common. The figure inside stays the decision
-// workload (pending count, ✓ when nothing is left).
-export function cellVisual(cell: HeatCell): { bg: string; fg: string; pending: number } {
-  const pending = cell.need - cell.decided;
-  if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#737373', pending: 0 };
-  if (cell.common === cell.total) return { bg: '#bbf7d0', fg: '#14532d', pending };
-  if (cell.common * 2 > cell.total) return { bg: '#fde68a', fg: '#78350f', pending };
-  return { bg: '#fecaca', fg: '#7f1d1d', pending };
+// Cell state follows the legend's three words (one rule at every level of
+// the board): Common = everything common, Unique only when unique dominates
+// (half or more of the cell), Similar for everything between — so a
+// "similar" row (configured differently, but the concern is shared) reads
+// amber, never red. Cells render in the SAME visual language as the review
+// list's presence blocks (MATCH_META light fill + strong outline) with the
+// status word called out inside.
+export function cellStatus(cell: HeatCell): MatchStatus {
+  if (cell.common === cell.total) return 'COMMON';
+  if (cell.unique * 2 >= cell.total) return 'UNIQUE';
+  return 'PARTIAL';
 }
+
+export function cellVisual(cell: HeatCell): {
+  status: MatchStatus;
+  bg: string;
+  fg: string;
+  label: string;
+  pending: number;
+} {
+  const status = cellStatus(cell);
+  const meta = MATCH_META[status];
+  return {
+    status,
+    bg: meta.bg,
+    fg: meta.fg,
+    label: meta.label,
+    pending: cell.need - cell.decided,
+  };
+}
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 export function cellTitle(cell: HeatCell): string {
   const pending = cell.need - cell.decided;
   return (
-    `${cell.total} coverages — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
+    `${plural(cell.total, 'coverage')} — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
     ` · ${pending > 0 ? `${pending} still to decide` : 'no decisions outstanding'} — open the review list`
   );
 }
@@ -100,6 +122,9 @@ export function HeatGridRow({
               display: 'flex',
             }}
           >
+            {/* Same visual language as the review list's presence blocks:
+                light fill + strong outline in the status color, the status
+                word called out inside. Absent = empty outlined box. */}
             <span
               style={{
                 flex: 1,
@@ -108,35 +133,34 @@ export function HeatGridRow({
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 5,
-                background: vis.bg,
+                background: na ? '#fff' : vis.bg,
+                border: na ? '1px solid #e5e7eb' : `1.5px solid ${vis.fg}`,
                 color: vis.fg,
                 minHeight: density === 'rich' ? 38 : 24,
-                padding: density === 'rich' ? '3px 4px' : 0,
+                padding: density === 'rich' ? '3px 4px' : '0 2px',
                 lineHeight: 1.15,
               }}
             >
-              {na ? (
-                <span style={{ fontSize: 11, fontWeight: 700 }}>—</span>
-              ) : density === 'rich' ? (
+              {na ? null : (
                 <>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>
-                    {vis.pending === 0 ? '✓' : vis.pending}
+                  <span
+                    style={{
+                      fontSize: density === 'rich' ? 10.5 : density === 'medium' ? 9 : 8.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {vis.label}
                   </span>
-                  <span style={{ fontSize: 9.5, fontWeight: 600 }}>
-                    {vis.pending === 0 ? `${c.total} coverages in` : `to decide of ${c.total}`}
-                  </span>
-                  <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.85 }}>
-                    {c.common}C · {c.similar}S · {c.unique}U
-                  </span>
+                  {/* Aggregate cells (state registers, multi-coverage rows)
+                      keep their workload line; single-coverage cells stay
+                      clean — the word is the story. */}
+                  {density === 'rich' && c.total > 1 && (
+                    <span style={{ fontSize: 9, fontWeight: 600 }}>
+                      {vis.pending === 0 ? `${c.total} coverages` : `${vis.pending} to decide`}
+                    </span>
+                  )}
                 </>
-              ) : density === 'medium' ? (
-                <span style={{ fontSize: 11, fontWeight: 700 }}>
-                  {vis.pending === 0 ? '✓' : `${vis.pending}/${c.need}`}
-                </span>
-              ) : (
-                <span style={{ fontSize: 10.5, fontWeight: 700 }}>
-                  {vis.pending === 0 ? '✓' : vis.pending}
-                </span>
               )}
             </span>
           </button>

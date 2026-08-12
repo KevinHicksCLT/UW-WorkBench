@@ -120,6 +120,9 @@ export interface ReviewRow {
   lobId: string;
   lobName: string;
   group: ElementGroup;
+  /** Library clause row synthesized into a form's drill — part of the form's
+   *  wording, standardized or retired WITH the form, never individually. */
+  contained?: boolean;
   needsDecision: boolean;
   decision: {
     component: string;
@@ -531,14 +534,43 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
       return out;
     };
     const coveredByGroup = new Map<object, Set<string>>();
+    // Role-level carriage for library-backed papers: every product carries a
+    // base policy form and a declarations page, each its OWN lineage. Judged
+    // form-by-form those all read "in 1 of N products" = unique (red), but
+    // they are the same CONCERN configured differently — the definition of
+    // "similar". So base/declarations rows are judged by how many products
+    // carry the ROLE: the same form everywhere stays COMMON, sibling lineages
+    // of an every-product paper read PARTIAL, and a paper role only 1–2
+    // products carry at all stays UNIQUE. One exception, per the board rule
+    // (similar = yellow, ONE = red): a paper in force in a single version is
+    // a single — it stays UNIQUE even when its role is an every-product
+    // concern; lineage treatment is for papers actually spanning versions.
+    const roleProducts = new Map<string, Set<string>>();
+    for (const row of comparison.rows) {
+      for (const g of row.groups) {
+        const role = Object.values(g.perVersion)[0]?.formRole;
+        if (role !== 'baseForm' && role !== 'declarations') continue;
+        const set = roleProducts.get(role) ?? new Set<string>();
+        for (const vid of Object.keys(g.perVersion)) {
+          const p = productOf.get(vid);
+          if (p) set.add(p);
+        }
+        roleProducts.set(role, set);
+      }
+    }
     for (const row of comparison.rows) {
       for (const g of row.groups) {
         const covered = coveredVersionIds(g);
         coveredByGroup.set(g, covered);
         if (productsInLob > 1) {
           const carrying = new Set([...covered].map((vid) => productOf.get(vid) ?? vid)).size;
+          const role = Object.values(g.perVersion)[0]?.formRole;
+          const roleCarrying =
+            (role === 'baseForm' || role === 'declarations') && covered.size > 1
+              ? (roleProducts.get(role)?.size ?? carrying)
+              : carrying;
           if (carrying === productsInLob) g.status = 'COMMON';
-          else if (carrying * 2 > productsInLob) g.status = 'PARTIAL';
+          else if (roleCarrying * 2 > productsInLob) g.status = 'PARTIAL';
           else g.status = 'UNIQUE';
         } else if (lob.versions.length === 1) {
           g.status = 'SINGLE';

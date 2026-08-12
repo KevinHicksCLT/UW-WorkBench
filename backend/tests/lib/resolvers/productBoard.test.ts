@@ -293,3 +293,68 @@ describe('scopeLobs', () => {
     expect(none).toHaveLength(0);
   });
 });
+
+describe('role-aware paper judging (base forms / declarations)', () => {
+  const lobH = { id: 'lobH', name: 'Homeowners', segment: 'Personal Lines' };
+  const libForm = (
+    element: string,
+    formRole: 'baseForm' | 'declarations' | 'endorsement',
+  ): SpineElement => ({
+    ...el(element),
+    formId: `form-${element.replace(/\W+/g, '-')}`,
+    formNumber: element.split(' — ')[0],
+    formRole,
+    formState: null,
+  });
+  const withForms = (v: SpineVersion, forms: SpineElement[]): SpineVersion => {
+    v.components.set('Forms', { name: 'Forms', sortOrder: 0, elements: forms });
+    return v;
+  };
+  // HM lineage spans countrywide + 2 state versions; HOM spans countrywide +
+  // 1 state; ISO is a single one-version paper. Countrywide coverage extends
+  // the countrywide forms across each product's own state versions.
+  const hmForms = [
+    libForm('HM 8003 — Homeowners Policy', 'baseForm'),
+    libForm('HM 8003D — Declarations', 'declarations'),
+    libForm('HM 2210 — Special Endorsement', 'endorsement'),
+  ];
+  const lob: SpineLob = {
+    id: lobH.id,
+    name: lobH.name,
+    segmentName: lobH.segment,
+    versions: [
+      withForms(version('hm', 'v1 — Countrywide', lobH, {}, 'HM lineage'), hmForms),
+      withForms(version('hm-ca', 'v1 — US-CA', lobH, {}, 'HM lineage'), []),
+      withForms(version('hm-tx', 'v1 — US-TX', lobH, {}, 'HM lineage'), []),
+      withForms(version('iso', 'v1 — Countrywide', lobH, {}, 'ISO lineage'), [
+        libForm('HO 00 03 — Homeowners 3', 'baseForm'),
+      ]),
+      withForms(version('hom', 'v1 — Countrywide', lobH, {}, 'HOM lineage'), [
+        libForm('HOM 7030 — Homeowners Policy', 'baseForm'),
+      ]),
+      withForms(version('hom-ny', 'v1 — US-NY', lobH, {}, 'HOM lineage'), []),
+    ],
+  };
+
+  it('reads multi-version base lineages as PARTIAL, singles and one-offs as UNIQUE', () => {
+    const heat = buildHeatmap([lob], new Map());
+    const forms = heat.rows.find((r) => r.component === 'Forms')!;
+    const statusOf = new Map(forms.reviewRows.map((r) => [r.group.name, r.group.status]));
+    // Every product carries a base paper — lineages of the same concern that
+    // are actually in force across versions read "similar" (amber, still a
+    // decision), never "unique" (red).
+    expect(statusOf.get('HM 8003 — Homeowners Policy')).toBe('PARTIAL');
+    expect(statusOf.get('HOM 7030 — Homeowners Policy')).toBe('PARTIAL');
+    // A paper in force in a SINGLE version is a single — red, per the board
+    // rule (similar = yellow, one = red), even though its role is a base paper.
+    expect(statusOf.get('HO 00 03 — Homeowners 3')).toBe('UNIQUE');
+    // A declarations page whose ROLE only 1 of 3 products carries stays
+    // UNIQUE — the role itself is not an every-product concern here.
+    expect(statusOf.get('HM 8003D — Declarations')).toBe('UNIQUE');
+    // Plain endorsements keep the form-level carriage rule.
+    expect(statusOf.get('HM 2210 — Special Endorsement')).toBe('UNIQUE');
+    // The rows still need decisions — the workload never shrank.
+    const need = forms.reviewRows.filter((r) => r.needsDecision).length;
+    expect(need).toBe(forms.reviewRows.length);
+  });
+});

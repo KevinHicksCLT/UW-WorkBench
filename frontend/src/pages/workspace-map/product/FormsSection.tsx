@@ -7,6 +7,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useViewState } from '../../../lib/viewState';
+import { compareHref } from '../forms/compareApi';
 import { FORM_LAYER_META } from './formsModel';
 import { denseCells, type BoardColumn, type BoardFormRow, type BoardForms } from './boardApi';
 import { HeatGridRow, SectionBand, type Density } from './gridRow';
@@ -63,6 +64,37 @@ export default function FormsSection({
         ),
       )}
     </>
+  );
+}
+
+/** Inline row action rendered as a link (keyboard-activatable, stops the
+ *  row's own drill click). */
+function RowLink({ label, title, onGo }: { label: string; title: string; onGo: () => void }) {
+  return (
+    <span
+      role="link"
+      tabIndex={0}
+      onClick={(e) => {
+        e.stopPropagation();
+        onGo();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.stopPropagation();
+          onGo();
+        }
+      }}
+      title={title}
+      style={{
+        display: 'inline-block',
+        fontSize: 10.5,
+        fontWeight: 600,
+        color: '#2563eb',
+        cursor: 'pointer',
+      }}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -140,30 +172,17 @@ function FormRegisterRow({
               </span>
             )}
             {row.formId && (
-              <span
-                role="link"
-                tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/forms/${row.formId}/document`);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.stopPropagation();
-                    navigate(`/forms/${row.formId}/document`);
-                  }
-                }}
-                title="open the actual form document from the forms library"
-                style={{
-                  display: 'inline-block',
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  color: '#2563eb',
-                  marginTop: 2,
-                  cursor: 'pointer',
-                }}
-              >
-                Form document ↗
+              <span style={{ display: 'inline-flex', gap: 10, marginTop: 2 }}>
+                <RowLink
+                  label="Form document ↗"
+                  title="open the actual form document from the forms library"
+                  onGo={() => navigate(`/forms/${row.formId}/document`)}
+                />
+                <RowLink
+                  label="Compare wording ⇄"
+                  title="open this form in the Form Comparison tool and pick the form to diff it against"
+                  onGo={() => navigate(compareHref(row.formId))}
+                />
               </span>
             )}
           </span>

@@ -36,10 +36,15 @@ test.describe('product model workspace', () => {
       timeout: 30_000,
     });
 
-    // List view — the flat version sheet renders with seeded version rows.
+    // List view — the flat version sheet renders seeded rows (virtualized, so
+    // search down to the HM homeowners lineage instead of scrolling).
     await page.getByRole('tab', { name: 'List' }).click();
     await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-    await expect(page.getByText('HO-3 Homeowners').first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Commercial Property/).first()).toBeVisible({ timeout: 30_000 });
+    await page.getByPlaceholder('Search…').first().fill('HM lineage');
+    await expect(page.getByText(/Homeowners — HM lineage/).first()).toBeVisible({
+      timeout: 30_000,
+    });
     expect(failed, '5xx responses on /product-models').toEqual([]);
   });
 
@@ -86,32 +91,23 @@ test.describe('product model workspace', () => {
     expect(failed, '5xx responses on /portfolio?domain=product-models').toEqual([]);
   });
 
-  test('products lens compares LOB versions off the spine and the picker rescopes it', async ({
-    page,
-  }) => {
+  test('products lens renders the forms register from the PolicyForm library', async ({ page }) => {
     const failed = watchFor5xx(page);
     await login(page);
     await page.goto('/portfolio?domain=products');
     await page.waitForLoadState('networkidle', { timeout: 90_000 }).catch(() => {});
 
-    // The three-column skeleton + a spine LOB arrived (default = a comparable one).
+    // The grid board arrived: normalization framing + the FORMS register.
     await expect(page.getByText('Normalize', { exact: false }).first()).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.getByText('Greenfield', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Compare', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Board')).toBeVisible(); // the LOB select
+    await expect(page.getByText(/countrywide · \d+ state-required/).first()).toBeVisible({
+      timeout: 30_000,
+    });
 
-    // Version picker: default LOB has 2+ versions; dropping one rescopes the
-    // comparison (the side-by-side summary count changes).
-    const summary = page.getByText(/side by side|its own decomposition/).first();
-    const before = (await summary.textContent()) ?? '';
-    const chips = page.getByRole('button', { name: /✓/ });
-    const chipCount = await chips.count();
-    expect(chipCount, 'expected a multi-version LOB as the default board').toBeGreaterThan(1);
-    await chips.first().click();
-    const after = (await summary.textContent()) ?? '';
-    expect(after, 'version toggle did not rescope the comparison').not.toEqual(before);
+    // Register rows are LIBRARY forms — each core row links to the actual
+    // form document (forms single source of truth).
+    await expect(page.getByText('Form document ↗').first()).toBeVisible({ timeout: 30_000 });
 
     expect(failed, '5xx responses on /portfolio?domain=products').toEqual([]);
   });

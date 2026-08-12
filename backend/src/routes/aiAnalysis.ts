@@ -4,6 +4,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/permissions.js';
 import { ancestorNames } from '../lib/resolvers/index.js';
+import { inChunks } from '../lib/inChunks.js';
 
 // Metrics tab (D6.3) — the two stages of the AI program, computed server-side
 // from the canonical erd_v5 tables (no parallel copies):
@@ -120,27 +121,12 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
         _count: { _all: true },
       }),
       prisma.role.count({ where: { companyId } }),
-      // L5 task nodes + their owning role (for division/role breakdowns).
+      // L5 task nodes flat — relations are batch-loaded below in id chunks
+      // (a nested relation select over ~24k tasks blows the 32,767 bind-var
+      // cap on the prepared statement; see lib/inChunks.ts).
       prisma.processNode.findMany({
         where: { companyId, isTask: true },
-        select: {
-          id: true,
-          displayValue: true,
-          automatability: true,
-          nodeRoles: {
-            where: { role_: 'Owner' },
-            select: {
-              role: {
-                select: {
-                  id: true,
-                  displayValue: true,
-                  orgUnit: { select: { displayValue: true } },
-                },
-              },
-            },
-          },
-          nodeDeliverables: { select: { id: true } },
-        },
+        select: { id: true, displayValue: true, automatability: true },
       }),
       // Baseline-inventory totals (Stage 1 "Current State Analysis"): full counts
       // of each canonical entity — derived read-time from the spine, never copied.
@@ -236,14 +222,39 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const byDeliverableType = new Map<string, Bucket>();
     const byValueStream = new Map<string, Bucket>();
 
+    // Owner role + deliverable presence per task, chunked under the bind-var cap.
+    const taskIds = tasks.map((t) => t.id);
+    const [ownerRows, deliverableRows] = await Promise.all([
+      inChunks(taskIds, (chunk) =>
+        prisma.nodeRole.findMany({
+          where: { processNodeId: { in: chunk }, role_: 'Owner' },
+          select: {
+            processNodeId: true,
+            role: {
+              select: { displayValue: true, orgUnit: { select: { displayValue: true } } },
+            },
+          },
+        }),
+      ),
+      inChunks(taskIds, (chunk) =>
+        prisma.nodeDeliverable.groupBy({
+          by: ['processNodeId'],
+          where: { processNodeId: { in: chunk } },
+          _count: { _all: true },
+        }),
+      ),
+    ]);
+    const ownerByTask = new Map(ownerRows.map((r) => [r.processNodeId, r.role]));
+    const hasDeliverable = new Set(deliverableRows.map((r) => r.processNodeId));
+
     for (const t of tasks) {
       const d = dispositionOf(t.automatability);
       counts[d.toLowerCase() as Lowercase<Disposition>]++;
-      const owner = t.nodeRoles[0]?.role ?? null;
+      const owner = ownerByTask.get(t.id) ?? null;
       tally(byDivision, owner?.orgUnit?.displayValue ?? 'Unassigned', d);
       tally(byRole, owner?.displayValue ?? 'Unassigned', d);
       tally(byCategory, taskCategory(t.displayValue), d);
-      tally(byDeliverableType, t.nodeDeliverables.length ? 'Deliverable' : 'No deliverable', d);
+      tally(byDeliverableType, hasDeliverable.has(t.id) ? 'Deliverable' : 'No deliverable', d);
       tally(byValueStream, vsByTask.get(t.id)?.valueStreamName ?? 'Unassigned', d);
     }
 
