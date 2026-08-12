@@ -6,9 +6,11 @@
 //   2. Flat JSON        taxonomy-<company>-<date>.json        ({ nodes: [...] })
 //   3. Viewer JSON      taxonomy-viewer-<company>-<date>.json ({l, n, e, c} trees)
 //
-// Six concept schemes: process (ProcessNode tree), organization (OrgUnit tree),
-// standards (Standard tree), applications (Application by kind), roles (Role by
-// OrgUnit), product-model (11 components -> ProductModelAnatomyCategory rows).
+// Seven concept schemes: process (ProcessNode tree), organization (OrgUnit
+// tree), standards (Standard tree), applications (Application by kind), roles
+// (Role by OrgUnit), product-model (11 components ->
+// ProductModelAnatomyCategory rows), product-spine (the ProductNode hierarchy:
+// segment > LOB > product > version > model component).
 // URI contract (§6.3): tb: = https://w3id.org/transformation-bridge/ontology#,
 // tbi: = https://w3id.org/transformation-bridge/id/; schemes tbi:scheme-<key>;
 // product-model concepts tbi:pm-<component-slug> (top) and tbi:pma-<slug>
@@ -275,7 +277,41 @@ async function buildSchemes(companyId: string): Promise<Scheme[]> {
     ],
   };
 
-  return [process, organization, standards, applications, rolesScheme, productModel];
+  // 7. product-spine — the ProductNode hierarchy (ProductLevelType-named
+  // levels: segment > LOB / product family > product > version / jurisdiction
+  // > model component). Concepts tbi:ps-<id>; skos:notation = the authored
+  // code, else the node's sort position; skos:scopeNote = the level's display
+  // name; skos:broader = the parent node.
+  const spineNodes = await prisma.productNode.findMany({
+    where: { companyId },
+    select: {
+      id: true,
+      displayValue: true,
+      parentId: true,
+      code: true,
+      sortOrder: true,
+      status: true,
+      productLevelType: { select: { levelNumber: true, displayValue: true } },
+    },
+    orderBy: [{ sortOrder: 'asc' }, { displayValue: 'asc' }],
+  });
+  const productSpine: Scheme = {
+    key: 'product-spine',
+    label: 'Product Spine Taxonomy',
+    concepts: spineNodes.map((n) => ({
+      id: `ps-${n.id}`,
+      label: n.displayValue,
+      notation: n.code ?? String(n.sortOrder),
+      parentId: n.parentId ? `ps-${n.parentId}` : null,
+      scopeNote: n.productLevelType.displayValue,
+      extra: {
+        level: String(n.productLevelType.levelNumber),
+        ...(n.status ? { status: n.status } : {}),
+      },
+    })),
+  };
+
+  return [process, organization, standards, applications, rolesScheme, productModel, productSpine];
 }
 
 // ── Main ───────────────────────────────────────────────────────────────

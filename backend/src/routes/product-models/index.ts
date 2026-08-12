@@ -17,10 +17,11 @@ import { registerModelRoutes } from './models.js';
 
 const router = Router();
 router.use(requireAuth);
-// Product-model rationalization lives in the Workspace module (menu key
-// `workspace`); switch to a dedicated `product-models` key if/when the menu
-// registry gains one (Agent 4's D-2).
-router.use(requirePermission('workspace'));
+// Dedicated `product-models` menu key (Agent 4's D-2). Grants are derived from
+// MENU_TREE by entitlementGrants.ts (DATA_TAB_KEYS), so every user type that
+// holds `workspace` holds `product-models` too, and CI's migrate job reseeds
+// entitlements into the target DB before each deploy — no stale-grant window.
+router.use(requirePermission('product-models'));
 
 registerWorkspaceRoutes(router);
 registerFindingRoutes(router);

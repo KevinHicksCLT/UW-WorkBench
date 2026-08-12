@@ -162,6 +162,9 @@ export interface NormalizeScope {
   apps: BoardApp[];
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
+  /** The server's header roll-up — only set when the scope IS one whole board
+   *  (a narrowed or cross-board comparison recomputes client-side). */
+  normalizeStats?: NormalizeStats | null;
 }
 
 /** Per-layer extra top spacing (px) that aligns a column's layer rows with the

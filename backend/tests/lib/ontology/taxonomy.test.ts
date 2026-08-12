@@ -9,6 +9,7 @@ const prismaMock = vi.hoisted(() => ({
   application: { findMany: vi.fn(), count: vi.fn() },
   role: { findMany: vi.fn(), count: vi.fn() },
   productModelAnatomyCategory: { findMany: vi.fn(), count: vi.fn() },
+  productNode: { findMany: vi.fn(), count: vi.fn() },
 }));
 vi.mock('../../../src/db/prisma.js', () => ({ prisma: prismaMock }));
 
@@ -51,8 +52,10 @@ describe('toViewerTree', () => {
 describe('scheme registry', () => {
   it('knows its schemes and rejects unknown ones', () => {
     expect(SCHEMES).toContain('process');
+    expect(SCHEMES).toContain('product-spine');
     expect(isScheme('roles')).toBe(true);
     expect(isScheme('product-model')).toBe(true);
+    expect(isScheme('product-spine')).toBe(true);
     expect(isScheme('nonsense')).toBe(false);
   });
 
@@ -171,6 +174,70 @@ describe('buildScheme', () => {
     ]);
   });
 
+  it('product-spine: nests the spine with level names, code-or-sort notation and status', async () => {
+    prismaMock.productNode.findMany.mockResolvedValue([
+      {
+        id: 's1',
+        displayValue: 'Commercial Lines',
+        code: 'CL',
+        parentId: null,
+        sortOrder: 0,
+        status: null,
+        productLevelType: { levelNumber: 1, displayValue: 'Segment' },
+      },
+      {
+        id: 'l1',
+        displayValue: 'Commercial Package',
+        code: null,
+        parentId: 's1',
+        sortOrder: 2,
+        status: null,
+        productLevelType: { levelNumber: 2, displayValue: 'LOB / Product Family' },
+      },
+      {
+        id: 'v1',
+        displayValue: 'CPP-E 2014',
+        code: null,
+        parentId: 'l1',
+        sortOrder: 1,
+        status: 'Runoff',
+        productLevelType: { levelNumber: 4, displayValue: 'Version / Jurisdiction' },
+      },
+    ]);
+    const nodes = await buildScheme('product-spine', 'co1');
+    expect(prismaMock.productNode.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { companyId: 'co1' } }),
+    );
+    expect(nodes).toEqual([
+      {
+        id: 's1',
+        label: 'Commercial Lines',
+        notation: 'CL',
+        parentId: null,
+        extra: { level: 1, levelName: 'Segment' },
+      },
+      {
+        id: 'l1',
+        label: 'Commercial Package',
+        notation: '2',
+        parentId: 's1',
+        extra: { level: 2, levelName: 'LOB / Product Family' },
+      },
+      {
+        id: 'v1',
+        label: 'CPP-E 2014',
+        notation: '1',
+        parentId: 'l1',
+        extra: { level: 4, levelName: 'Version / Jurisdiction', status: 'Runoff' },
+      },
+    ]);
+    // The flat scheme nests into one tree rooted at the segment.
+    const tree = toViewerTree(nodes);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].l).toBe('Commercial Lines');
+    expect(tree[0].c?.[0].c?.[0].l).toBe('CPP-E 2014');
+  });
+
   it('roles: org units that home roles become top concepts', async () => {
     prismaMock.role.findMany.mockResolvedValue([
       {
@@ -206,6 +273,7 @@ describe('schemeCounts', () => {
     prismaMock.application.count.mockResolvedValue(2);
     prismaMock.role.count.mockResolvedValue(1);
     prismaMock.productModelAnatomyCategory.count.mockResolvedValue(6);
+    prismaMock.productNode.count.mockResolvedValue(7);
     await expect(schemeCounts('co1')).resolves.toEqual({
       process: 5,
       organization: 4,
@@ -213,6 +281,7 @@ describe('schemeCounts', () => {
       applications: 2,
       roles: 1,
       'product-model': 6,
+      'product-spine': 7,
     });
     expect(prismaMock.standard.count).toHaveBeenCalledWith({ where: { companyId: 'co1' } });
   });

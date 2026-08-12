@@ -170,7 +170,8 @@ const E = (
   effort: string,
   complexity: string,
   items: Item[],
-): Cat => ({ category, capdan: 'Eliminate', approach, rationale, effort, complexity, items });
+  why?: Why, // dead-code narrative for the v3 red lane (only on dead-code categories)
+): Cat => ({ category, capdan: 'Eliminate', approach, rationale, effort, complexity, why, items });
 
 const INITIATIVES: Initiative[] = [
   {
@@ -244,6 +245,8 @@ const INITIATIVES: Initiative[] = [
                 {
                   captured:
                     'FEIN, effective dates and prior-carrier details from the ACORD 125 screen.',
+                  processed:
+                    'ValidateFein() re-implements the 9-digit IRS prefix/checksum test in both code-behinds; the date-window rule (effective date within 90 days, expiration = effective + 1 year) is duplicated line-for-line.',
                   validated:
                     'Format checks and the sanctions pre-check run inline in screen code-behind.',
                   sent: 'The full form posts to the submission service only after client-side checks pass.',
@@ -265,6 +268,17 @@ const INITIATIVES: Initiative[] = [
                     dead: true,
                   },
                 ],
+                {
+                  captured:
+                    'The whole in-progress ACORD 125 form serialized into ViewState (≈180 KB per postback) / the Struts wizard HttpSession.',
+                  sent: 'ViewState round-trips on every postback; session state pins users to one app server.',
+                  processed:
+                    'Server-side state hydration on each request — the reason both apps disable load-balancer failover.',
+                  validated:
+                    'Nothing — state blobs are opaque; a corrupted ViewState surfaces as a generic server error.',
+                  lands:
+                    'Dead code lane — superseded by client state over stateless APIs; retire with sign-off.',
+                },
               ),
             ],
           },
@@ -303,8 +317,12 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured:
+                    'Broker submissions parsed from ACORD XML in BrokerService.svc / BrokerAction.java — class code, state, TIV and broker of record.',
                   processed:
                     'Appetite triage and auto-decline decisions execute inside the broker endpoint.',
+                  validated:
+                    'The acceptable-class list is duplicated in both endpoints and has drifted — 4 SIC codes decline on one channel and route on the other.',
                   sent: 'Declines are emailed from the integration tier, bypassing the audit trail.',
                   lands:
                     'Domain rules service (Business Service) — routed decisions with full audit.',
@@ -475,6 +493,8 @@ const INITIATIVES: Initiative[] = [
                 ],
                 {
                   captured: 'Rating factors and premium bounds entered on the rating worksheet.',
+                  processed:
+                    'validateFactors() range-checks all 11 factor inputs and checkBounds() applies the premium floor — duplicated in both apps’ browser JavaScript.',
                   validated:
                     'Min/max premium and factor ranges checked in browser JavaScript only.',
                   sent: 'Unvalidated factor payloads reach the rating engine when JS is bypassed.',
@@ -518,6 +538,15 @@ const INITIATIVES: Initiative[] = [
                     dead: true,
                   },
                 ],
+                {
+                  captured: 'Territory, class and limit keys assembled in the UI tier.',
+                  sent: 'SELECTs issued straight against RateTables / RATE_TABLE from the DAOs, bypassing the rating engine.',
+                  processed:
+                    'Raw relativities displayed to brokers before the engine applies rounding and caps — quoted and rated premium can differ.',
+                  validated: 'No access control beyond the shared app DB login.',
+                  lands:
+                    'Dead code lane — superseded by the rating domain service API; retire with sign-off.',
+                },
               ),
             ],
           },
@@ -593,10 +622,13 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured:
+                    'Quote rows, schedule credits and experience mods read directly from dbo.Quote / QUOTE inside the procedures.',
                   processed:
                     'Rate adjustment math executes in usp_RateAdjust / PKG_RATING at commit time.',
                   validated:
                     'No unit tests — stored-procedure changes ship straight to production data.',
+                  sent: 'Adjusted premium is written back onto the quote row in the same transaction, leaving no event or API trace of the change.',
                   lands:
                     'Decision service (Business Service) with versioned, testable rating steps.',
                 },
@@ -667,8 +699,11 @@ const INITIATIVES: Initiative[] = [
                 {
                   captured:
                     'Pre-bind confirmation and regulatory-reporting fields on the bind screen.',
+                  processed:
+                    'PreBind() re-rates the policy and re-checks underwriting authority inline in the code-behind; BillCenter runs a diverged copy that only warns on failure.',
                   validated:
                     'Regulated completeness checks run in screen code and can be skipped by API callers.',
+                  sent: 'The bind request posts to the policy service after screen checks — API-originated binds never see them.',
                   lands:
                     'Policy domain service (Business Service) — checks enforced on every bind path.',
                 },
@@ -757,10 +792,13 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured:
+                    'Every insert/update on dbo.Policy / POLICY rows as TR_PolicyReg and TRG_REG fire.',
                   processed:
                     'Stat-code derivation and reg extracts fire from row-level DB triggers.',
                   validated:
                     'Trigger failures roll back unrelated policy writes with opaque errors.',
+                  sent: 'Derived stat rows land in staging tables that the nightly regulatory feed sweeps — invisible to the application.',
                   lands: 'Policy domain service (Business Service) emitting reg events explicitly.',
                 },
               ),
@@ -819,6 +857,9 @@ const INITIATIVES: Initiative[] = [
                 {
                   captured: 'Merge variables resolved from the policy at preview time.',
                   processed: 'Clause assembly and field substitution run in the preview screen.',
+                  sent: 'Merged preview HTML renders client-side and is never persisted, so the previewed document and the issued document come from different assembly paths.',
+                  validated:
+                    'No diff against the issuance output — clause substitutions are eyeballed on screen before release.',
                   lands:
                     'Content service (Business Service) — one assembly path for preview and issuance.',
                 },
@@ -1138,7 +1179,12 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured: 'policy number and risk state keyed on the FNOL01 map',
                   sent: 'state product-approval inquiry fired from the intake screen',
+                  processed:
+                    'a 3270 screen scrape of the policy-admin response, parsed positionally for prefill',
+                  validated:
+                    'no timeout or fallback — a slow STAPPR response freezes the intake screen',
                   lands: 'FNOL Intake API Gateway',
                 },
               ),
@@ -1253,10 +1299,13 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured:
+                    'Claim severity, loss type and adjuster workload read inside routeClaim / FnolController::route().',
                   processed:
                     'Adjuster assignment and fast-track selection execute inside ESB routing scripts.',
                   validated:
                     'Routing changes require an ESB deploy; no business-readable rule trace.',
+                  sent: 'The assignment lands directly on the adjuster work queue with no decision event recorded.',
                   lands: 'FNOL Intake Domain Service — DMN-managed assignment rules.',
                 },
               ),
@@ -1268,6 +1317,14 @@ const INITIATIVES: Initiative[] = [
                 'S',
                 'Low',
                 [{ name: 'Portal audit log written via ESB', code1: 'ESB : auditTap', code2: '—' }],
+                {
+                  captured: 'portal user, action, claim id and timestamp intercepted by auditTap',
+                  sent: 'audit rows inserted by the ESB directly into the portal MySQL database',
+                  processed:
+                    'the integration tier owns an audit store the data platform never sees',
+                  validated: 'no retention or immutability policy — the tap has never been purged',
+                  lands: 'FNOL Intake Data Store — one governed, immutable audit log',
+                },
               ),
             ],
           },
@@ -1446,7 +1503,11 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured: 'session id, rule outcomes and severity captured inside the AUDIT para',
+                  sent: 'audit inserts issued mid-rule-execution against the portal database',
                   processed: 'session audit rows written from inside the rules engine',
+                  validated:
+                    'a failed audit insert aborts the whole triage transaction — auditing can block claims',
                   lands: 'FNOL Intake API Gateway — audit tap at the boundary',
                 },
               ),
@@ -1464,6 +1525,15 @@ const INITIATIVES: Initiative[] = [
                     code2: '—',
                   },
                 ],
+                {
+                  captured:
+                    'acknowledgement-letter variables (claimant, adjuster, claim number) assembled inside TRIAGE',
+                  sent: 'LTRGEN called synchronously per claim from the rules engine',
+                  processed: 'letter template selection mixed into the triage rule flow',
+                  validated:
+                    'no delivery confirmation — a failed LTRGEN call vanishes into the CICS log',
+                  lands: 'FNOL Intake API Gateway — letter requests as outbound events',
+                },
               ),
               E(
                 'Obsolete rule packs',
@@ -1479,6 +1549,13 @@ const INITIATIVES: Initiative[] = [
                     dead: true,
                   },
                 ],
+                {
+                  captured: 'two-digit loss years windowed into 19xx/20xx by the shim',
+                  sent: 'nothing — no caller has passed a two-digit year since the 2004 field expansion',
+                  processed: 'century-window arithmetic (pivot year 50) on every date field',
+                  validated: 'unreachable — LOSS-DT has been 8-digit in every copybook since 2004',
+                  lands: 'dead code lane — superseded; retire with sign-off',
+                },
               ),
             ],
           },
@@ -1591,7 +1668,12 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured:
+                    'premium factors keyed by state, loss type and coverage in PREMFCT / premium_factors',
+                  sent: 'a nightly copy to the portal cache — the two factor sets drift for up to 24 hours',
                   processed: 'premium factors read straight from a table and executed as rules',
+                  validated:
+                    'no factor governance — a direct table edit changes rating behavior with no release or review',
                   lands: 'FNOL Intake Domain Service — factors as decision tables',
                 },
               ),
@@ -1609,6 +1691,13 @@ const INITIATIVES: Initiative[] = [
                     dead: true,
                   },
                 ],
+                {
+                  captured: 'full-claim snapshots dumped nightly to CLMEXT / csv exports',
+                  sent: 'flat files FTP’d to a reporting server decommissioned in 2023',
+                  processed: 'fixed-width reformatting of every claim row, changed or not',
+                  validated: 'unreachable output — the downstream consumer no longer exists',
+                  lands: 'dead code lane — CDC replaces extracts; retire with sign-off',
+                },
               ),
             ],
           },
@@ -1640,6 +1729,11 @@ const INITIATIVES: Initiative[] = [
                   },
                 ],
                 {
+                  captured:
+                    'user roles and entitlements defined twice — RACF resource rules and auth.php middleware maps',
+                  sent: 'each app authenticates its own callers against a separate credential store',
+                  processed:
+                    'a policy change means coordinated edits in two unrelated systems, released separately',
                   validated: 'each app enforces its own auth policy set',
                   lands: 'FNOL Intake API Gateway — one policy engine (OPA)',
                 },
@@ -1658,6 +1752,14 @@ const INITIATIVES: Initiative[] = [
                     code2: '—',
                   },
                 ],
+                {
+                  captured: 'claim retention ages read from a hard-coded CLMPURGE parameter card',
+                  sent: 'DELETEs issued directly against production DB2 by the batch job',
+                  processed: 'retention policy lives in job control, invisible to the application',
+                  validated:
+                    'no dry-run or row-count guard — a bad parameter card purges live claims',
+                  lands: 'FNOL Intake API Gateway — managed scheduler with guarded retention jobs',
+                },
               ),
               E(
                 'Retired schedulers',

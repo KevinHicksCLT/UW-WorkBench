@@ -71,6 +71,31 @@ describe('buildProductModelPlan', () => {
     for (const f of whys) expect(f.def.why?.lands, f.id).toBeTruthy();
   });
 
+  it('every relocating, eliminated or dead-code finding carries a complete whyThisMoves', () => {
+    const KEYS = ['captured', 'sent', 'processed', 'validated', 'lands'] as const;
+    const componentById = new Map(plan.components.map((c) => [c.id, c.component]));
+    const relocatingModels = new Set<string>();
+    for (const f of plan.findings) {
+      // A finding relocates when its target component is a different product
+      // component than the one it was found in (an explicit target override).
+      const relocates =
+        f.targetComponentId !== null && componentById.get(f.targetComponentId) !== f.def.cmp;
+      if (relocates) relocatingModels.add(f.legacyKey);
+      const mustExplain = relocates || f.def.scope === 'Eliminate' || f.def.dead === true;
+      if (mustExplain) {
+        expect(f.def.why, `${f.id} (${f.def.name}) is missing whyThisMoves`).toBeTruthy();
+      }
+      // Any authored panel must be complete at the v3 wireframe grain.
+      if (f.def.why) {
+        for (const key of KEYS) {
+          expect(f.def.why[key], `${f.id} (${f.def.name}).${key}`).toBeTruthy();
+        }
+      }
+    }
+    // Every legacy model contributes at least one relocation story.
+    expect([...relocatingModels].sort()).toEqual(plan.legacyModels.map((l) => l.key).sort());
+  });
+
   it('components fold into existing canonical models across all workspace rows', () => {
     const canonicalKeys = new Set(plan.canonicals.map((c) => c.key));
     for (const c of plan.components) {

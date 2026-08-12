@@ -1,6 +1,15 @@
 import ScreenView from './ScreenView';
-import { APP_COLORS } from './types';
-import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
+import { clientColumnStat, columnStatSummary, columnDeadLabel } from './stats';
+import { APP_COLORS, RED } from './types';
+import type {
+  BoardApp,
+  BoardScreen,
+  ColumnStat,
+  Finding,
+  Layer,
+  LayerExpansion,
+  LayerPads,
+} from './types';
 
 // Left column — the current state of ONE application of the comparison at a
 // time, walked screen by screen. When several applications are being compared,
@@ -19,6 +28,9 @@ interface Props {
   onActiveApp: (id: string) => void;
   /** Findings of the ACTIVE application only. */
   findings: Finding[];
+  /** The server's column roll-up for the active application
+   *  (BoardDetail.columnStats) — client-computed fallback when absent. */
+  columnStat?: ColumnStat | null;
   /** Screens of EVERY compared application — the picker lists the whole
    *  comparison (identical dropdown on every app toggle); picking another
    *  application's screen switches the walk to that application. */
@@ -99,6 +111,7 @@ export default function BrownfieldPanel(props: Props) {
     activeAppId,
     onActiveApp,
     findings,
+    columnStat,
     screens,
     screenName,
     onScreen,
@@ -112,6 +125,9 @@ export default function BrownfieldPanel(props: Props) {
   } = props;
   const activeApp = apps.find((a) => a.id === activeAppId) ?? null;
   const screenCount = new Set(findings.map((f) => f.screenRef).filter(Boolean)).size;
+  // v3 column-header roll-up — server columnStats first, client fallback.
+  const stat = columnStat ?? clientColumnStat(activeAppId, findings);
+  const deadLabel = columnDeadLabel(stat);
 
   return (
     <div
@@ -144,7 +160,13 @@ export default function BrownfieldPanel(props: Props) {
         </span>
         <span style={{ fontSize: 11, color: '#a3a3a3', whiteSpace: 'nowrap' }}>
           {screenCount > 0 ? `${screenCount} screens · ` : ''}
-          {findings.length} steps
+          {columnStatSummary(stat)}
+          {deadLabel && (
+            <b style={{ color: RED, fontWeight: 600 }}>
+              {' · '}
+              {deadLabel}
+            </b>
+          )}
         </span>
       </div>
 
