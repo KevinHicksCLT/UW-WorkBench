@@ -140,6 +140,9 @@ export function useLayerAlignment(
    *  step lines up with its normalize card). Interleaved after their layer's
    *  band row so the engine's cumulative walk matches the DOM order. */
   innerRowsByLayer?: Partial<Record<Layer, AlignRow[]>>,
+  /** Layer band order — must match the columns' render order (the vocabulary
+   *  axis, plan §3-A); defaults to the LAYERS constant. */
+  layerOrder: readonly Layer[] = LAYERS,
 ): RowPads {
   // Greenfield anchor per layer: the layer's component names its target service.
   // A cross-board comparison brings SEVERAL components per layer (one per
@@ -159,7 +162,7 @@ export function useLayerAlignment(
       .filter(([, keys]) => keys.length === 1)
       .map(([l, keys]) => [l, keys[0]]),
   );
-  const rows: AlignRow[] = LAYERS.flatMap((layer) => [
+  const rows: AlignRow[] = layerOrder.flatMap((layer) => [
     {
       key: layer,
       bf: `bf:${layer}`,

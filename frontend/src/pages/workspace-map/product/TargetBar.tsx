@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
 import { STATE_NAMES } from '../../../lib/usStates';
+import { useBoardVocab } from '../vocabulary';
 import type { SpineFilters } from './SpineFilterBar';
 
 // The NAMED normalized policy bar — shared by the grid and detail faces. The
@@ -32,6 +33,8 @@ export interface TargetDecision {
   decidedAt: string;
 }
 
+// Fallback decision-status meta — a PRODUCT_MODEL STATUS vocabulary row of the
+// same token wins when one exists (DB as source of truth, plan §3-A).
 const STATUS_META: Record<string, { label: string; tone: string }> = {
   APPROVED: { label: 'Standardized', tone: '#4f46e5' },
   HELD: { label: 'Retained', tone: '#0f766e' },
@@ -41,6 +44,16 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
 /** The policy view — the grid's counterpart of the detail face's greenfield
  *  column: what the named policy covers and every decision folded into it. */
 function PolicyModal({ targetId, onClose }: { targetId: string; onClose: () => void }) {
+  const { vocab } = useBoardVocab();
+  const statusMeta = (status: string): { label: string; tone: string } => {
+    const row = vocab.get('PRODUCT_MODEL', 'STATUS', status);
+    if (row)
+      return {
+        label: row.label,
+        tone: vocab.colorHexOf('PRODUCT_MODEL', 'STATUS', status) ?? '#525252',
+      };
+    return STATUS_META[status] ?? { label: status, tone: '#525252' };
+  };
   const { data } = useApi<{
     name: string;
     versionToken: string | null;
@@ -143,7 +156,7 @@ function PolicyModal({ targetId, onClose }: { targetId: string; onClose: () => v
                 {component} ({list.length})
               </div>
               {list.map((d) => {
-                const meta = STATUS_META[d.status] ?? { label: d.status, tone: '#525252' };
+                const meta = statusMeta(d.status);
                 return (
                   <div
                     key={`${d.lobId}:${d.groupKey}`}

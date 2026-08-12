@@ -187,6 +187,34 @@ export function registerCanonicalRoutes(router: Router) {
     }
   });
 
+  // DELETE /product-models/canonical-models/:id — retire a north-star model
+  // (plan §2-C CRUD). Linked components detach via the FK's SetNull — their
+  // rows (and findings) are untouched. Tenant walk → 404, never 403; audited.
+  router.delete(
+    '/canonical-models/:id',
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const before = await prisma.canonicalProductModel.findFirst({
+          where: { id: req.params.id, tenantId: req.tenantId },
+          select: { id: true, workspaceId: true, name: true },
+        });
+        if (!before) return res.status(404).json({ error: 'Not found' });
+        await prisma.canonicalProductModel.delete({ where: { id: before.id } });
+        logAudit({
+          tenantId: req.tenantId,
+          actorEmail: req.user.email,
+          entityType: 'ProductModelWorkspace',
+          entityId: before.workspaceId,
+          action: 'DELETE_CANONICAL_MODEL',
+          diff: { subject: before.name },
+        });
+        res.status(204).end();
+      } catch (e) {
+        next(e);
+      }
+    },
+  );
+
   // GET /product-models/anatomy-catalog?component=&scope= — the reference
   // taxonomy (per component × scope × view, incl. MISPLACED rows).
   router.get('/anatomy-catalog', async (req: Request, res: Response, next: NextFunction) => {

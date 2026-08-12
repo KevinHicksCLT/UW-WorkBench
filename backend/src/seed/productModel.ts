@@ -361,6 +361,9 @@ const LEGACY: LegacyDef[] = [
         scope: 'Eliminate',
         ref: 'ProductCatalog.cs : CPP_E',
         why: {
+          captured:
+            'Region and program are inferred from the trailing letter of the CPP-E product code at quote start.',
+          sent: 'Rating, forms attachment and stat feeds all branch on the parsed region letter downstream.',
           processed:
             'Routes rating and forms by parsing the region letter out of the product code.',
           validated: 'Nothing prevents an East policy issuing with West forms after a code typo.',
@@ -438,6 +441,9 @@ const LEGACY: LegacyDef[] = [
         slug: 'rating-pricing-minimum-premium',
         norm: 'minprem',
         why: {
+          captured:
+            'Final premium after all schedule credits enters RT-114 as the last step of the rate order of calculation.',
+          sent: 'The floored premium flows onto the quote proposal with no indication that a floor applied.',
           processed: 'Applies a $500 floor as the final rating step for every commercial policy.',
           validated: 'No jurisdiction check — the constant overrides three states’ filed minimums.',
           lands: 'Canonical minimum-premium table keyed by state & line (Rating & Pricing).',
@@ -462,6 +468,15 @@ const LEGACY: LegacyDef[] = [
         ref: 'dbo.ShortRate1998',
         slug: 'rating-pricing-short-rate-and-pro-rata-tables',
         dead: true,
+        why: {
+          captured: 'Cancellation effective dates entered on the mid-term cancel screen.',
+          sent: 'Nothing — no code path has read dbo.ShortRate1998 since the 2019 pro-rata mandate.',
+          processed:
+            'The retired engine’s 90% short-rate penalty lookup by months-in-force for mid-term cancellations.',
+          validated:
+            'Unreachable — cancellation routing has computed pro-rata only since release 2019.2.',
+          lands: 'Dead code — retire with sign-off; pro-rata is the only filed cancellation basis.',
+        },
       },
       {
         cmp: 'Rating & Pricing',
@@ -473,8 +488,12 @@ const LEGACY: LegacyDef[] = [
         slug: 'rating-pricing-producer-commission-inside-premium-calculation',
         target: 'com:Distribution',
         why: {
+          captured:
+            'Producer code and the new/renewal indicator read from the policy at rating step 11.',
           processed: 'Multiplies commission into the premium as rating step 11.',
           sent: 'Commission-inclusive premium flows to billing, so statements reverse-engineer the split.',
+          validated:
+            'No check against the producer agreement — every producer gets 15/12 regardless of negotiated schedule.',
           lands: 'Distribution commission schedule; rating emits net premium only.',
         },
       },
@@ -692,6 +711,8 @@ const LEGACY: LegacyDef[] = [
         slug: 'rating-pricing-installment-payment-plan-factors',
         norm: 'minprem',
         why: {
+          captured: 'The payment-plan election (paid-in-full / 4-pay / 10-pay) captured at bind.',
+          sent: 'The $6 charge rides on every installment invoice the billing extract generates.',
           processed: 'Adds $6 to every installment regardless of plan or state.',
           validated: 'No jurisdiction table — filed fee deviations in 3 states are not applied.',
           lands: 'Fee schedule in the canonical rating tables (Rating & Pricing).',
@@ -718,6 +739,26 @@ const LEGACY: LegacyDef[] = [
         ref: 'Eligibility.java : mvrPoints()',
         slug: 'eligibility-uw-rules-mvr-point-thresholds',
         norm: 'uwrules',
+      },
+      {
+        cmp: 'Eligibility & UW Rules',
+        name: 'Non-standard tier surcharge stamped during eligibility',
+        detail:
+          'When a driver exceeds 6 MVR points the eligibility pass writes a 1.25 surcharge factor onto the quote instead of routing the risk to the non-standard product’s filed rates.',
+        scope: 'Segment',
+        seg: 'Personal Lines',
+        ref: 'Eligibility.java : applySurcharge()',
+        target: 'pa:Rating & Pricing',
+        why: {
+          captured: 'MVR points and prior-carrier lapse days read during the eligibility pass.',
+          sent: 'The stamped 1.25 factor flows into rating step 7 as if it were a filed relativity.',
+          processed:
+            'applySurcharge() multiplies the factor onto the quote before tier placement completes — pricing logic executing inside an eligibility rule.',
+          validated:
+            'The surcharge appears on no filed rate page — a compliance exposure in every filed state.',
+          lands:
+            'Rating & Pricing — tier as a rating dimension with filed relativities only; eligibility routes, it never prices.',
+        },
       },
       {
         cmp: 'Eligibility & UW Rules',
@@ -848,6 +889,33 @@ const LEGACY: LegacyDef[] = [
         scope: 'Eliminate',
         ref: 'ANNBRL (load module)',
         dead: true,
+        why: {
+          captured: 'Contract data extracted from the ANNMAST record for braille embossing.',
+          sent: 'Output routed to a print-vendor drop that was decommissioned in the 2009 migration.',
+          processed: 'ANNBRL translates AFP page segments into braille cell encoding.',
+          validated:
+            'Unreachable — the JCL step invoking ANNBRL was removed from the ANN020 issuance job in 2009.',
+          lands: 'Dead code — vendor accessibility services supersede it; retire with sign-off.',
+        },
+      },
+      {
+        cmp: 'Rating & Pricing',
+        name: 'Premium tax accrual computed in the crediting batch',
+        detail:
+          'The TAXACCR step of JCL job ANN010 accrues state premium tax alongside the monthly crediting-rate load; per-state rates live in the batch parameter card.',
+        scope: 'Common',
+        ref: 'JCL : ANN010 (TAXACCR step)',
+        target: 'ann:Regulatory & Filings',
+        why: {
+          captured: 'Considerations received per contract, summed from the PAYHIST segment.',
+          sent: 'Accrual totals written to the GL extract file that finance consumes at month-end.',
+          processed:
+            'TAXACCR multiplies a per-state rate from the parameter card during the crediting run — tax logic living inside pricing batch.',
+          validated:
+            'The rate card is updated by hand — the 2023 Maine rate change was missed for two cycles.',
+          lands:
+            'Regulatory & Filings — jurisdictional premium-tax table applied by the canonical model, outside the rating path.',
+        },
       },
       {
         cmp: 'Eligibility & UW Rules',
@@ -965,6 +1033,7 @@ const LEGACY: LegacyDef[] = [
         slug: 'rating-pricing-burning-cost-rating',
         why: {
           captured: 'Historic premium and loss triangles pasted per section.',
+          sent: 'Section rates re-keyed by hand from BinderRates.xlsx into the binder system at each renewal.',
           processed: 'Burn rate and loadings computed by spreadsheet formulas.',
           validated: 'None — no version control or peer sign-off on formula changes.',
           lands: 'Canonical rating service with versioned burning-cost tables (Rating & Pricing).',
@@ -1008,6 +1077,16 @@ const LEGACY: LegacyDef[] = [
         slug: 'eligibility-uw-rules-lloyd-s-delegated-authority-eligibility',
         norm: 'uwrules',
         target: 'ldn:Rating & Pricing',
+        why: {
+          captured:
+            'Per-coverholder binding limits by class, TIV and territory held in the binder-management app.',
+          sent: 'Monthly premium bordereaux are the first place a bound risk meets the limit table.',
+          processed:
+            'Breach detection runs as a bordereau reconciliation query, weeks after the risk is bound.',
+          validated: 'Nothing blocks an out-of-authority bind at the point of quote.',
+          lands:
+            'Rating & Pricing — authority limits evaluated in-line when the coverholder rates the risk, before bind.',
+        },
       },
       {
         cmp: 'Reinsurance & Layering',

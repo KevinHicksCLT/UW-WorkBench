@@ -8,10 +8,12 @@ import AppPicker, { type AppOption } from './AppPicker';
 import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
+import DeadCodeLane from './DeadCodeLane';
 import ProductBoard from './product/ProductBoard';
 import VsStreamBoard from './spine/VsStreamBoard';
 import RoleCompareBoard from './spine/RoleCompareBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
+import TraceBreadcrumb from './TraceBreadcrumb';
 import {
   computeCapabilityAreas,
   computeCrossAppEntries,
@@ -19,10 +21,11 @@ import {
   synthesizeGreenfield,
   CORE_AREA,
 } from './compare';
-import { ALL_SCREENS, LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
+import { ALL_SCREENS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer, NormalizationEntry } from './types';
 import { useLayerAlignment, type AlignRow } from './useLayerAlignment';
 import { entryAppIds } from './NormalizeCards';
+import { BoardLegend, BoardVocabProvider, useBoardVocab } from './vocabulary';
 
 // The Workspace map — an interactive, three-column rationalization board
 // (brown-field decomposition → normalize → green-field target) rendered from
@@ -35,83 +38,6 @@ import { entryAppIds } from './NormalizeCards';
 // time (app toggle + screen picker), while Normalize and Greenfield always
 // aggregate every application in the comparison.
 
-function TraceBreadcrumb({
-  finding,
-  destination,
-}: {
-  finding: Finding;
-  destination: string | null;
-}) {
-  const moved = findingMoves(finding);
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        border: `1px solid ${moved ? '#fecaca' : '#a7f3d0'}`,
-        borderRadius: 999,
-        background: '#fff',
-        boxShadow: `0 2px 8px ${moved ? 'rgba(220,38,38,.12)' : 'rgba(16,185,129,.12)'}`,
-        padding: '5px 8px 5px 12px',
-        marginBottom: 10,
-        alignSelf: 'flex-start',
-      }}
-    >
-      <span
-        style={{
-          width: 15,
-          height: 15,
-          borderRadius: 999,
-          background: moved ? '#fee2e2' : '#dcfce7',
-          border: `1px solid ${moved ? '#fca5a5' : '#86efac'}`,
-          color: moved ? RED : GREEN,
-          fontSize: 9,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 700,
-        }}
-      >
-        {moved ? '✕' : '✓'}
-      </span>
-      <span style={{ fontSize: 12.5, fontWeight: 600 }}>{finding.name}</span>
-      <span style={{ fontSize: 11, color: '#525252' }}>
-        in the <b style={{ fontWeight: 600, color: moved ? RED : GREEN }}>{finding.layer}</b> layer
-      </span>
-      {moved && (finding.targetLayer || finding.recommendedLayer) && (
-        <>
-          <span style={{ color: '#a3a3a3', fontSize: 12 }}>→</span>
-          <span style={{ fontSize: 12.5, color: GREEN, fontWeight: 600 }}>
-            {finding.targetLayer ?? finding.recommendedLayer}
-          </span>
-        </>
-      )}
-      {destination && (
-        <>
-          <span style={{ color: '#a3a3a3', fontSize: 12 }}>→</span>
-          <span style={{ fontSize: 12.5, color: '#525252' }}>{destination}</span>
-        </>
-      )}
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          padding: '2px 9px',
-          borderRadius: 999,
-          background: moved ? '#ecfdf5' : '#dcfce7',
-          border: '1px solid #a7f3d0',
-          fontSize: 11,
-          fontWeight: 600,
-          color: '#047857',
-        }}
-      >
-        {moved ? 'MAPPED' : 'STAYS'}
-      </span>
-    </div>
-  );
-}
-
 function lensFromDomain(d?: string): WorkspaceLens {
   if (d === 'value-streams' || d === 'roles' || d === 'products') return d;
   if (d === 'product-models') return 'products'; // e2e / legacy deep-link alias
@@ -119,6 +45,15 @@ function lensFromDomain(d?: string): WorkspaceLens {
 }
 
 export default function WorkspaceMap({ initialDomain }: { initialDomain?: string }) {
+  // ONE vocabulary fetch for every lens — the columns read it from context.
+  return (
+    <BoardVocabProvider>
+      <WorkspaceLenses initialDomain={initialDomain} />
+    </BoardVocabProvider>
+  );
+}
+
+function WorkspaceLenses({ initialDomain }: { initialDomain?: string }) {
   // The active lens persists per session (lib/viewState) so returning to the
   // Workspace tab restores the board the user left. An explicit ?domain= deep
   // link states its own intent and wins over the restored lens.
@@ -157,6 +92,9 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
 }
 
 function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => void }) {
+  // The DB-driven row axis (vocabulary LAYER order) — every loop below and the
+  // alignment engine iterate THIS list so all three columns agree.
+  const { layers } = useBoardVocab();
   // Board scope + comparison picks persist per session (lib/viewState) so the
   // tab restores exactly on return. Picks stored as an array (Sets don't
   // serialize); null = the active board's own apps.
@@ -288,12 +226,21 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     // targets) instead of stacking each board's card.
     const gf = crossBoard ? synthesizeGreenfield(list) : null;
     const title = apps.map((a) => a.name).join(' + ');
+    // v3 server roll-ups: per-source column stats merge across boards (source
+    // ids are unique); the Normalize header stats only hold when the scope IS
+    // one whole board — a partial pick recomputes client-side.
+    const columnStats = new Map(
+      list.flatMap((b) => (b.columnStats ?? []).map((s) => [s.sourceId, s] as const)),
+    );
+    const wholeBoard = !crossBoard && list[0].findings.every((f) => selectedAppIds.has(f.appId));
     return {
       name: title,
       application: title,
       apps,
       findings,
       normalizationEntries,
+      columnStats,
+      normalizeStats: wholeBoard ? (list[0].normalizeStats ?? null) : null,
       components: gf ? gf.components : list.flatMap((b) => b.components),
       microservices: gf ? [gf.microservice] : list.flatMap((b) => b.microservices),
       screens: list.flatMap((b) => b.screens.filter((s) => selectedAppIds.has(s.appId))),
@@ -492,7 +439,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       );
       return comp?.microserviceId ? `gf:${comp.microserviceId}:${f.layer}:f:${f.id}` : null;
     };
-    for (const layer of LAYERS) {
+    for (const layer of layers) {
       if (!expandedLayers[layer]) continue;
       const layerScoped = scoped.filter((f) => f.layer === layer);
       if (layerScoped.length === 0) continue;
@@ -546,13 +493,13 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       byLayer[layer] = rows;
     }
     return { byLayer, nzAnchorOf, gfAnchorOf, gfRowOrder };
-  }, [merged, scoped, modelEntries, expandedLayers, areas, findingsByMs]);
+  }, [merged, scoped, modelEntries, expandedLayers, areas, findingsByMs, layers]);
 
   const specs: EdgeSpec[] = useMemo(() => {
     if (!merged) return [];
     const out: EdgeSpec[] = [];
     const findingsById = new Map(merged.findings.map((f) => [f.id, f]));
-    for (const layer of LAYERS) {
+    for (const layer of layers) {
       const rows = scoped.filter((f) => f.layer === layer);
       const stays = rows.filter((f) => !findingMoves(f)).length;
       const moves = rows.length - stays;
@@ -560,7 +507,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       const both = stays > 0 && moves > 0;
       // Every layer gets its own gutter lane so verticals never stack; a
       // stay/move pair splits one lane further apart.
-      const base = (LAYERS.indexOf(layer) - 2) * 2;
+      const base = (layers.indexOf(layer) - 2) * 2;
       const perRow = expandedLayers[layer] && rows.length > 0;
       if (perRow) {
         // Expanded layer: one connector PER ROW, from the brownfield step to
@@ -645,7 +592,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
         }
     }
     return out;
-  }, [merged, scoped, activeLayer, findingsByMs, expandedLayers, modelEntries, innerAlign]);
+  }, [merged, scoped, activeLayer, findingsByMs, expandedLayers, modelEntries, innerAlign, layers]);
 
   // SCRUM-222: line each layer's rows up across the three columns so the
   // connectors run horizontally instead of criss-crossing diagonals.
@@ -655,6 +602,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     merged?.components ?? [],
     zoom,
     innerAlign.byLayer,
+    layers,
   );
   // Split the inner-row pads out for the columns: brownfield rows keyed by
   // finding id, normalize cards and greenfield rows keyed by their anchor key.
@@ -709,6 +657,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           boards={[]}
           boardId={null}
           onBoard={() => undefined}
+          legend={<BoardLegend />}
         />
         <AppPicker
           pool={pool}
@@ -755,6 +704,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
         boards={[]}
         boardId={null}
         onBoard={() => undefined}
+        legend={<BoardLegend />}
       />
       <AppPicker
         pool={pool}
@@ -799,6 +749,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               activeAppId={activeApp.id}
               onActiveApp={setActiveAppId}
               findings={bfFindings}
+              columnStat={merged.columnStats.get(activeApp.id) ?? null}
               screens={merged.screens}
               screenName={screenName}
               onScreen={pickScreen}
@@ -853,6 +804,9 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           <ZoomBtn label="⛶" onClick={() => setZoom(1)} />
         </div>
       </div>
+
+      {/* v3 dead-code lane — full width, every compared source, hidden at 0. */}
+      <DeadCodeLane findings={merged.findings} apps={merged.apps} />
     </div>
   );
 }
