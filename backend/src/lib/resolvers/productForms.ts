@@ -54,6 +54,9 @@ export interface FormRow extends FormRowData {
   isBase: boolean;
   /** Latest reviewer comment among the row's decisions. */
   note: string | null;
+  /** PolicyForm id when the row IS one library form (null for aggregates) —
+   *  opens the actual form document. */
+  formId: string | null;
   /** Register payload ships no inline contents — the drill carries them. */
   contents: [];
 }
@@ -90,6 +93,16 @@ interface FormClass {
  *  is a product-specific variation. The caller computes `unique` from
  *  product carriage. */
 export function classifyForm(name: string, rep: SpineElement | null, unique: boolean): FormClass {
+  // Library-backed elements carry their layer explicitly (FormProductNode
+  // role): a stateAmendatory link IS the state layer — no name parsing.
+  if (rep?.formId) {
+    if (rep.formRole === 'stateAmendatory' && rep.formState) {
+      return { layer: 'state', state: rep.formState, coverage: null };
+    }
+    return unique
+      ? { layer: 'product', state: null, coverage: null }
+      : { layer: 'core', state: null, coverage: null };
+  }
   const livesIn = rep?.livesIn ?? '';
   const coverage = /attach with ([a-z0-9_/-]+) coverage/i.exec(livesIn)?.[1]?.toUpperCase() ?? null;
   const stateToken = /STATE=([A-Z]{2})/.exec(livesIn)?.[1] ?? null;
@@ -160,7 +173,14 @@ function rowFor(r: ReviewRow, template: HeatCell[], sub: string | null): FormRow
 }
 
 function baseScore(r: ReviewRow): number {
-  return r.group.presentIn * 10 + (/policy|coverage form|wording|slip/i.test(r.group.name) ? 5 : 0);
+  const rep = Object.values(r.group.perVersion)[0] ?? null;
+  // A library baseForm link is the containment anchor by definition.
+  const roleBoost = rep?.formRole === 'baseForm' ? 1000 : 0;
+  return (
+    roleBoost +
+    r.group.presentIn * 10 +
+    (/policy|coverage form|wording|slip/i.test(r.group.name) ? 5 : 0)
+  );
 }
 
 function mergeInto(target: FormRowData, from: FormRowData): void {
@@ -313,6 +333,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
           state: null,
           isBase: false,
           note: r.decision?.comment ?? null,
+          formId: null,
           contents: [],
         };
         const drill: FormsDrill = {
@@ -346,6 +367,7 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
       state: cls.state,
       isBase,
       note: r.decision?.comment ?? null,
+      formId: Object.values(r.group.perVersion)[0]?.formId ?? null,
       contents: [],
     };
     sections[FORM_LAYER_ORDER.indexOf(cls.layer)].rows.push(formRow);
@@ -442,6 +464,13 @@ export function splitProductModel(components: Map<string, SpineComponent>): Prod
   const base: SpineElement[] = [];
   const endorsements: SpineElement[] = [];
   for (const e of formEls) {
+    // Library-backed link roles decide directly; legacy elements fall back to
+    // the naming heuristic.
+    if (e.formRole) {
+      if (e.formRole === 'baseForm' && base.length === 0) base.push(e);
+      else endorsements.push(e);
+      continue;
+    }
     const cls = classifyForm(e.element, e, false);
     if (cls.layer === 'core' && BASE_FORM.test(e.element) && base.length === 0) base.push(e);
     else endorsements.push(e);

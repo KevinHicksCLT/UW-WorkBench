@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { versionPlaceLabel } from '../../../lib/usStates';
 import { MATCH_META, groupCitations, type ProductDecisionStatus } from './spine';
 import type { BoardColumn, StateMandate } from './boardApi';
@@ -169,6 +170,7 @@ function ElementDetailModal({
 }) {
   const meta = MATCH_META[row.group.status];
   const cites = groupCitations(row.group);
+  const formId = Object.values(row.group.perVersion).find((el) => el?.formId)?.formId ?? null;
   // The board's carriage rule: a coverage on the countrywide version COVERS
   // the product's state-form versions (state forms amend the base policy,
   // they don't drop its coverages). `presence` is that covered set — the same
@@ -236,6 +238,21 @@ function ElementDetailModal({
                 ? ' (defined on the countrywide form, carried by every state version)'
                 : ''}
             </div>
+            {formId && (
+              <Link
+                to={`/forms/${formId}/document`}
+                style={{
+                  display: 'inline-block',
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: '#2563eb',
+                  marginTop: 4,
+                  textDecoration: 'none',
+                }}
+              >
+                Open the actual form document ↗
+              </Link>
+            )}
           </div>
           <div style={{ flex: 1 }} />
           <button
@@ -616,6 +633,26 @@ export default function ProductReviewList({
                 >
                   {selfRow.group.name}
                 </button>
+                {(() => {
+                  const selfFormId =
+                    Object.values(selfRow.group.perVersion).find((el) => el?.formId)?.formId ??
+                    null;
+                  return selfFormId ? (
+                    <Link
+                      to={`/forms/${selfFormId}/document`}
+                      style={{
+                        display: 'inline-block',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: '#2563eb',
+                        marginLeft: 8,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Form document ↗
+                    </Link>
+                  ) : null;
+                })()}
                 {mandates?.[key] && <MandateNote m={mandates[key]} />}
               </div>
               <div style={{ flex: 1 }} />

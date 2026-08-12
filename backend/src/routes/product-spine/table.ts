@@ -11,6 +11,10 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
+import {
+  FORMS_COMPONENT_NAME,
+  loadFormElementsByVersionNode,
+} from '../../lib/resolvers/productBoard.js';
 import { isHiddenComponent, sanitizeAttributes } from './helpers.js';
 
 interface ProductTreeNode {
@@ -32,7 +36,7 @@ export function registerProductTableRoutes(router: Router): void {
       const company = await activeCompany(req);
       if (!company) return res.status(404).json({ error: 'No company' });
 
-      const [levelTypes, allNodes] = await Promise.all([
+      const [levelTypes, allNodes, formsByVersionNode] = await Promise.all([
         prisma.productLevelType.findMany({
           where: { companyId: company.id },
           orderBy: { levelNumber: 'asc' },
@@ -52,6 +56,9 @@ export function registerProductTableRoutes(router: Router): void {
             productLevelType: { select: { levelNumber: true } },
           },
         }),
+        // Forms components render the PolicyForm library (FormProductNode) —
+        // node attributes carry no form lists.
+        loadFormElementsByVersionNode(company.id),
       ]);
 
       // The 'Product Taxonomy' model component is hidden from every product
@@ -77,6 +84,20 @@ export function registerProductTableRoutes(router: Router): void {
               rollup[Number(lvl)] = (rollup[Number(lvl)] ?? 0) + cnt;
             }
           }
+          const sanitized = sanitizeAttributes(n.attributes);
+          const isFormsComponent =
+            n.productLevelType.levelNumber === 5 &&
+            n.displayValue === FORMS_COMPONENT_NAME &&
+            n.parentId;
+          const attributes: Prisma.JsonValue = isFormsComponent
+            ? ({
+                ...(sanitized && typeof sanitized === 'object' && !Array.isArray(sanitized)
+                  ? sanitized
+                  : {}),
+                elements: (formsByVersionNode.get(n.parentId!) ??
+                  []) as unknown as Prisma.JsonValue[],
+              } as Prisma.JsonValue)
+            : sanitized;
           return {
             id: n.id,
             name: n.displayValue,
@@ -84,7 +105,7 @@ export function registerProductTableRoutes(router: Router): void {
             description: n.description,
             status: n.status,
             sortOrder: n.sortOrder,
-            attributes: sanitizeAttributes(n.attributes),
+            attributes,
             rollup,
             children,
           };

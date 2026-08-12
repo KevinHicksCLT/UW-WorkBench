@@ -26,6 +26,14 @@ export interface SpineElement {
    *  specific requirements the state imposes, with its statutory citation. */
   mandate?: string | null;
   mandateCitation?: string | null;
+  /** Forms-component elements are synthesized from the PolicyForm library via
+   *  FormProductNode (the single source of truth for every form the product
+   *  surfaces render) — these carry the library identity so the UI can open
+   *  the actual form document and the comparison can group by form. */
+  formId?: string | null;
+  formNumber?: string | null;
+  formRole?: string | null; // baseForm | declarations | endorsement | stateAmendatory
+  formState?: string | null; // postal code for a stateAmendatory link
 }
 
 export interface SpineComponent {
@@ -279,6 +287,9 @@ export function elementStateOf(name: string): string | null {
 // (same rule as routes/product-spine/helpers.ts — the rows stay in the DB).
 const HIDDEN_COMPONENT = 'Product Taxonomy';
 
+/** The model component whose elements are the PolicyForm library. */
+export const FORMS_COMPONENT_NAME = 'Forms';
+
 // ── Signature + comparison (port of frontend spine.ts, same algorithm) ──────
 
 export function elementSignature(name: string, versionTokens: Set<string>): string {
@@ -341,8 +352,13 @@ export function buildComparison(versions: SpineVersion[]): Comparison {
         // State-specific elements group PER STATE — "CA state-mandated
         // endorsement set" must never fold with Florida's. Stateless keys
         // keep the historic format so persisted decisions still match.
+        // Library-backed form elements group by FORM IDENTITY: the same
+        // PolicyForm across versions is one row, two different forms never
+        // fold even when their titles read alike.
         const st = elementStateOf(el.element);
-        const key = `${component}::${st ? `${st}::` : ''}${sig}`;
+        const key = el.formId
+          ? `${component}::form:${el.formId}`
+          : `${component}::${st ? `${st}::` : ''}${sig}`;
         let g = groups.get(key);
         if (!g) {
           g = { key, component, name: el.element, status: 'SINGLE', perVersion: {}, presentIn: 0 };
@@ -681,11 +697,96 @@ export function parseElements(attributes: unknown): SpineElement[] {
   return out;
 }
 
+/** Forms-component elements come from the PolicyForm library ONLY: every
+ *  FormProductNode link on an L4 version node becomes one SpineElement. The
+ *  ProductNode rows carry no form lists — the library is the single source of
+ *  truth for every form the board / review / compare / model views render. */
+const FORM_ROLE_LABEL: Record<string, string> = {
+  baseForm: 'Base policy form',
+  declarations: 'Declarations page',
+  endorsement: 'Endorsement',
+  stateAmendatory: 'State amendatory endorsement',
+};
+
+function formElement(link: {
+  role_: string;
+  form: {
+    id: string;
+    formNumber: string;
+    title: string;
+    states: unknown;
+    editionDate: string | null;
+    filingStatus: string;
+  };
+}): SpineElement {
+  const f = link.form;
+  const states = Array.isArray(f.states)
+    ? f.states.filter((s): s is string => typeof s === 'string')
+    : [];
+  const state = link.role_ === 'stateAmendatory' ? (states[0] ?? null) : null;
+  return {
+    element: `${f.formNumber} — ${f.title}`,
+    description: `${FORM_ROLE_LABEL[link.role_] ?? 'Form'} · ${f.filingStatus}${f.editionDate ? ` · ed. ${f.editionDate}` : ''}`,
+    livesIn: 'Forms library',
+    format: 'PDF',
+    formId: f.id,
+    formNumber: f.formNumber,
+    formRole: link.role_,
+    formState: state,
+  };
+}
+
+/** Batch-load every FormProductNode link for a company as synthesized Forms
+ *  elements, grouped by the L4 version node they attach to. Ordered base →
+ *  declarations → endorsements → state amendatories, then form number. */
+export async function loadFormElementsByVersionNode(
+  companyId: string,
+): Promise<Map<string, SpineElement[]>> {
+  const formLinks = await prisma.formProductNode.findMany({
+    where: { companyId },
+    orderBy: [{ role_: 'asc' }, { id: 'asc' }],
+    select: {
+      productNodeId: true,
+      role_: true,
+      form: {
+        select: {
+          id: true,
+          formNumber: true,
+          title: true,
+          states: true,
+          editionDate: true,
+          filingStatus: true,
+        },
+      },
+    },
+  });
+  const roleOrder: Record<string, number> = {
+    baseForm: 0,
+    declarations: 1,
+    endorsement: 2,
+    stateAmendatory: 3,
+  };
+  const formsByVersionNode = new Map<string, SpineElement[]>();
+  for (const link of formLinks) {
+    const list = formsByVersionNode.get(link.productNodeId) ?? [];
+    list.push(formElement(link));
+    formsByVersionNode.set(link.productNodeId, list);
+  }
+  for (const list of formsByVersionNode.values()) {
+    list.sort(
+      (a, b) =>
+        (roleOrder[a.formRole ?? ''] ?? 9) - (roleOrder[b.formRole ?? ''] ?? 9) ||
+        (a.formNumber ?? '').localeCompare(b.formNumber ?? ''),
+    );
+  }
+  return formsByVersionNode;
+}
+
 export async function loadSpine(companyId: string): Promise<LoadedSpine> {
   const hit = spineMemo.get(companyId);
   if (hit && Date.now() - hit.at < SPINE_TTL_MS) return hit.spine;
 
-  const [levelTypes, nodes] = await Promise.all([
+  const [levelTypes, nodes, formsByVersionNode] = await Promise.all([
     prisma.productLevelType.findMany({
       where: { companyId },
       orderBy: { levelNumber: 'asc' },
@@ -705,6 +806,7 @@ export async function loadSpine(companyId: string): Promise<LoadedSpine> {
         productLevelTypeId: true,
       },
     }),
+    loadFormElementsByVersionNode(companyId),
   ]);
 
   const levelOf = new Map(levelTypes.map((l) => [l.id, l.levelNumber]));
@@ -728,10 +830,25 @@ export async function loadSpine(companyId: string): Promise<LoadedSpine> {
           const components = new Map<string, SpineComponent>();
           for (const comp of byParent.get(version.id) ?? []) {
             if (comp.displayValue === HIDDEN_COMPONENT) continue;
+            // The Forms component renders the PolicyForm library, never
+            // attribute payloads — single source of truth for forms.
+            const elements =
+              comp.displayValue === FORMS_COMPONENT_NAME
+                ? (formsByVersionNode.get(version.id) ?? [])
+                : parseElements(comp.attributes);
             components.set(comp.displayValue, {
               name: comp.displayValue,
               sortOrder: comp.sortOrder,
-              elements: parseElements(comp.attributes),
+              elements,
+            });
+          }
+          // A version with linked forms but no Forms component node still
+          // surfaces its library forms.
+          if (!components.has(FORMS_COMPONENT_NAME) && formsByVersionNode.has(version.id)) {
+            components.set(FORMS_COMPONENT_NAME, {
+              name: FORMS_COMPONENT_NAME,
+              sortOrder: 999,
+              elements: formsByVersionNode.get(version.id) ?? [],
             });
           }
           if (components.size === 0) continue;
