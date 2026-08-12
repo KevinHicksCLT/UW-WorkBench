@@ -74,18 +74,12 @@ function DocumentClause({
   const unique = item.row.status === 'unique';
   const heading = clause.heading?.trim() ?? null;
   const isTitle = clause.ordinal === 0 && !heading && clause.text.length < 120;
+  // A one-side-only clause stays readable document text — a hairline red rule
+  // and a small tag mark it, never a solid red block.
   return (
     <div
       style={
-        unique
-          ? {
-              borderLeft: '3px solid #dc2626',
-              background: '#fef2f2',
-              padding: '6px 10px',
-              margin: '10px -10px',
-              borderRadius: 4,
-            }
-          : undefined
+        unique ? { borderLeft: '2px solid #fca5a5', paddingLeft: 10, margin: '8px 0' } : undefined
       }
     >
       {unique && (
@@ -96,7 +90,7 @@ function DocumentClause({
             letterSpacing: '.07em',
             textTransform: 'uppercase',
             color: '#b91c1c',
-            marginBottom: 3,
+            marginBottom: 2,
           }}
         >
           Not in {otherName}
@@ -124,9 +118,26 @@ function DocumentClause({
           ...(isTitle ? { textAlign: 'center' as const, fontWeight: 700, fontSize: 15 } : null),
         }}
       >
-        <ClauseText clauseText={clause.text} segments={item.segments} side={side} />
+        {unique ? (
+          <UniqueClauseText text={clause.text} />
+        ) : (
+          <ClauseText clauseText={clause.text} segments={item.segments} side={side} />
+        )}
       </div>
     </div>
+  );
+}
+
+/** One-side-only clause: highlight only its lead-in (the clause label / first
+ *  sentence) the same way changed words highlight — never the whole block. */
+function UniqueClauseText({ text }: { text: string }) {
+  const lead = /^([A-Z]\.|\d{1,2}\.|\([a-z]\))?\s*[^.\n]{0,90}[.:]/.exec(text)?.[0] ?? null;
+  if (!lead) return <span style={{ whiteSpace: 'pre-wrap' }}>{text}</span>;
+  return (
+    <span style={{ whiteSpace: 'pre-wrap' }}>
+      <span style={DIFF_MARK}>{lead}</span>
+      {text.slice(lead.length)}
+    </span>
   );
 }
 

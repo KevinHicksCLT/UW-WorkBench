@@ -89,7 +89,9 @@ export function compareHref(formA?: string | null, formB?: string | null): strin
   return `/portfolio?${p.toString()}`;
 }
 
-/** Picker label: number, title, edition. */
+/** Picker label: number, title, edition — and the edition history, so forms
+ *  comparable version-vs-version stand out in the list. */
 export function formLabel(f: FormOption): string {
-  return `${f.formNumber} — ${f.title}${f.editionDate ? ` (${f.editionDate})` : ''}`;
+  const base = `${f.formNumber} — ${f.title}${f.editionDate ? ` (${f.editionDate})` : ''}`;
+  return f.versions.length > 1 ? `${base} · ${f.versions.length} versions` : base;
 }

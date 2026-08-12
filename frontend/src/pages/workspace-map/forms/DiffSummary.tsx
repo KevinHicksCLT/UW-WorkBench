@@ -1,25 +1,14 @@
-// The "what's actually different" band under the two-pane diff: headline
-// similarity, one tile per status bucket, then a plain-language line per
-// non-identical clause so a reviewer can read the delta without scanning
-// the panes.
+// The "what's actually different" card under the two documents: headline
+// similarity with a proportional composition bar, count chips per status, and
+// a plain-language line per non-identical clause laid out in a responsive
+// two-column list.
 import { STATUS_META, sideLabel, type ComparePayload, type CompareRow } from './compareApi';
 
-function Tile({ label, value, fg }: { label: string; value: string; fg: string }) {
-  return (
-    <div
-      style={{
-        padding: '8px 14px',
-        border: '1px solid #eaeaea',
-        borderRadius: 8,
-        background: '#fff',
-        minWidth: 96,
-      }}
-    >
-      <div style={{ fontSize: 17, fontWeight: 700, color: fg }}>{value}</div>
-      <div style={{ fontSize: 10.5, fontWeight: 600, color: '#525252' }}>{label}</div>
-    </div>
-  );
-}
+const BUCKETS = [
+  { key: 'identical' as const, label: 'Identical' },
+  { key: 'near' as const, label: 'Near-identical' },
+  { key: 'divergent' as const, label: 'Divergent' },
+];
 
 /** Short human line for one non-identical row. */
 function differenceLine(row: CompareRow, payload: ComparePayload): string {
@@ -33,52 +22,149 @@ function differenceLine(row: CompareRow, payload: ComparePayload): string {
   return `“${name}” is worded differently (${Math.round(row.similarity * 100)}% similar).`;
 }
 
+function CountChip({
+  label,
+  value,
+  fg,
+  bg,
+}: {
+  label: string;
+  value: number;
+  fg: string;
+  bg: string;
+}) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: '#404040',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span
+        style={{
+          minWidth: 22,
+          textAlign: 'center',
+          padding: '1px 6px',
+          borderRadius: 999,
+          fontWeight: 700,
+          color: fg,
+          background: bg,
+          border: `1px solid ${fg}22`,
+        }}
+      >
+        {value}
+      </span>
+      {label}
+    </span>
+  );
+}
+
 export default function DiffSummary({ payload }: { payload: ComparePayload }) {
   const { summary } = payload;
   const changed = payload.rows.filter((r) => r.status !== 'identical');
+  const uniqueTotal = summary.uniqueA + summary.uniqueB;
+  const segments = [
+    { value: summary.identical, color: STATUS_META.identical.fg },
+    { value: summary.near, color: STATUS_META.near.fg },
+    { value: summary.divergent, color: STATUS_META.divergent.fg },
+    { value: uniqueTotal, color: STATUS_META.unique.fg },
+  ].filter((s) => s.value > 0);
+
   return (
-    <div style={{ marginTop: 14 }}>
+    <div
+      style={{
+        marginTop: 14,
+        border: '1px solid #eaeaea',
+        borderRadius: 10,
+        background: '#fff',
+        overflow: 'hidden',
+      }}
+    >
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '.06em',
-          textTransform: 'uppercase',
-          color: '#525252',
-          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          flexWrap: 'wrap',
+          padding: '12px 16px',
+          borderBottom: changed.length > 0 ? '1px solid #f0f0f0' : 'none',
         }}
       >
-        Difference summary
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexShrink: 0 }}>
+          <span style={{ fontSize: 22, fontWeight: 700, color: '#171717' }}>
+            {Math.round(summary.overallSimilarity * 100)}%
+          </span>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '.06em',
+              textTransform: 'uppercase',
+              color: '#737373',
+            }}
+          >
+            Similar
+          </span>
+        </div>
+        {/* Proportional composition of the merged clause rows. */}
+        <div
+          style={{
+            flex: 1,
+            minWidth: 160,
+            height: 8,
+            display: 'flex',
+            borderRadius: 99,
+            overflow: 'hidden',
+            background: '#f5f5f5',
+          }}
+          title={`${summary.total} aligned clause rows`}
+        >
+          {segments.map((s, i) => (
+            <span
+              key={i}
+              style={{ width: `${(s.value / summary.total) * 100}%`, background: s.color }}
+            />
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          {BUCKETS.map((b) => (
+            <CountChip
+              key={b.key}
+              label={b.label}
+              value={summary[b.key]}
+              fg={STATUS_META[b.key].fg}
+              bg={STATUS_META[b.key].bg}
+            />
+          ))}
+          <CountChip
+            label={`Only in ${sideLabel(payload.a, payload.b.formId)}`}
+            value={summary.uniqueA}
+            fg={STATUS_META.unique.fg}
+            bg={STATUS_META.unique.bg}
+          />
+          <CountChip
+            label={`Only in ${sideLabel(payload.b, payload.a.formId)}`}
+            value={summary.uniqueB}
+            fg={STATUS_META.unique.fg}
+            bg={STATUS_META.unique.bg}
+          />
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <Tile
-          label="Overall similarity"
-          value={`${Math.round(summary.overallSimilarity * 100)}%`}
-          fg="#171717"
-        />
-        <Tile label="Identical" value={String(summary.identical)} fg={STATUS_META.identical.fg} />
-        <Tile label="Near-identical" value={String(summary.near)} fg={STATUS_META.near.fg} />
-        <Tile label="Divergent" value={String(summary.divergent)} fg={STATUS_META.divergent.fg} />
-        <Tile
-          label={`Only in ${sideLabel(payload.a, payload.b.formId)}`}
-          value={String(summary.uniqueA)}
-          fg={STATUS_META.unique.fg}
-        />
-        <Tile
-          label={`Only in ${sideLabel(payload.b, payload.a.formId)}`}
-          value={String(summary.uniqueB)}
-          fg={STATUS_META.unique.fg}
-        />
-      </div>
-      {changed.length > 0 && (
+      {changed.length > 0 ? (
         <ul
           style={{
-            margin: '12px 0 0',
-            padding: 0,
+            margin: 0,
+            padding: '10px 16px 12px',
             listStyle: 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+            columnGap: 24,
+            rowGap: 7,
           }}
         >
           {changed.map((row, i) => {
@@ -91,30 +177,31 @@ export default function DiffSummary({ payload }: { payload: ComparePayload }) {
                 <span
                   style={{
                     flexShrink: 0,
-                    fontSize: 9.5,
+                    width: 96,
+                    textAlign: 'center',
+                    fontSize: 9,
                     fontWeight: 700,
                     letterSpacing: '.05em',
                     textTransform: 'uppercase',
                     color: meta.fg,
                     background: meta.bg,
                     border: `1px solid ${meta.fg}33`,
-                    borderRadius: 99,
-                    padding: '1px 8px',
+                    borderRadius: 999,
+                    padding: '2px 0',
                   }}
                 >
                   {meta.label}
                 </span>
-                <span style={{ color: '#404040', lineHeight: 1.45 }}>
+                <span style={{ color: '#404040', lineHeight: 1.45, minWidth: 0 }}>
                   {differenceLine(row, payload)}
                 </span>
               </li>
             );
           })}
         </ul>
-      )}
-      {changed.length === 0 && (
-        <div style={{ marginTop: 12, fontSize: 12, color: '#15803d', fontWeight: 600 }}>
-          The two forms carry identical wording clause for clause.
+      ) : (
+        <div style={{ padding: '10px 16px 12px', fontSize: 12, color: '#15803d', fontWeight: 600 }}>
+          The two documents carry identical wording clause for clause.
         </div>
       )}
     </div>
