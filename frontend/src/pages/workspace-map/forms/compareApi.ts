@@ -17,6 +17,12 @@ export interface CompareRow {
   similarity: number;
 }
 
+export interface VersionMeta {
+  id: string;
+  versionNo: number;
+  status: string;
+}
+
 export interface CompareSide {
   formId: string;
   formNumber: string;
@@ -29,6 +35,8 @@ export interface CompareSide {
   versionNo: number;
   versionStatus: string;
   clauseCount: number;
+  /** Every ingested version of this form (latest first) — the version picker. */
+  versions: VersionMeta[];
 }
 
 export interface ComparePayload {
@@ -55,6 +63,14 @@ export interface FormOption {
   states: string[] | null;
   editionDate: string | null;
   filingStatus: string;
+  versions: VersionMeta[];
+}
+
+/** Side label: form number + version (edition only when it disambiguates). */
+export function sideLabel(s: CompareSide, otherFormId: string): string {
+  return s.formId === otherFormId
+    ? `${s.formNumber} v${s.versionNo}`
+    : `${s.formNumber}${s.editionDate ? ` (${s.editionDate})` : ''}`;
 }
 
 /** Status → gutter/summary color, matching the board's heat vocabulary. */

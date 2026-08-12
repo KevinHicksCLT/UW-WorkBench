@@ -7,8 +7,8 @@ import type { Lens } from './useBoard';
 // active lens, and a lens-specific legend pinned right.
 
 /** The rationalizable structures. The first three share the application
- *  board API; Products renders its own comparison board, and Form Comparison
- *  is the two-pane verbiage diff over the PolicyForm library. */
+ *  board API; Products renders its own comparison board, and Forms is the
+ *  side-by-side document diff over the PolicyForm library. */
 export type WorkspaceLens = Lens | 'products' | 'form-compare';
 
 const LENSES: { key: WorkspaceLens; label: string }[] = [
@@ -16,7 +16,7 @@ const LENSES: { key: WorkspaceLens; label: string }[] = [
   { key: 'value-streams', label: 'Value streams' },
   { key: 'roles', label: 'Roles' },
   { key: 'products', label: 'Products' },
-  { key: 'form-compare', label: 'Form Comparison' },
+  { key: 'form-compare', label: 'Forms' },
 ];
 
 export default function LensBar({

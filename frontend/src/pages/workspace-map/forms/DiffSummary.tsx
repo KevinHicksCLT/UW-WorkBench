@@ -2,7 +2,7 @@
 // similarity, one tile per status bucket, then a plain-language line per
 // non-identical clause so a reviewer can read the delta without scanning
 // the panes.
-import { STATUS_META, type ComparePayload, type CompareRow } from './compareApi';
+import { STATUS_META, sideLabel, type ComparePayload, type CompareRow } from './compareApi';
 
 function Tile({ label, value, fg }: { label: string; value: string; fg: string }) {
   return (
@@ -24,10 +24,11 @@ function Tile({ label, value, fg }: { label: string; value: string; fg: string }
 /** Short human line for one non-identical row. */
 function differenceLine(row: CompareRow, payload: ComparePayload): string {
   const name = row.a?.heading ?? row.b?.heading ?? (row.a ?? row.b)?.text.slice(0, 60) ?? '';
+  const nameA = sideLabel(payload.a, payload.b.formId);
+  const nameB = sideLabel(payload.b, payload.a.formId);
   if (row.status === 'unique') {
-    const carrier = row.a ? payload.a : payload.b;
-    const missing = row.a ? payload.b : payload.a;
-    return `“${name}” appears only in ${carrier.formNumber} — ${missing.formNumber} has no matching clause.`;
+    const [carrier, missing] = row.a ? [nameA, nameB] : [nameB, nameA];
+    return `“${name}” appears only in ${carrier} — ${missing} has no matching clause.`;
   }
   return `“${name}” is worded differently (${Math.round(row.similarity * 100)}% similar).`;
 }
@@ -59,12 +60,12 @@ export default function DiffSummary({ payload }: { payload: ComparePayload }) {
         <Tile label="Near-identical" value={String(summary.near)} fg={STATUS_META.near.fg} />
         <Tile label="Divergent" value={String(summary.divergent)} fg={STATUS_META.divergent.fg} />
         <Tile
-          label={`Only in ${payload.a.formNumber}`}
+          label={`Only in ${sideLabel(payload.a, payload.b.formId)}`}
           value={String(summary.uniqueA)}
           fg={STATUS_META.unique.fg}
         />
         <Tile
-          label={`Only in ${payload.b.formNumber}`}
+          label={`Only in ${sideLabel(payload.b, payload.a.formId)}`}
           value={String(summary.uniqueB)}
           fg={STATUS_META.unique.fg}
         />

@@ -1,8 +1,9 @@
-// The Workspace's Form Comparison lens — a Beyond-Compare-style two-pane
-// verbiage diff over the PolicyForm library. Filters (search / LOB / state)
-// narrow the picker lists, the A/B pickers choose the two forms, and the
-// panes + summary render GET /forms/compare. The picks live in the URL
-// (?formA=&formB=) so the Products heat-map drill can deep-link straight in.
+// The Workspace's Forms lens — the two actual documents side by side with the
+// wording differences highlighted red, over the PolicyForm library. The
+// PRIMARY flow compares one form across two of its versions (version pickers
+// appear when a form has editions); any two forms compare the same way.
+// Filters (search / LOB / state) narrow the pickers; picks live in the URL
+// (?formA=&formB=&verA=&verB=) so the Products heat-map drill deep-links in.
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorMessage, Input, LoadingState, Select } from '../../../components/ui';
@@ -15,6 +16,8 @@ import FormDiffView from './FormDiffView';
 
 const A_PARAM = 'formA';
 const B_PARAM = 'formB';
+const AV_PARAM = 'verA';
+const BV_PARAM = 'verB';
 
 /** Countrywide sentinel for the state filter (PolicyForm.states = null). */
 const CW = 'CW';
@@ -33,11 +36,30 @@ export default function FormCompareBoard({
   const [params, setParams] = useSearchParams();
   const formA = params.get(A_PARAM);
   const formB = params.get(B_PARAM);
-  const setPick = (key: string, id: string | null) => {
+  const verA = params.get(AV_PARAM);
+  const verB = params.get(BV_PARAM);
+  const apply = (changes: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
-    if (id) next.set(key, id);
-    else next.delete(key);
+    for (const [key, id] of Object.entries(changes)) {
+      if (id) next.set(key, id);
+      else next.delete(key);
+    }
     setParams(next, { replace: false });
+  };
+  // Picking a form resets that side's version pick (it belongs to the old
+  // form). The PRIMARY flow — version-vs-version of one form — self-arranges:
+  // picking a multi-version form as A with no B yet compares its two latest
+  // editions against each other.
+  const pickForm = (side: 'a' | 'b', id: string | null) => {
+    const changes: Record<string, string | null> =
+      side === 'a' ? { [A_PARAM]: id, [AV_PARAM]: null } : { [B_PARAM]: id, [BV_PARAM]: null };
+    const picked = id ? (forms ?? []).find((f) => f.id === id) : null;
+    if (side === 'a' && picked && !formB && picked.versions.length > 1) {
+      changes[B_PARAM] = picked.id;
+      changes[AV_PARAM] = picked.versions[0].id;
+      changes[BV_PARAM] = picked.versions[1].id;
+    }
+    apply(changes);
   };
 
   // Filters persist per session like every other workspace control.
@@ -80,10 +102,20 @@ export default function FormCompareBoard({
     return list;
   };
 
-  const comparePath =
-    formA && formB
-      ? `/forms/compare?a=${encodeURIComponent(formA)}&b=${encodeURIComponent(formB)}`
-      : null;
+  // Same form on both sides needs two DIFFERENT versions before fetching —
+  // default both pickers sensibly instead of asking the server to 400.
+  const sameForm = Boolean(formA && formA === formB);
+  const pickedA = (forms ?? []).find((f) => f.id === formA);
+  const pickedB = (forms ?? []).find((f) => f.id === formB);
+  const effVerA = verA ?? pickedA?.versions[0]?.id ?? null;
+  const effVerB =
+    verB ?? (sameForm ? (pickedB?.versions[1]?.id ?? null) : (pickedB?.versions[0]?.id ?? null));
+  const ready = Boolean(formA && formB && (!sameForm || (effVerA && effVerB && effVerA !== effVerB)));
+  const comparePath = ready
+    ? `/forms/compare?a=${encodeURIComponent(formA as string)}&b=${encodeURIComponent(formB as string)}` +
+      (effVerA ? `&av=${encodeURIComponent(effVerA)}` : '') +
+      (effVerB ? `&bv=${encodeURIComponent(effVerB)}` : '')
+    : null;
   const { data: payload, loading, error } = useApi<ComparePayload>(comparePath);
 
   return (
@@ -162,19 +194,25 @@ export default function FormCompareBoard({
           label="Form A"
           value={formA}
           options={optionsFor(formA)}
-          onPick={(id) => setPick(A_PARAM, id)}
+          onPick={(id) => pickForm('a', id)}
+        />
+        <VersionPick
+          label="Version A"
+          form={pickedA}
+          value={effVerA}
+          onPick={(id) => apply({ [AV_PARAM]: id })}
         />
         <button
           type="button"
-          title="swap the two forms"
-          onClick={() => {
-            const next = new URLSearchParams(params);
-            if (formB) next.set(A_PARAM, formB);
-            else next.delete(A_PARAM);
-            if (formA) next.set(B_PARAM, formA);
-            else next.delete(B_PARAM);
-            setParams(next, { replace: false });
-          }}
+          title="swap the two sides"
+          onClick={() =>
+            apply({
+              [A_PARAM]: formB,
+              [B_PARAM]: formA,
+              [AV_PARAM]: verB ?? effVerB,
+              [BV_PARAM]: verA ?? effVerA,
+            })
+          }
           style={{
             font: 'inherit',
             fontSize: 13,
@@ -194,13 +232,26 @@ export default function FormCompareBoard({
           label="Form B"
           value={formB}
           options={optionsFor(formB)}
-          onPick={(id) => setPick(B_PARAM, id)}
+          onPick={(id) => pickForm('b', id)}
+        />
+        <VersionPick
+          label="Version B"
+          form={pickedB}
+          value={effVerB}
+          onPick={(id) => apply({ [BV_PARAM]: id })}
         />
       </div>
+      {sameForm && !ready && pickedA && (
+        <ErrorMessage>
+          {pickedA.versions.length > 1
+            ? 'Pick two different versions of this form to compare.'
+            : 'This form has only one ingested version — pick another form (or ingest a new version from the Forms library) to compare against.'}
+        </ErrorMessage>
+      )}
       {listError && <ErrorMessage>{listError}</ErrorMessage>}
       {listLoading && !forms && <LoadingState message="Loading the form library…" />}
       {!comparePath && !listLoading && !listError && (
-        <EmptyState message="Pick two forms above (narrow the list with the filters) to see every wording difference between them, Beyond-Compare style." />
+        <EmptyState message="Pick a form above to compare its versions (or pick two different forms) — the documents render side by side with every wording difference highlighted." />
       )}
       {comparePath && loading && !payload && <LoadingState message="Comparing the two forms…" />}
       {comparePath && error && <ErrorMessage>{error}</ErrorMessage>}
@@ -237,6 +288,37 @@ function FormPick({
       {options.map((f) => (
         <option key={f.id} value={f.id}>
           {formLabel(f)}
+        </option>
+      ))}
+    </Select>
+  );
+}
+
+/** Version pick for one side — only rendered when the form has editions to
+ *  choose between (the primary same-form-across-versions flow). */
+function VersionPick({
+  label,
+  form,
+  value,
+  onPick,
+}: {
+  label: string;
+  form: FormOption | undefined;
+  value: string | null;
+  onPick: (id: string) => void;
+}) {
+  if (!form || form.versions.length < 2) return null;
+  return (
+    <Select
+      aria-label={label}
+      title={label}
+      value={value ?? ''}
+      onChange={(e) => onPick(e.target.value)}
+      style={{ width: 'auto', minWidth: 84, height: 30, fontSize: 12.5, flexShrink: 0 }}
+    >
+      {form.versions.map((v) => (
+        <option key={v.id} value={v.id}>
+          v{v.versionNo}
         </option>
       ))}
     </Select>
