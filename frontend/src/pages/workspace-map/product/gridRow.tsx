@@ -121,18 +121,16 @@ export function HeatGridRow({
             >
               {na ? (
                 <span style={{ fontSize: 11, fontWeight: 700 }}>—</span>
-              ) : density === 'rich' ? (
-                // Big figure = decisions still open (✓ when none); the line
-                // under it says so in words. Composition detail lives in the
-                // hover title, not crammed into the cell.
+              ) : c.total === 1 ? null : density === 'rich' ? ( // single-coverage cell: the color IS the story — no figure
+                // Aggregate cell: big figure = decisions still open (✓ when
+                // none); the line under it says so in words. Composition
+                // detail lives in the hover title, not crammed into the cell.
                 <>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>
                     {vis.pending === 0 ? '✓' : vis.pending}
                   </span>
                   <span style={{ fontSize: 9.5, fontWeight: 600 }}>
-                    {vis.pending === 0
-                      ? `${c.total} coverage${c.total === 1 ? '' : 's'}`
-                      : 'to decide'}
+                    {vis.pending === 0 ? `${c.total} coverages` : 'to decide'}
                   </span>
                 </>
               ) : (

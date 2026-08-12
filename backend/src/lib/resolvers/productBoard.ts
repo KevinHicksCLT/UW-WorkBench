@@ -541,7 +541,10 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
     // "similar". So base/declarations rows are judged by how many products
     // carry the ROLE: the same form everywhere stays COMMON, sibling lineages
     // of an every-product paper read PARTIAL, and a paper role only 1–2
-    // products carry at all stays UNIQUE.
+    // products carry at all stays UNIQUE. One exception, per the board rule
+    // (similar = yellow, ONE = red): a paper in force in a single version is
+    // a single — it stays UNIQUE even when its role is an every-product
+    // concern; lineage treatment is for papers actually spanning versions.
     const roleProducts = new Map<string, Set<string>>();
     for (const row of comparison.rows) {
       for (const g of row.groups) {
@@ -563,7 +566,7 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
           const carrying = new Set([...covered].map((vid) => productOf.get(vid) ?? vid)).size;
           const role = Object.values(g.perVersion)[0]?.formRole;
           const roleCarrying =
-            role === 'baseForm' || role === 'declarations'
+            (role === 'baseForm' || role === 'declarations') && covered.size > 1
               ? (roleProducts.get(role)?.size ?? carrying)
               : carrying;
           if (carrying === productsInLob) g.status = 'COMMON';
