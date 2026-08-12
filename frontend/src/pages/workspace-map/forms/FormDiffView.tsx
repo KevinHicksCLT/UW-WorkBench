@@ -35,7 +35,15 @@ function paneClauses(payload: ComparePayload, side: Side): PaneClause[] {
 }
 
 /** Clause text with the differing words marked red on this side. */
-function ClauseText({ clauseText, segments, side }: { clauseText: string; segments: DiffSegment[] | null; side: Side }) {
+function ClauseText({
+  clauseText,
+  segments,
+  side,
+}: {
+  clauseText: string;
+  segments: DiffSegment[] | null;
+  side: Side;
+}) {
   const mark: DiffSegment['kind'] = side === 'a' ? 'del' : 'add';
   const skip: DiffSegment['kind'] = side === 'a' ? 'add' : 'del';
   if (!segments) return <span style={{ whiteSpace: 'pre-wrap' }}>{clauseText}</span>;
@@ -52,7 +60,15 @@ function ClauseText({ clauseText, segments, side }: { clauseText: string; segmen
   );
 }
 
-function DocumentClause({ item, side, otherName }: { item: PaneClause; side: Side; otherName: string }) {
+function DocumentClause({
+  item,
+  side,
+  otherName,
+}: {
+  item: PaneClause;
+  side: Side;
+  otherName: string;
+}) {
   const clause = item.row[side];
   if (!clause) return null;
   const unique = item.row.status === 'unique';
@@ -210,12 +226,7 @@ function DocumentPane({
           typeof b === 'number' ? (
             <HiddenRun key={`h${i}`} count={b} />
           ) : (
-            <DocumentClause
-              key={b.row[side]?.id ?? i}
-              item={b}
-              side={side}
-              otherName={otherName}
-            />
+            <DocumentClause key={b.row[side]?.id ?? i} item={b} side={side} otherName={otherName} />
           ),
         )}
         {blocks.length === 0 && (

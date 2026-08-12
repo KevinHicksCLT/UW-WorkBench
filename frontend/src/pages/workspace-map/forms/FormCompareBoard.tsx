@@ -110,7 +110,9 @@ export default function FormCompareBoard({
   const effVerA = verA ?? pickedA?.versions[0]?.id ?? null;
   const effVerB =
     verB ?? (sameForm ? (pickedB?.versions[1]?.id ?? null) : (pickedB?.versions[0]?.id ?? null));
-  const ready = Boolean(formA && formB && (!sameForm || (effVerA && effVerB && effVerA !== effVerB)));
+  const ready = Boolean(
+    formA && formB && (!sameForm || (effVerA && effVerB && effVerA !== effVerB)),
+  );
   const comparePath = ready
     ? `/forms/compare?a=${encodeURIComponent(formA as string)}&b=${encodeURIComponent(formB as string)}` +
       (effVerA ? `&av=${encodeURIComponent(effVerA)}` : '') +

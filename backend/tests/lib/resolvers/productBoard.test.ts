@@ -293,3 +293,58 @@ describe('scopeLobs', () => {
     expect(none).toHaveLength(0);
   });
 });
+
+describe('role-aware paper judging (base forms / declarations)', () => {
+  const lobH = { id: 'lobH', name: 'Homeowners', segment: 'Personal Lines' };
+  const libForm = (
+    element: string,
+    formRole: 'baseForm' | 'declarations' | 'endorsement',
+  ): SpineElement => ({
+    ...el(element),
+    formId: `form-${element.replace(/\W+/g, '-')}`,
+    formNumber: element.split(' — ')[0],
+    formRole,
+    formState: null,
+  });
+  const withForms = (v: SpineVersion, forms: SpineElement[]): SpineVersion => {
+    v.components.set('Forms', { name: 'Forms', sortOrder: 0, elements: forms });
+    return v;
+  };
+  const lob: SpineLob = {
+    id: lobH.id,
+    name: lobH.name,
+    segmentName: lobH.segment,
+    versions: [
+      withForms(version('hm', 'v1 — Countrywide', lobH, {}, 'HM lineage'), [
+        libForm('HM 8003 — Homeowners Policy', 'baseForm'),
+        libForm('HM 8003D — Declarations', 'declarations'),
+        libForm('HM 2210 — Special Endorsement', 'endorsement'),
+      ]),
+      withForms(version('iso', 'v1 — Countrywide', lobH, {}, 'ISO lineage'), [
+        libForm('HO 00 03 — Homeowners 3', 'baseForm'),
+      ]),
+      withForms(version('hom', 'v1 — Countrywide', lobH, {}, 'HOM lineage'), [
+        libForm('HOM 7030 — Homeowners Policy', 'baseForm'),
+      ]),
+    ],
+  };
+
+  it('reads sibling base-paper lineages as PARTIAL, one-off endorsements as UNIQUE', () => {
+    const heat = buildHeatmap([lob], new Map());
+    const forms = heat.rows.find((r) => r.component === 'Forms')!;
+    const statusOf = new Map(forms.reviewRows.map((r) => [r.group.name, r.group.status]));
+    // Every product carries a base paper — three lineages of the same concern
+    // are "similar" (amber, still a decision), never "unique" (red).
+    expect(statusOf.get('HM 8003 — Homeowners Policy')).toBe('PARTIAL');
+    expect(statusOf.get('HO 00 03 — Homeowners 3')).toBe('PARTIAL');
+    expect(statusOf.get('HOM 7030 — Homeowners Policy')).toBe('PARTIAL');
+    // A declarations page only 1 of 3 products carries stays UNIQUE — the
+    // ROLE itself is not an every-product concern here.
+    expect(statusOf.get('HM 8003D — Declarations')).toBe('UNIQUE');
+    // Plain endorsements keep the form-level carriage rule.
+    expect(statusOf.get('HM 2210 — Special Endorsement')).toBe('UNIQUE');
+    // The rows still need decisions — the workload never shrank.
+    const need = forms.reviewRows.filter((r) => r.needsDecision).length;
+    expect(need).toBe(forms.reviewRows.length);
+  });
+});

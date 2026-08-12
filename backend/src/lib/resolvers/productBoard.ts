@@ -534,14 +534,40 @@ export function buildHeatmap(lobs: SpineLob[], decisions: Map<string, DecisionLi
       return out;
     };
     const coveredByGroup = new Map<object, Set<string>>();
+    // Role-level carriage for library-backed papers: every product carries a
+    // base policy form and a declarations page, each its OWN lineage. Judged
+    // form-by-form those all read "in 1 of N products" = unique (red), but
+    // they are the same CONCERN configured differently — the definition of
+    // "similar". So base/declarations rows are judged by how many products
+    // carry the ROLE: the same form everywhere stays COMMON, sibling lineages
+    // of an every-product paper read PARTIAL, and a paper role only 1–2
+    // products carry at all stays UNIQUE.
+    const roleProducts = new Map<string, Set<string>>();
+    for (const row of comparison.rows) {
+      for (const g of row.groups) {
+        const role = Object.values(g.perVersion)[0]?.formRole;
+        if (role !== 'baseForm' && role !== 'declarations') continue;
+        const set = roleProducts.get(role) ?? new Set<string>();
+        for (const vid of Object.keys(g.perVersion)) {
+          const p = productOf.get(vid);
+          if (p) set.add(p);
+        }
+        roleProducts.set(role, set);
+      }
+    }
     for (const row of comparison.rows) {
       for (const g of row.groups) {
         const covered = coveredVersionIds(g);
         coveredByGroup.set(g, covered);
         if (productsInLob > 1) {
           const carrying = new Set([...covered].map((vid) => productOf.get(vid) ?? vid)).size;
+          const role = Object.values(g.perVersion)[0]?.formRole;
+          const roleCarrying =
+            role === 'baseForm' || role === 'declarations'
+              ? (roleProducts.get(role)?.size ?? carrying)
+              : carrying;
           if (carrying === productsInLob) g.status = 'COMMON';
-          else if (carrying * 2 > productsInLob) g.status = 'PARTIAL';
+          else if (roleCarrying * 2 > productsInLob) g.status = 'PARTIAL';
           else g.status = 'UNIQUE';
         } else if (lob.versions.length === 1) {
           g.status = 'SINGLE';

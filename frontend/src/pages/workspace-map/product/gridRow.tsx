@@ -12,22 +12,26 @@ export const RAG_META: Record<Rag, { bg: string; label: string }> = {
   red: { bg: '#dc2626', label: 'not started' },
 };
 
-// Cell color = the SHARE of common elements inside it (one rule at every
-// level of the board): green = everything common, amber = more than half
-// common, red = half or less common. The figure inside stays the decision
-// workload (pending count, ✓ when nothing is left).
+// Cell color follows the legend's three states (one rule at every level of
+// the board): green = everything common, RED only when unique dominates
+// (half or more of the cell), amber for everything between — so a "similar"
+// row (configured differently, but the concern is shared) reads amber, never
+// red. The figure inside stays the decision workload (pending count, ✓ when
+// nothing is left).
 export function cellVisual(cell: HeatCell): { bg: string; fg: string; pending: number } {
   const pending = cell.need - cell.decided;
   if (cell.na || cell.total === 0) return { bg: '#f5f5f5', fg: '#737373', pending: 0 };
   if (cell.common === cell.total) return { bg: '#bbf7d0', fg: '#14532d', pending };
-  if (cell.common * 2 > cell.total) return { bg: '#fde68a', fg: '#78350f', pending };
-  return { bg: '#fecaca', fg: '#7f1d1d', pending };
+  if (cell.unique * 2 >= cell.total) return { bg: '#fecaca', fg: '#7f1d1d', pending };
+  return { bg: '#fde68a', fg: '#78350f', pending };
 }
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 export function cellTitle(cell: HeatCell): string {
   const pending = cell.need - cell.decided;
   return (
-    `${cell.total} coverages — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
+    `${plural(cell.total, 'coverage')} — ${cell.common} common · ${cell.similar} similar · ${cell.unique} unique` +
     ` · ${pending > 0 ? `${pending} still to decide` : 'no decisions outstanding'} — open the review list`
   );
 }
@@ -118,23 +122,21 @@ export function HeatGridRow({
               {na ? (
                 <span style={{ fontSize: 11, fontWeight: 700 }}>—</span>
               ) : density === 'rich' ? (
+                // Big figure = decisions still open (✓ when none); the line
+                // under it says so in words. Composition detail lives in the
+                // hover title, not crammed into the cell.
                 <>
                   <span style={{ fontSize: 13, fontWeight: 700 }}>
                     {vis.pending === 0 ? '✓' : vis.pending}
                   </span>
                   <span style={{ fontSize: 9.5, fontWeight: 600 }}>
-                    {vis.pending === 0 ? `${c.total} coverages in` : `to decide of ${c.total}`}
-                  </span>
-                  <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.85 }}>
-                    {c.common}C · {c.similar}S · {c.unique}U
+                    {vis.pending === 0
+                      ? `${c.total} coverage${c.total === 1 ? '' : 's'}`
+                      : 'to decide'}
                   </span>
                 </>
-              ) : density === 'medium' ? (
-                <span style={{ fontSize: 11, fontWeight: 700 }}>
-                  {vis.pending === 0 ? '✓' : `${vis.pending}/${c.need}`}
-                </span>
               ) : (
-                <span style={{ fontSize: 10.5, fontWeight: 700 }}>
+                <span style={{ fontSize: density === 'medium' ? 11 : 10.5, fontWeight: 700 }}>
                   {vis.pending === 0 ? '✓' : vis.pending}
                 </span>
               )}
