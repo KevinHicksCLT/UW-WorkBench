@@ -31,6 +31,9 @@ export interface ReviewRow {
   lobId: string;
   lobName: string;
   group: ElementGroup;
+  /** Library clause row inside a form's drill — part of the form's wording,
+   *  standardized or retired WITH the form, never individually. */
+  contained?: boolean;
   needsDecision: boolean;
   decision: ProductDecision | null;
   /** Presence per grid column (column-axis order — versions, or products

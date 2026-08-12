@@ -11,7 +11,12 @@ import {
   type SpineLob,
   type SpineVersion,
 } from '../../../src/lib/resolvers/productBoard.js';
-import { buildFormsModel, classifyForm } from '../../../src/lib/resolvers/productForms.js';
+import {
+  buildFormsModel,
+  classifyForm,
+  clauseElement,
+  clauseReviewRows,
+} from '../../../src/lib/resolvers/productForms.js';
 
 const el = (element: string, livesIn = 'Forms library'): SpineElement => ({
   element,
@@ -255,5 +260,75 @@ describe('buildFormsModel', () => {
     };
     const heat = buildHeatmap([bare], new Map());
     expect(buildFormsModel(heat, [bare])).toBeNull();
+  });
+});
+
+describe('clauseReviewRows / clauseElement', () => {
+  const lobDef = { id: 'lobH', name: 'Homeowners', segment: 'Personal Lines' };
+  const lob: SpineLob = {
+    id: lobDef.id,
+    name: lobDef.name,
+    segmentName: lobDef.segment,
+    versions: [
+      version(
+        'cw',
+        'v1 — Countrywide',
+        lobDef,
+        { Forms: ['Homeowners policy — countrywide base form'], Coverages: ['Dwelling'] },
+        'HO-3',
+      ),
+      version(
+        'ma',
+        'v1 — US-MA',
+        lobDef,
+        { Forms: ['State policy form — Massachusetts'], Filings: ['MA filing'] },
+        'HO-3',
+      ),
+    ],
+  };
+  const lib = {
+    formNumber: 'HO-3 0001',
+    clauses: [
+      {
+        ordinal: 1,
+        heading: 'Insuring Agreement',
+        text: 'We will provide the insurance described.',
+      },
+      { ordinal: 2, heading: null, text: 'x'.repeat(600) },
+    ],
+  };
+
+  it('synthesizes contained, non-decision rows that mirror the form itself', () => {
+    const heat = buildHeatmap([lob], new Map());
+    const model = buildFormsModel(heat, [lob])!;
+    const base = model.sections.find((s) => s.layer === 'core')!.rows.find((r) => r.isBase)!;
+    const self = model.byKey.get(base.key)!.self!;
+
+    const rows = clauseReviewRows(self, 'form-1', lib);
+    expect(rows).toHaveLength(2);
+    for (const r of rows) {
+      expect(r.contained).toBe(true);
+      expect(r.needsDecision).toBe(false);
+      expect(r.decision).toBeNull();
+      // Presence + status mirror the drilled form — the clause lights the same
+      // columns its form does (countrywide coverage extension included).
+      expect(r.presence).toEqual(self.presence);
+      expect(r.group.status).toBe(self.group.status);
+      expect(Object.keys(r.group.perVersion)).toEqual(Object.keys(self.group.perVersion));
+    }
+    // Heading names the row; a heading-less clause falls back to number+ordinal.
+    expect(rows[0].group.name).toBe('Insuring Agreement');
+    expect(rows[1].group.name).toBe('HO-3 0001 — clause 2');
+    // Keys are namespaced so they can never collide with spine group keys.
+    expect(rows.map((r) => r.group.key)).toEqual(['clause:form-1:1', 'clause:form-1:2']);
+  });
+
+  it('caps clause text and cites the forms library', () => {
+    const e = clauseElement('form-1', lib, lib.clauses[1]);
+    expect(e.description!.length).toBeLessThanOrEqual(481); // 480 + ellipsis
+    expect(e.description!.endsWith('…')).toBe(true);
+    expect(e.livesIn).toBe('HO-3 0001 — Forms library');
+    expect(e.format).toBe('Clause');
+    expect(e.formId).toBe('form-1');
   });
 });

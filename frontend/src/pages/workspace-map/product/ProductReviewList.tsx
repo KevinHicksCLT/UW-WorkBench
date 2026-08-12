@@ -117,7 +117,14 @@ function DecisionActions({
   onAct: (status: ProductDecisionStatus | null) => void;
 }) {
   if (!row.needsDecision)
-    return (
+    return row.contained ? (
+      <span
+        style={{ fontSize: 11.5, fontWeight: 600, color: '#525252' }}
+        title="Part of this form's own wording (from the forms library) — it standardizes or retires with the form's decision, never on its own."
+      >
+        Form wording — decided with the form
+      </span>
+    ) : (
       <span
         style={{ fontSize: 11.5, fontWeight: 600, color: '#166534' }}
         title="This coverage is identical in every product that carries it, so it standardizes into the canonical model without needing a reviewer decision."

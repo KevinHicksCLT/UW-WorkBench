@@ -7,6 +7,7 @@
 // countable per version; buckets must sum) and the drill still opens every
 // member. Core and product-specific layers stay row-per-form.
 
+import { prisma } from '../../db/prisma.js';
 import {
   addCounts,
   EMPTY_COUNTS,
@@ -477,6 +478,96 @@ export function buildFormsModel(heat: Heatmap, lobs: SpineLob[]): FormsModel | n
     );
 
   return { sections, counts, byKey };
+}
+
+// ── Library clauses (the drill's lowest level) ──────────────────────────────
+// A single-form drill must never run dry: whatever the spine carries, the
+// form's own wording lives in the PolicyForm library (PolicyFormVersion →
+// FormClause). These helpers surface those clauses — as informational review
+// rows in a form's drill, and as SpineElements for the product model page's
+// Clauses band.
+
+export interface LibraryFormClauses {
+  formNumber: string;
+  clauses: { ordinal: number; heading: string | null; text: string }[];
+}
+
+/** Latest ready version's clauses per form — one batched query. */
+export async function loadLatestClausesByForm(
+  companyId: string,
+  formIds: string[],
+): Promise<Map<string, LibraryFormClauses>> {
+  const out = new Map<string, LibraryFormClauses>();
+  if (formIds.length === 0) return out;
+  const versions = await prisma.policyFormVersion.findMany({
+    where: { companyId, formId: { in: formIds } },
+    orderBy: { versionNo: 'desc' },
+    select: {
+      formId: true,
+      form: { select: { formNumber: true } },
+      clauses: {
+        orderBy: { ordinal: 'asc' },
+        select: { ordinal: true, heading: true, text: true },
+      },
+    },
+  });
+  for (const v of versions) {
+    if (!out.has(v.formId))
+      out.set(v.formId, { formNumber: v.form.formNumber, clauses: v.clauses });
+  }
+  return out;
+}
+
+const CLAUSE_TEXT_CAP = 480;
+
+/** One library clause → the SpineElement vocabulary every product surface
+ *  renders (name = the clause heading, description = its wording). */
+export function clauseElement(
+  formId: string,
+  lib: LibraryFormClauses,
+  clause: LibraryFormClauses['clauses'][number],
+): SpineElement {
+  const text = clause.text.trim();
+  return {
+    element: clause.heading?.trim() || `${lib.formNumber} — clause ${clause.ordinal}`,
+    description: text.length > CLAUSE_TEXT_CAP ? `${text.slice(0, CLAUSE_TEXT_CAP)}…` : text,
+    livesIn: `${lib.formNumber} — Forms library`,
+    format: 'Clause',
+    formId,
+    formNumber: lib.formNumber,
+  };
+}
+
+/** A drilled form's library clauses as review rows: presence and status
+ *  mirror the form itself, `contained: true` marks them as wording that is
+ *  decided WITH the form (no decision workload of their own — the board's
+ *  counts stay sums of countable elements). */
+export function clauseReviewRows(
+  self: ReviewRow,
+  formId: string,
+  lib: LibraryFormClauses,
+): ReviewRow[] {
+  return lib.clauses.map((clause) => {
+    const element = clauseElement(formId, lib, clause);
+    const perVersion: Record<string, SpineElement> = {};
+    for (const vid of Object.keys(self.group.perVersion)) perVersion[vid] = element;
+    return {
+      lobId: self.lobId,
+      lobName: self.lobName,
+      group: {
+        key: `clause:${formId}:${clause.ordinal}`,
+        component: FORMS_COMPONENT,
+        name: element.element,
+        status: self.group.status,
+        perVersion,
+        presentIn: self.group.presentIn,
+      },
+      contained: true,
+      needsDecision: false,
+      decision: null,
+      presence: [...self.presence],
+    };
+  });
 }
 
 // ── Product model view (Product Models TOC → product page) ─────────────────

@@ -120,6 +120,9 @@ export interface ReviewRow {
   lobId: string;
   lobName: string;
   group: ElementGroup;
+  /** Library clause row synthesized into a form's drill — part of the form's
+   *  wording, standardized or retired WITH the form, never individually. */
+  contained?: boolean;
   needsDecision: boolean;
   decision: {
     component: string;
