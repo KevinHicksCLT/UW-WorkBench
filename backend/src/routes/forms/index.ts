@@ -14,6 +14,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { requirePermission } from '../../middleware/permissions.js';
+import { registerCompareRoutes } from './compare.js';
 import { registerWorkingSetRoutes } from './workingSets.js';
 import { registerGovernanceRoutes } from './governance.js';
 import { registerFieldPlaneRoutes } from './fieldPlane.js';
@@ -24,6 +25,7 @@ const router = Router();
 router.use(requireAuth);
 router.use(requirePermission('forms'));
 
+registerCompareRoutes(router);
 registerWorkingSetRoutes(router);
 registerGovernanceRoutes(router);
 registerFieldPlaneRoutes(router);

@@ -6,15 +6,17 @@ import type { Lens } from './useBoard';
 // (Applications / Value streams / Roles / Products), the board select for the
 // active lens, and a lens-specific legend pinned right.
 
-/** The four rationalizable structures. The first three share the application
- *  board API; Products renders its own comparison board. */
-export type WorkspaceLens = Lens | 'products';
+/** The rationalizable structures. The first three share the application
+ *  board API; Products renders its own comparison board, and Form Comparison
+ *  is the two-pane verbiage diff over the PolicyForm library. */
+export type WorkspaceLens = Lens | 'products' | 'form-compare';
 
 const LENSES: { key: WorkspaceLens; label: string }[] = [
   { key: 'applications', label: 'Applications' },
   { key: 'value-streams', label: 'Value streams' },
   { key: 'roles', label: 'Roles' },
   { key: 'products', label: 'Products' },
+  { key: 'form-compare', label: 'Form Comparison' },
 ];
 
 export default function LensBar({
