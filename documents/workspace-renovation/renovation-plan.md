@@ -60,16 +60,16 @@ atomic ABC Insurance seed data, and a SKOS ontology layer. Four parallel branche
 
 | Item | What | Owner | Status |
 |---|---|---|---|
-| PM-01 | Schema migration (ProductModel*, NormalizationEntry, WorkspaceVocabulary, workspace `domain`) | Agent 1 | In flight (agent-1 branch) |
-| PM-02 | Anatomy + vocabulary seed, product demo workspace, app-board v3 refresh | Agent 1 | In flight (agent-1 branch) |
-| PM-03 | Master list + CRUD (`/product-models`) | Agent 2 (API) · Agent 4 (UI) | **UI done on agent-4 branch** (TOC/List/drawer/segment drill); API in flight |
-| PM-04 | Domain switch on the board | Agent 3 (board) · Agent 4 (deep link) | **`?domain=` deep-link seam done on agent-4 branch**; board lens in flight |
-| PM-05 | Inspection modes (Legacy models / Segment / Geography) | Agent 2 + Agent 3 | In flight |
-| PM-06 | Products board rendering (11 component rows, scope colors, in-box expand) | Agent 3 | In flight |
-| PM-07 | Findings CRUD (product domain) | Agent 2 + Agent 3 | In flight |
-| PM-08 | Canonical models + read-time status roll-up | Agent 2 | In flight |
+| PM-01 | Schema migration (ProductModel*, NormalizationEntry, WorkspaceVocabulary, workspace `domain`) | Agent 1 | **Done** |
+| PM-02 | Anatomy + vocabulary seed, product demo workspace, app-board v3 refresh | Agent 1 | **Done** (4 seeded LegacyProductModels + canonical models) |
+| PM-03 | Master list + CRUD (`/product-models`) | Agent 2 (API) · Agent 4 (UI) | **Done** — API routes done (tests being added); master list shipped 2026-08-11 as `?view=legacy` on `/product-models` (Sheet + drawer) |
+| PM-04 | Domain switch on the board | Agent 3 (board) · Agent 4 (deep link) | **Done** — board rebuilt as `frontend/src/pages/workspace-map/`; `?domain=` deep link honored |
+| PM-05 | Inspection modes (Legacy models / Segment / Geography) | Agent 2 + Agent 3 | **Done** — API filters done; Products lens deliberately runs on the real product spine (accepted divergence from plan §4) |
+| PM-06 | Products board rendering (11 component rows, scope colors, in-box expand) | Agent 3 | **Done with divergence** — rebuilt in `workspace-map/`, lens compares LOB versions off the spine (see plan Status — 2026-08-11) |
+| PM-07 | Findings CRUD (product domain) | Agent 2 + Agent 3 | **API done** (tests being added); board UI per PM-06 |
+| PM-08 | Canonical models + read-time status roll-up | Agent 2 | **Done** (tests being added) |
 | PM-09 | Semantic/duplicate detection | — | **Deferred** (blocked on WR-12 pgvector; matcher interface is the swap point) |
-| PM-ONT | SKOS ontology exporter + `/taxonomy` API + matcher | Agent 1 + Agent 2 | In flight |
+| PM-ONT | SKOS ontology exporter + `/taxonomy` API + matcher | Agent 1 + Agent 2 | **Done** — exporter (Agent 1) + routes (Agent 2, tests being added) |
 
 Verification harness (agent-4 branch): `/product-models` + `/portfolio?domain=product-models` in
 the smoke ROUTES, `e2e/product-model-workspace.spec.ts`, and API-body baseline entries for

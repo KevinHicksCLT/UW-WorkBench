@@ -5,6 +5,7 @@
 // dependents (shared-service capabilities, mapped screens).
 import { prisma } from '../../db/prisma.js';
 import { rolesForNodes, streamAncestry } from '../../lib/resolvers/index.js';
+import { deriveStakeholders } from './stakeholders.js';
 import {
   buildReport,
   classOf,
@@ -85,6 +86,7 @@ export async function assessApplication(
     ITEM_CAP,
     ([id, name]) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: id,
@@ -93,6 +95,7 @@ export async function assessApplication(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -105,6 +108,7 @@ export async function assessApplication(
   if (coTasks > 0) {
     impacts.push({
       severity: grade('HIGH', cls),
+      domain: 'operational',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
@@ -113,16 +117,40 @@ export async function assessApplication(
       count: coTasks,
     });
   }
+  // Record-keeping is a DATA impact — the records, the warehouse feeds and the
+  // analytics built on them need a new home, not just the tasks.
   const memorialized = usage.length - performed.length;
   if (memorialized > 0) {
     impacts.push({
-      severity: grade('MEDIUM', cls),
+      severity: grade('HIGH', cls),
+      domain: 'data',
       category: 'tasks',
       entityType: 'ProcessNode',
       entityId: null,
       entityName: `${memorialized} record-keeping link${memorialized === 1 ? '' : 's'}`,
-      description: 'Tasks memorialize their outputs here — records need a new system of record.',
+      description:
+        'Tasks memorialize their outputs here — records, data model and downstream reporting need a new system of record.',
       count: memorialized,
+    });
+  }
+
+  // Test & checklist evidence steps that point at this application by FK.
+  const testSteps = estateIds.length
+    ? await prisma.nodeTemplateAnswer.count({
+        where: { applicationId: { in: estateIds }, companyId },
+      })
+    : 0;
+  if (testSteps > 0) {
+    impacts.push({
+      severity: grade('MEDIUM', cls),
+      domain: 'testing',
+      category: 'testing',
+      entityType: 'NodeTemplateAnswer',
+      entityId: null,
+      entityName: `${testSteps} work-plan step${testSteps === 1 ? '' : 's'} reference this application`,
+      description:
+        'Test and checklist steps name this system — scripts, UAT and regression packs must be repointed.',
+      count: testSteps,
     });
   }
 
@@ -139,6 +167,7 @@ export async function assessApplication(
     ITEM_CAP,
     ([id, title]) => ({
       severity: grade('BREAKING', cls),
+      domain: 'compliance',
       category: 'compliance',
       entityType: 'Regulation',
       entityId: id,
@@ -147,6 +176,7 @@ export async function assessApplication(
     }),
     (rest) => ({
       severity: grade('BREAKING', cls),
+      domain: 'compliance',
       category: 'compliance',
       entityType: 'Regulation',
       entityId: null,
@@ -157,14 +187,20 @@ export async function assessApplication(
   );
 
   // People whose day-to-day runs through the app.
+  const ownerRoles = new Map<string, string>();
   const usageNodeIds = [...new Set(usage.map((u) => u.processNodeId))];
   if (usageNodeIds.length) {
     const roleMap = await rolesForNodes(usageNodeIds);
     const roles = new Set<string>();
-    for (const entries of roleMap.values()) for (const e of entries) roles.add(e.id);
+    for (const entries of roleMap.values())
+      for (const e of entries) {
+        roles.add(e.id);
+        if (e.role_ === 'Owner') ownerRoles.set(e.id, e.name);
+      }
     if (roles.size) {
       impacts.push({
         severity: grade('MEDIUM', cls),
+        domain: 'operational',
         category: 'roles',
         entityType: 'Role',
         entityId: null,
@@ -180,6 +216,7 @@ export async function assessApplication(
     if (streams.length) {
       impacts.push({
         severity: 'LOW',
+        domain: 'operational',
         category: 'scope',
         entityType: 'Application',
         entityId: estateIds[0] ?? null,
@@ -204,6 +241,7 @@ export async function assessApplication(
     if (sharedDeps) {
       impacts.push({
         severity: grade('HIGH', cls),
+        domain: 'technology',
         category: 'applications',
         entityType: 'RationalizationCapability',
         entityId: null,
@@ -215,6 +253,7 @@ export async function assessApplication(
     if (screens) {
       impacts.push({
         severity: grade('LOW', cls),
+        domain: 'technology',
         category: 'applications',
         entityType: 'ScreenAsset',
         entityId: null,
@@ -227,6 +266,7 @@ export async function assessApplication(
   if (!apps.length && rApps.length) {
     impacts.push({
       severity: 'LOW',
+      domain: 'technology',
       category: 'scope',
       entityType: 'RationalizationApp',
       entityId: rApps[0].id,
@@ -239,6 +279,11 @@ export async function assessApplication(
   const name =
     label ??
     (apps.length ? apps.map((a) => a.name).join(', ') : rApps.map((r) => r.name).join(', '));
+  const stakeholders = deriveStakeholders(impacts, {
+    changeType,
+    lens: 'application',
+    ownerRoles: [...ownerRoles.entries()].map(([id, roleName]) => ({ id, name: roleName })),
+  });
   return buildReport(
     {
       kind: 'application',
@@ -250,5 +295,6 @@ export async function assessApplication(
     },
     changeType,
     impacts,
+    { stakeholders },
   );
 }

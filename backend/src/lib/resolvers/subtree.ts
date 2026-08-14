@@ -3,6 +3,7 @@
 // the descendant nodes (optionally bounded by depth), ordered by (depth, sortOrder),
 // plus a Map<nodeId, depth>. Depth 0 = the root itself.
 import { prisma } from '../../db/prisma.js';
+import { inChunks } from '../inChunks.js';
 
 export interface SubtreeOptions {
   /** Minimum closure depth (inclusive). Default 0 (includes the root). */
@@ -84,13 +85,21 @@ export async function processSubtrees(
   if (!edges.length) return out;
 
   const allDesc = [...new Set(edges.map((e) => e.descendantId))];
-  const rows = await prisma.processNode.findMany({
-    where: { id: { in: allDesc } },
-    select: {
-      id: true, parentId: true, dbValue: true, displayValue: true,
-      processLevelTypeId: true, isTask: true, sortOrder: true, automatability: true,
-    },
-  });
+  const rows = await inChunks(allDesc, (chunk) =>
+    prisma.processNode.findMany({
+      where: { id: { in: chunk } },
+      select: {
+        id: true,
+        parentId: true,
+        dbValue: true,
+        displayValue: true,
+        processLevelTypeId: true,
+        isTask: true,
+        sortOrder: true,
+        automatability: true,
+      },
+    }),
+  );
   const byId = new Map(rows.map((r) => [r.id, r]));
 
   for (const e of edges) {
@@ -101,7 +110,10 @@ export async function processSubtrees(
     bucket.nodes.push({ ...node, depth: e.depth });
   }
   for (const bucket of out.values()) {
-    bucket.nodes.sort((a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.dbValue.localeCompare(b.dbValue));
+    bucket.nodes.sort(
+      (a, b) =>
+        a.depth - b.depth || a.sortOrder - b.sortOrder || a.dbValue.localeCompare(b.dbValue),
+    );
   }
   return out;
 }
@@ -111,15 +123,25 @@ async function assembleProcess(
 ): Promise<{ nodes: ProcessSubtreeNode[]; depthById: Map<string, number> }> {
   const depthById = new Map(edges.map((e) => [e.descendantId, e.depth] as const));
   if (!depthById.size) return { nodes: [], depthById };
-  const rows = await prisma.processNode.findMany({
-    where: { id: { in: [...depthById.keys()] } },
-    select: {
-      id: true, parentId: true, dbValue: true, displayValue: true,
-      processLevelTypeId: true, isTask: true, sortOrder: true, automatability: true,
-    },
-  });
+  const rows = await inChunks([...depthById.keys()], (chunk) =>
+    prisma.processNode.findMany({
+      where: { id: { in: chunk } },
+      select: {
+        id: true,
+        parentId: true,
+        dbValue: true,
+        displayValue: true,
+        processLevelTypeId: true,
+        isTask: true,
+        sortOrder: true,
+        automatability: true,
+      },
+    }),
+  );
   const nodes: ProcessSubtreeNode[] = rows.map((r) => ({ ...r, depth: depthById.get(r.id)! }));
-  nodes.sort((a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.dbValue.localeCompare(b.dbValue));
+  nodes.sort(
+    (a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.dbValue.localeCompare(b.dbValue),
+  );
   return { nodes, depthById };
 }
 
@@ -135,11 +157,22 @@ export async function orgSubtree(
   });
   const depthById = new Map(edges.map((e) => [e.descendantId, e.depth] as const));
   if (!depthById.size) return { nodes: [], depthById };
-  const rows = await prisma.orgUnit.findMany({
-    where: { id: { in: [...depthById.keys()] } },
-    select: { id: true, parentId: true, dbValue: true, displayValue: true, orgLevelTypeId: true, sortOrder: true },
-  });
+  const rows = await inChunks([...depthById.keys()], (chunk) =>
+    prisma.orgUnit.findMany({
+      where: { id: { in: chunk } },
+      select: {
+        id: true,
+        parentId: true,
+        dbValue: true,
+        displayValue: true,
+        orgLevelTypeId: true,
+        sortOrder: true,
+      },
+    }),
+  );
   const nodes: OrgSubtreeNode[] = rows.map((r) => ({ ...r, depth: depthById.get(r.id)! }));
-  nodes.sort((a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.dbValue.localeCompare(b.dbValue));
+  nodes.sort(
+    (a, b) => a.depth - b.depth || a.sortOrder - b.sortOrder || a.dbValue.localeCompare(b.dbValue),
+  );
   return { nodes, depthById };
 }

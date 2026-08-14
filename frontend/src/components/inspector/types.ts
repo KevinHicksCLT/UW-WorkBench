@@ -142,15 +142,17 @@ export const TABS: Tab[] = [
 
 // Display names for the tab strip — the Checklist/Testing plan tabs surface
 // under the client's terms (sub-tasks) while the internal tab keys stay put.
+// AAA vocabulary (pilot review): the doer is the Actor, its tooling the
+// Application, and its numbered work items the Actions.
 export const TAB_LABELS: Record<Tab, string> = {
   Overview: 'Overview',
   Work: 'Work',
   Tasks: 'Tasks',
-  Roles: 'Roles',
-  Applications: 'Applications',
+  Roles: 'Actor',
+  Applications: 'Application',
   Deliverables: 'Deliverables',
-  Checklist: 'Sub-tasks',
-  Testing: 'Sub-task testing',
+  Checklist: 'Actions',
+  Testing: 'Action testing',
   Governance: 'Governance',
 };
 

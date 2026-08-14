@@ -11,6 +11,7 @@ import {
   SCORE_COLOR,
   SCORE_LABEL,
 } from '../../lib/automatable';
+import SubjectImpact from '../../pages/workspace-map/impact/SubjectImpact';
 import type { Payload, Tab } from './types';
 
 // ── Overview ──────────────────────────────────────────────────────────────────
@@ -48,6 +49,18 @@ export function OverviewTab({
         ))}
       </div>
       <AutomationPanel data={data} onRetarget={onRetarget} />
+
+      {/* Change-impact assessment for this node — the value-stream taxonomy,
+          staged report and this node's saved-packet history (Change Impact v2). */}
+      <div className="mt-4">
+        <SubjectImpact
+          subject={{ kind: 'process-nodes', nodeIds: [data.id] }}
+          subjectKind="process-nodes"
+          subjectId={data.id}
+          label={data.name}
+          changeType="REMOVE_PROCESS_STEP"
+        />
+      </div>
 
       {data.detail && (
         <div className="mt-4 rounded-lg bg-[#fbfcfd] border border-[#eaeaea] px-3 py-2.5 text-[11px] text-[#737575] leading-snug">

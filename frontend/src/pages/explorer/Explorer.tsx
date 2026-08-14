@@ -26,6 +26,8 @@ type TreeStream = {
   id: string;
   name: string;
   higherCategory: string | null;
+  // Server-computed full process total (L3 + L4 + L5 + the L6 task layer).
+  processes?: number;
   valueStreams: TreeArea[];
 };
 
@@ -58,14 +60,17 @@ function ValueStreamToc({
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!streams) return <LoadingState message="Loading value streams…" className="animate-pulse" />;
 
-  // Total processes below a stream (its L3 areas + their L4 sub-processes).
+  // Total processes below a stream — the server computes the FULL total
+  // (L3 + L4 + L5 + L6 tasks); the tree-shape sum is only a fallback for a
+  // payload that predates the field.
   const processCount = (s: TreeStream) =>
+    s.processes ??
     s.valueStreams.length +
-    s.valueStreams.reduce(
-      (a, l3) =>
-        a + l3.areas.length + l3.areas.reduce((x, l4) => x + (l4.subProcesses?.length ?? 0), 0),
-      0,
-    );
+      s.valueStreams.reduce(
+        (a, l3) =>
+          a + l3.areas.length + l3.areas.reduce((x, l4) => x + (l4.subProcesses?.length ?? 0), 0),
+        0,
+      );
   const domainOf = (s: TreeStream) => s.higherCategory ?? 'Core Business';
 
   // Level 2 — one domain's value streams; click through to the stream page.

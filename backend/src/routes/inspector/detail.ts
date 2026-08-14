@@ -7,6 +7,7 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
 import { processSubtree, rolesForNodes, appsForNodes } from '../../lib/resolvers/index.js';
 import { taskPlans, subtreePlanRollup, type TaskPlan } from '../../lib/workPlan.js';
+import { parseAaaSubTasks } from '../../lib/subTaskAaa.js';
 import { subtreeStandards, subtreeRegulations } from '../../lib/govRollup.js';
 import { SCORE_OF, activeCompany, ownedNode } from './helpers.js';
 
@@ -511,8 +512,11 @@ export function registerDetailRoutes(router: Router): void {
 
       const { nodes } = await processSubtree(node.id);
       const detail = node.isTask;
-      const scopeIds = detail ? [node.id] : nodes.map((n) => n.id);
+      // Scope is always the whole subtree — a task inspected directly still
+      // brings its nested supporting/verify tasks into the chain.
+      const scopeIds = nodes.map((n) => n.id);
       const isTaskSet = new Set(nodes.filter((n) => n.isTask).map((n) => n.id));
+      const parentOf = new Map(nodes.map((n) => [n.id, n.parentId]));
       const nameById = new Map(nodes.map((n) => [n.id, n.displayValue]));
       nameById.set(node.id, node.displayValue);
 
@@ -534,11 +538,36 @@ export function registerDetailRoutes(router: Router): void {
 
       // Work Library plans drive the checklist/testing content of each task card
       // (✓ defined value / ✗ missing key), including tied standard/reg steps.
-      const [plans, roleEntries, appEntries] = await Promise.all([
+      const [plans, roleEntries, appEntries, taskAttrs] = await Promise.all([
         taskPlans(taskNodeIds, { includeTied: true }),
         rolesForNodes(taskNodeIds),
         appsForNodes(taskNodeIds),
+        prisma.processNode.findMany({
+          where: { id: { in: taskNodeIds } },
+          select: { id: true, attributes: true },
+        }),
       ]);
+
+      // Task dependencies (attributes.dependsOn: task ids) → named refs.
+      const dependsOnIds = new Map<string, string[]>();
+      for (const t of taskAttrs) {
+        const dep = (t.attributes as { dependsOn?: unknown } | null)?.dependsOn;
+        if (Array.isArray(dep))
+          dependsOnIds.set(
+            t.id,
+            dep.filter((d): d is string => typeof d === 'string'),
+          );
+      }
+      const depTargets = [...new Set([...dependsOnIds.values()].flat())].filter(
+        (id) => !nameById.has(id),
+      );
+      if (depTargets.length) {
+        const rows = await prisma.processNode.findMany({
+          where: { id: { in: depTargets }, companyId: company.id },
+          select: { id: true, displayValue: true },
+        });
+        for (const r of rows) nameById.set(r.id, r.displayValue);
+      }
 
       const rolesForTask = (nodeId: string) => {
         const seen = new Map<string, { roleId: string; name: string; relation: string }>();
@@ -588,21 +617,60 @@ export function registerDetailRoutes(router: Router): void {
           e.taskIds.push({ nodeId: l.processNodeId, linkId: l.id });
       }
 
+      type ChainTaskCard = {
+        taskId: string;
+        name: string;
+        roles: ReturnType<typeof rolesForTask>;
+        applications: ReturnType<typeof appsForTask>;
+        subTasks: ReturnType<typeof parseAaaSubTasks>['subTasks'];
+        dependsOn: { taskId: string; name: string }[];
+        checklist: TaskPlan['checklist'];
+        testing: TaskPlan['testing'];
+        standards: TaskPlan['standards'];
+        regulations: TaskPlan['regulations'];
+        children: ChainTaskCard[];
+      };
       const chain = [...byDeliv.entries()]
         .map(([deliverableId, d]) => {
-          const tasks = d.taskIds.map(({ nodeId }) => {
+          const cards = new Map<string, ChainTaskCard>();
+          for (const { nodeId } of d.taskIds) {
             const p = plans.get(nodeId);
-            return {
+            const applications = appsForTask(nodeId);
+            // Structured AAA sub-tasks (actor · action · application + DoD with
+            // the paired Verify row folded in); unparsed rows flow on untouched.
+            const { subTasks, checklistRest, testingRest } = parseAaaSubTasks(
+              p?.checklist ?? [],
+              p?.testing ?? [],
+              applications.map((a) => a.name),
+            );
+            cards.set(nodeId, {
               taskId: nodeId,
               name: nameById.get(nodeId) ?? '—',
               roles: rolesForTask(nodeId),
-              applications: appsForTask(nodeId),
-              checklist: p?.checklist ?? [],
-              testing: p?.testing ?? [],
+              applications,
+              subTasks,
+              dependsOn: (dependsOnIds.get(nodeId) ?? []).map((id) => ({
+                taskId: id,
+                name: nameById.get(id) ?? '—',
+              })),
+              checklist: checklistRest,
+              testing: testingRest,
               standards: p?.standards ?? [],
               regulations: p?.regulations ?? [],
-            };
-          });
+              children: [],
+            });
+          }
+          // A task nested under another task in the same set renders INSIDE its
+          // main task's card (supporting / verification work), not as a peer.
+          const tasks: ChainTaskCard[] = [];
+          for (const card of cards.values()) {
+            const parent = parentOf.get(card.taskId);
+            const parentCard = parent ? cards.get(parent) : undefined;
+            if (parentCard) parentCard.children.push(card);
+            else tasks.push(card);
+          }
+          for (const card of cards.values())
+            card.children.sort((a, b) => a.name.localeCompare(b.name));
           // Deliverable roll-up = verified/total across its tasks' plan rows.
           let defined = 0;
           let total = 0;

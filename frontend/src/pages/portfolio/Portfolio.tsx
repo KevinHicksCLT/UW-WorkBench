@@ -8,9 +8,11 @@ import WorkspaceMap from '../workspace-map/WorkspaceMap';
 // map canvas is the page's single card, filling the viewport.
 //
 // Deep links carry the lens in ?domain= (applications | value-streams | roles
-// | products — `product-models` is accepted as an alias); unknown values fall
-// back to applications. ?workspace=<id> is accepted for old links (the map
-// validates it against the board list).
+// | products | form-compare — `product-models` is accepted as an alias for
+// products); unknown values fall back to applications. The form-compare lens
+// also reads ?formA=/?formB= (PolicyForm ids) to land pre-selected.
+// ?workspace=<id> is accepted for old links (the map validates it against the
+// board list).
 export default function Portfolio() {
   const [params] = useSearchParams();
   const domain = params.get('domain') ?? undefined;

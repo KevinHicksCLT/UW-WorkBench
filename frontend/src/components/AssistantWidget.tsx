@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
+import { assistantDetail } from '../lib/assistantContext';
 import AssistantMarkdown from './AssistantMarkdown';
 import { ErrorMessage } from './ui';
 
@@ -190,6 +191,14 @@ export default function AssistantWidget() {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading, open]);
 
+  // Views with rich selection context (e.g. a Forms Rationalization form or
+  // cluster comparison) can ask the widget to open via lib/assistantContext.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener('assistant:open', onOpen);
+    return () => window.removeEventListener('assistant:open', onOpen);
+  }, []);
+
   // Focus the composer when the popup opens; close on Escape.
   useEffect(() => {
     if (!open) return;
@@ -213,7 +222,14 @@ export default function AssistantWidget() {
       const history = next.map((m) => ({ role: m.role, content: m.content }));
       const res = await api.post('/chat', {
         messages: history,
-        pageContext: { path: pathname, label: pageLabelFor(pathname) },
+        pageContext: {
+          path: pathname,
+          // Selection context published by the active view (lib/assistantContext)
+          // rides along in the label so the assistant sees what the user sees.
+          label: assistantDetail()
+            ? `${pageLabelFor(pathname)} — ${assistantDetail()}`
+            : pageLabelFor(pathname),
+        },
       });
       setMessages([...next, { role: 'assistant', content: res.answer, queries: res.queries }]);
     } catch (e) {

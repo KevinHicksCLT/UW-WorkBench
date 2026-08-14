@@ -28,6 +28,7 @@ import { seedPortfolio } from './portfolio.js';
 import { seedRegulations } from './seedRegulations.js';
 import { seedFederalRegs } from './seedFederalRegs.js';
 import { seedStandards } from './seedStandards.js';
+import { seedForms } from './seedForms.js';
 import { seedPermissions } from './seedPermissions.js';
 import { seedApprovalPolicies } from './seedApprovalPolicies.js';
 import { seedAnatomyCatalog } from './seedAnatomyCatalog.js';
@@ -138,6 +139,8 @@ async function main() {
       tenantId: tenant.id,
       email: 'kevin.hicks@capgemini.com',
       name: 'Kevin Hicks',
+      firstName: 'Kevin',
+      lastName: 'Hicks',
       password: await bcrypt.hash('demo1234', 10),
       role: 'SITE_ADMIN',
     },
@@ -222,6 +225,7 @@ async function main() {
   // Runs AFTER regulations: filing packets bind to seeded ComplianceItems.
   await run('ratePrice', () => seedRatePrice(prisma, ctx));
   await run('standards', () => seedStandards(prisma, { ...ctx, refs }));
+  await run('forms', () => seedForms(prisma, ctx));
   // Runs AFTER the org spine exists: demo users + kevin are homed to L1 OrgUnits.
   await run('permissions', () => seedPermissions(prisma, ctx));
   await run('approvalPolicies', () => seedApprovalPolicies(prisma, { tenantId: ctx.tenantId }));

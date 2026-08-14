@@ -39,7 +39,8 @@ const GROUP_SPECS: readonly GroupSpec[] = [
   },
   { id: 'organization', label: 'Organization', children: [{ key: 'organization' }] },
   { id: 'value-streams', label: 'Value Streams', children: [{ key: 'value-streams' }] },
-  { id: 'product-models', label: 'Product Models', children: [{ key: 'product-models' }] },
+  { id: 'product-models', label: 'Products', children: [{ key: 'product-models' }] },
+  { id: 'forms', label: 'Forms', children: [{ key: 'forms' }] },
   { id: 'roles', label: 'Roles', children: [{ key: 'roles' }] },
   { id: 'deliverables', label: 'Deliverables', children: [{ key: 'deliverables' }] },
   { id: 'tasks', label: 'Tasks', children: [{ key: 'tasks' }] },
@@ -76,6 +77,7 @@ const GROUP_PATH_PREFIXES: { prefix: string; groupId: string }[] = [
   { prefix: '/divisions/', groupId: 'organization' },
   { prefix: '/departments/', groupId: 'organization' },
   { prefix: '/audit', groupId: 'admin' },
+  { prefix: '/forms/', groupId: 'forms' },
 ];
 
 const NODE_BY_KEY = new Map<MenuKey, MenuNode>(flattenMenuTree(MENU_TREE).map((n) => [n.key, n]));

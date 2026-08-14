@@ -174,4 +174,28 @@ export function registerFindingRoutes(router: Router) {
       next(e);
     }
   });
+
+  // DELETE /product-models/findings/:id — remove an atomic finding (plan §2-C
+  // CRUD). Tenant walk → 404, never 403; audited like the sibling PATCH.
+  router.delete('/findings/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const before = await prisma.productModelFinding.findFirst({
+        where: { id: req.params.id, tenantId: req.tenantId },
+        select: { id: true, workspaceId: true, name: true, component: true },
+      });
+      if (!before) return res.status(404).json({ error: 'Not found' });
+      await prisma.productModelFinding.delete({ where: { id: before.id } });
+      logAudit({
+        tenantId: req.tenantId,
+        actorEmail: req.user.email,
+        entityType: 'ProductModelWorkspace',
+        entityId: before.workspaceId,
+        action: 'DELETE_FINDING',
+        diff: { subject: before.name, component: before.component },
+      });
+      res.status(204).end();
+    } catch (e) {
+      next(e);
+    }
+  });
 }

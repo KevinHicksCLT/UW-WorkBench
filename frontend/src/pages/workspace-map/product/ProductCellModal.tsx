@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../../../lib/api';
 import { useApi } from '../../../lib/useApi';
 import ImpactPanel from '../impact/ImpactPanel';
 import { useImpactGate } from '../impact/useImpactGate';
+import AssessmentHistory from '../impact/AssessmentHistory';
 import { MATCH_META, groupCitations } from './spine';
 import type {
   Comparison,
@@ -14,8 +15,8 @@ import type {
 } from './spine';
 
 // The grid's cell drill-down — one model component of one version, every
-// normalized element group behind the cell as a card tagged Common / Varies /
-// Unique, with the Adopt / Variant decision wired to the same
+// normalized element group behind the cell as a card tagged Common / Similar /
+// Unique, with the Retain / Standardize / Retire decision wired to the same
 // /product-spine/decisions store the detail view uses. The header surfaces the
 // matching dimension definition from the product-model framework so the cell
 // reads against the meta-model, not just the data.
@@ -89,9 +90,19 @@ export default function ProductCellModal({
   const count = (s: ElementGroup['status']) => groups.filter((g) => g.status === s).length;
   const reviewable = groups.filter((g) => g.status === 'PARTIAL' || g.status === 'UNIQUE');
 
-  // Adopt/Variant chips route through the common change-impact gate — the
+  // Decision chips route through the common change-impact gate — the
   // element is assessed before the sign-off writes.
   const gate = useImpactGate();
+  // Every product sign-off also writes an ImpactAssessment audit row (Change
+  // Impact v2, Workstream D) — refresh this LOB's assessment history when the
+  // gate closes so the just-made decision appears in the shared trail.
+  const [histRefresh, setHistRefresh] = useState(0);
+  const gateWasOpen = useRef(false);
+  useEffect(() => {
+    const open = !!gate.state;
+    if (gateWasOpen.current && !open) setHistRefresh((n) => n + 1);
+    gateWasOpen.current = open;
+  }, [gate.state]);
   const decide = (group: ElementGroup, status: ProductDecisionStatus) => {
     const node = version.components.get(group.component)?.node;
     gate.run(
@@ -106,12 +117,12 @@ export default function ProductCellModal({
           componentNodeIds: node ? [node.id] : undefined,
         },
       },
-      async () => {
+      async (chosen) => {
         await api.put('/product-spine/decisions', {
           lobId,
           component: group.component,
           groupKey: group.key,
-          status,
+          status: chosen ?? status,
         });
         refetch();
       },
@@ -259,9 +270,9 @@ export default function ProductCellModal({
           {(
             [
               [groups.length, 'element groups', '#171717'],
-              [count('COMMON'), 'common to every version', '#1d4ed8'],
-              [count('PARTIAL'), 'vary by version', '#b45309'],
-              [count('UNIQUE'), 'unique to one version', '#475569'],
+              [count('COMMON'), 'common to every version', MATCH_META.COMMON.fg],
+              [count('PARTIAL'), 'similar — configured differently', MATCH_META.PARTIAL.fg],
+              [count('UNIQUE'), 'unique to 1–2 versions', MATCH_META.UNIQUE.fg],
             ] as [number, string, string][]
           ).map(([n, label, tone]) => (
             <span
@@ -284,12 +295,19 @@ export default function ProductCellModal({
             </span>
           ))}
           <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 11, color: '#64748b' }}>
-            Common folds into the canonical model · Varies and Unique need a decision
+          <span style={{ fontSize: 11.5, color: '#475569' }}>
+            Common standardizes into the canonical model · Similar and Unique need a decision
           </span>
         </div>
 
         <div style={{ overflow: 'auto', padding: '12px 14px', flex: 1, minHeight: 0 }}>
+          {/* This LOB's shared impact-assessment trail — every lens's decisions,
+              including the product sign-offs made here, land in one audit log. */}
+          <AssessmentHistory
+            subjectKind="product-element"
+            subjectId={lobId}
+            refreshToken={histRefresh}
+          />
           {!row && (
             <div style={{ fontSize: 12, color: '#737373', padding: 12 }}>
               This version does not carry the {component} component.
@@ -368,10 +386,11 @@ export default function ProductCellModal({
                     >
                       {(
                         [
-                          ['Adopt', 'APPROVED'],
-                          ['Variant', 'HELD'],
-                        ] as [string, ProductDecisionStatus][]
-                      ).map(([label, status]) => {
+                          ['Retain', 'HELD', '#0f766e'],
+                          ['Standardize', 'APPROVED', '#4f46e5'],
+                          ['Retire', 'RETIRED', '#dc2626'],
+                        ] as [string, ProductDecisionStatus, string][]
+                      ).map(([label, status, tone]) => {
                         const on = decided === status;
                         return (
                           <button
@@ -380,17 +399,17 @@ export default function ProductCellModal({
                             onClick={() => void decide(g, status)}
                             style={{
                               font: 'inherit',
-                              fontSize: 9.5,
+                              fontSize: 10,
                               fontWeight: 600,
                               cursor: 'pointer',
                               borderRadius: 5,
                               padding: '2px 7px',
-                              color: on ? '#fff' : '#525252',
-                              background: on ? (label === 'Adopt' ? '#4f46e5' : '#525252') : '#fff',
-                              border: `1px solid ${on ? 'transparent' : '#e5e5e5'}`,
+                              color: on ? '#fff' : tone,
+                              background: on ? tone : '#fff',
+                              border: `1px solid ${on ? 'transparent' : tone}`,
                             }}
                           >
-                            {label}
+                            {on ? `✓ ${label}` : label}
                           </button>
                         );
                       })}

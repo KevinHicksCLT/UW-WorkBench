@@ -7,7 +7,9 @@
  * Accepted body shape (ids, not names — resolve names on the IAM side or use
  * the spreadsheet import for name-based loading):
  *   {
- *     email: string (required), name: string (required),
+ *     email: string (required), name: string (required — or supply
+ *       firstName + lastName and the write path composes it),
+ *     firstName?: string, lastName?: string,
  *     role?:  SITE_ADMIN|CORE_BUSINESS_ADMIN|TECHNOLOGY_ADMIN|
  *             CORPORATE_FUNCTIONS_ADMIN|SUPER_USER|MEMBER,
  *     status?: ACTIVE|DEACTIVATED,

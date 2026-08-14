@@ -17,6 +17,7 @@ export const SCHEMES = [
   'applications',
   'roles',
   'product-model',
+  'product-spine',
 ] as const;
 export type SchemeId = (typeof SCHEMES)[number];
 
@@ -27,6 +28,7 @@ export const SCHEME_TITLES: Record<SchemeId, string> = {
   applications: 'Applications',
   roles: 'Roles',
   'product-model': 'Product Model',
+  'product-spine': 'Product Spine',
 };
 
 export interface TaxonomyNode {
@@ -248,6 +250,39 @@ async function productModelScheme(companyId: string): Promise<TaxonomyNode[]> {
   ];
 }
 
+async function productSpineScheme(companyId: string): Promise<TaxonomyNode[]> {
+  // The recursive product hierarchy (ProductNode + ProductLevelType): by
+  // default Segment > LOB / Product Family > Product > Version / Jurisdiction >
+  // Model Component — level names are per-company editable, so the level's
+  // display name rides along as extra.levelName (skos:scopeNote at export
+  // time) and the level number as extra.level. Notation is the stable code
+  // when authored, else the node's sort position.
+  const nodes = await prisma.productNode.findMany({
+    where: { companyId },
+    orderBy: [{ sortOrder: 'asc' }, { displayValue: 'asc' }],
+    select: {
+      id: true,
+      displayValue: true,
+      code: true,
+      parentId: true,
+      sortOrder: true,
+      status: true,
+      productLevelType: { select: { levelNumber: true, displayValue: true } },
+    },
+  });
+  return nodes.map((n) => ({
+    id: n.id,
+    label: n.displayValue,
+    notation: n.code ?? String(n.sortOrder),
+    parentId: n.parentId,
+    extra: {
+      level: n.productLevelType.levelNumber,
+      levelName: n.productLevelType.displayValue,
+      ...(n.status ? { status: n.status } : {}),
+    },
+  }));
+}
+
 const BUILDERS: Record<SchemeId, (companyId: string) => Promise<TaxonomyNode[]>> = {
   process: processScheme,
   organization: organizationScheme,
@@ -255,6 +290,7 @@ const BUILDERS: Record<SchemeId, (companyId: string) => Promise<TaxonomyNode[]>>
   applications: applicationsScheme,
   roles: rolesScheme,
   'product-model': productModelScheme,
+  'product-spine': productSpineScheme,
 };
 
 export function isScheme(value: string): value is SchemeId {
@@ -268,14 +304,16 @@ export function buildScheme(scheme: SchemeId, companyId: string): Promise<Taxono
 
 /** Concept count per scheme (cheap — one count query each, in parallel). */
 export async function schemeCounts(companyId: string): Promise<Record<SchemeId, number>> {
-  const [process, organization, standards, applications, roles, productModel] = await Promise.all([
-    prisma.processNode.count({ where: { companyId } }),
-    prisma.orgUnit.count({ where: { companyId } }),
-    prisma.standard.count({ where: { companyId } }),
-    prisma.application.count({ where: { companyId } }),
-    prisma.role.count({ where: { companyId } }),
-    prisma.productModelAnatomyCategory.count({ where: { companyId } }),
-  ]);
+  const [process, organization, standards, applications, roles, productModel, productSpine] =
+    await Promise.all([
+      prisma.processNode.count({ where: { companyId } }),
+      prisma.orgUnit.count({ where: { companyId } }),
+      prisma.standard.count({ where: { companyId } }),
+      prisma.application.count({ where: { companyId } }),
+      prisma.role.count({ where: { companyId } }),
+      prisma.productModelAnatomyCategory.count({ where: { companyId } }),
+      prisma.productNode.count({ where: { companyId } }),
+    ]);
   return {
     process,
     organization,
@@ -283,5 +321,6 @@ export async function schemeCounts(companyId: string): Promise<Record<SchemeId, 
     applications,
     roles,
     'product-model': productModel,
+    'product-spine': productSpine,
   };
 }

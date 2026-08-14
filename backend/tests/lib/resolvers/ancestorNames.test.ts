@@ -8,6 +8,7 @@ const prismaMock = vi.hoisted(() => ({
   nodeRole: { findMany: vi.fn() },
   orgUnitClosure: { findMany: vi.fn() },
   orgUnit: { findMany: vi.fn() },
+  $queryRaw: vi.fn(),
 }));
 vi.mock('../../../src/db/prisma.js', () => ({ prisma: prismaMock }));
 
@@ -135,30 +136,44 @@ describe('ancestorNames', () => {
 });
 
 describe('streamAncestry', () => {
-  it('returns only value stream + domain in two queries', async () => {
-    prismaMock.processNodeClosure.findMany.mockResolvedValue(T1_EDGES);
-    prismaMock.processNode.findMany.mockResolvedValue([
-      { id: 'dom', displayValue: 'Insurance', processLevelType: { levelNumber: 1 } },
-      { id: 'vs', displayValue: 'Claims', processLevelType: { levelNumber: 2 } },
+  it('returns only value stream + domain from a single aggregate query', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([
+      { id: 't1', valueStreamId: 'vs', valueStreamName: 'Claims', domain: 'Insurance' },
     ]);
 
     const out = await streamAncestry(['t1', 't1']);
-    expect(out.get('t1')).toEqual({ valueStreamId: 'vs', valueStreamName: 'Claims', domain: 'Insurance' });
+    expect(out.get('t1')).toEqual({
+      valueStreamId: 'vs',
+      valueStreamName: 'Claims',
+      domain: 'Insurance',
+    });
 
-    // Lean variant: never touches roles or the org spine.
+    // One query, ids bound as a single array param — an {in: ids} pair would blow
+    // Postgres' 32,767 bind-variable cap on the Org table's ~42k-node batch.
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    // Lean variant: never touches the closure/node reads, roles or the org spine.
+    expect(prismaMock.processNodeClosure.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.processNode.findMany).not.toHaveBeenCalled();
     expect(prismaMock.nodeRole.findMany).not.toHaveBeenCalled();
     expect(prismaMock.orgUnitClosure.findMany).not.toHaveBeenCalled();
-    // Ancestor read is restricted to L1/L2.
-    expect(prismaMock.processNode.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ processLevelType: { levelNumber: { in: [1, 2] } } }),
-      }),
-    );
+    // Ids are deduped before binding.
+    expect(prismaMock.$queryRaw.mock.calls[0].slice(1)).toEqual([['t1']]);
+  });
+
+  it('leaves nodes the query returned no ancestors for as all-null', async () => {
+    prismaMock.$queryRaw.mockResolvedValue([]);
+
+    const out = await streamAncestry(['orphan']);
+    expect(out.get('orphan')).toEqual({
+      valueStreamId: null,
+      valueStreamName: null,
+      domain: null,
+    });
   });
 
   it('short-circuits on empty input', async () => {
     const out = await streamAncestry([]);
     expect(out.size).toBe(0);
-    expect(prismaMock.processNodeClosure.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.$queryRaw).not.toHaveBeenCalled();
   });
 });

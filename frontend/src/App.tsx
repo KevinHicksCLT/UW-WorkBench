@@ -45,6 +45,8 @@ const ApplicationDetail = lazy(() => import('./pages/applications/ApplicationDet
 const ProductModelHierarchy = lazy(() => import('./pages/product-models/ProductModelHierarchy'));
 const ProductNodeDetail = lazy(() => import('./pages/product-models/ProductNodeDetail'));
 const External = lazy(() => import('./pages/external/External'));
+const FormsLibrary = lazy(() => import('./pages/forms/FormsLibrary'));
+const FormDocument = lazy(() => import('./pages/forms/FormDocument'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
 const RequirementDetail = lazy(() => import('./pages/regulations/RequirementDetail'));
@@ -452,6 +454,24 @@ export default function App() {
                     element={
                       <G k="product-models">
                         <ProductNodeDetail />
+                      </G>
+                    }
+                  />
+                  {/* Forms library — the governed policy-form system of record.
+            One 'forms' permission key owns all routes. */}
+                  <Route
+                    path="/forms"
+                    element={
+                      <G k="forms">
+                        <FormsLibrary />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/forms/:id/document"
+                    element={
+                      <G k="forms">
+                        <FormDocument />
                       </G>
                     }
                   />

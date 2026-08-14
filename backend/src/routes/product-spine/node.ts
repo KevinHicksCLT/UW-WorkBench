@@ -7,6 +7,10 @@
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
+import {
+  FORMS_COMPONENT_NAME,
+  loadFormElementsByVersionNode,
+} from '../../lib/resolvers/productBoard.js';
 import { isHiddenComponent, sanitizeAttributes } from './helpers.js';
 
 const NODE_SELECT = {
@@ -59,15 +63,41 @@ export function registerProductNodeRoutes(router: Router): void {
         }),
       ]);
 
-      const shape = (n: typeof node) => ({
-        id: n.id,
-        name: n.displayValue,
-        levelNumber: n.productLevelType.levelNumber,
-        description: n.description,
-        status: n.status,
-        sortOrder: n.sortOrder,
-        attributes: sanitizeAttributes(n.attributes),
-      });
+      // A Forms component (or a version node's Forms child) renders the
+      // PolicyForm library, never attribute payloads.
+      const needsForms =
+        (node.productLevelType.levelNumber === 5 && node.displayValue === FORMS_COMPONENT_NAME) ||
+        children.some(
+          (c) => c.productLevelType.levelNumber === 5 && c.displayValue === FORMS_COMPONENT_NAME,
+        );
+      const formsByVersionNode = needsForms
+        ? await loadFormElementsByVersionNode(company.id)
+        : new Map<string, never[]>();
+
+      const shape = (n: typeof node) => {
+        const sanitized = sanitizeAttributes(n.attributes);
+        const isFormsComponent =
+          n.productLevelType.levelNumber === 5 &&
+          n.displayValue === FORMS_COMPONENT_NAME &&
+          n.parentId;
+        const attributes = isFormsComponent
+          ? {
+              ...(sanitized && typeof sanitized === 'object' && !Array.isArray(sanitized)
+                ? sanitized
+                : {}),
+              elements: formsByVersionNode.get(n.parentId!) ?? [],
+            }
+          : sanitized;
+        return {
+          id: n.id,
+          name: n.displayValue,
+          levelNumber: n.productLevelType.levelNumber,
+          description: n.description,
+          status: n.status,
+          sortOrder: n.sortOrder,
+          attributes,
+        };
+      };
 
       res.json({
         node: shape(node),

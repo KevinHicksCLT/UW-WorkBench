@@ -13,6 +13,16 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../db/prisma.js';
 import { activeCompany } from '../explorer/helpers.js';
+import { logger } from '../../lib/logger.js';
+
+// A product sign-off maps onto the shared change vocabulary and recommendation
+// so every lens's decisions land in one ImpactAssessment audit trail (Change
+// Impact v2, Workstream D).
+const DECISION_TO_CHANGE: Record<string, { changeType: string; recommendation: string }> = {
+  APPROVED: { changeType: 'ADOPT', recommendation: 'STANDARDIZE' },
+  HELD: { changeType: 'HOLD', recommendation: 'RETAIN' },
+  RETIRED: { changeType: 'RETIRE', recommendation: 'RETIRE' },
+};
 
 const putSchema = z.object({
   lobId: z.string().trim().min(1),
@@ -20,6 +30,8 @@ const putSchema = z.object({
   groupKey: z.string().trim().min(1),
   status: z.enum(['APPROVED', 'HELD', 'RETIRED']),
   comment: z.string().trim().max(2000).optional(),
+  // The named normalized policy the decision was made toward (optional).
+  targetId: z.string().trim().min(1).optional(),
 });
 
 export function registerProductDecisionRoutes(router: Router): void {
@@ -94,13 +106,21 @@ export function registerProductDecisionRoutes(router: Router): void {
       const company = await activeCompany(req, { id: true });
       if (!company) return res.status(404).json({ error: 'No company' });
 
-      const { lobId, component, groupKey, status, comment } = parsed.data;
+      const { lobId, component, groupKey, status, comment, targetId } = parsed.data;
       // The LOB node must belong to the tenant's active company (tenant walk).
       const lob = await prisma.productNode.findFirst({
         where: { id: lobId, companyId: company.id },
         select: { id: true },
       });
       if (!lob) return res.status(404).json({ error: 'Unknown LOB node' });
+      // The named policy (when given) must be the tenant's too — 404 otherwise.
+      if (targetId) {
+        const target = await prisma.productNormalizationTarget.findFirst({
+          where: { id: targetId, companyId: company.id },
+          select: { id: true },
+        });
+        if (!target) return res.status(404).json({ error: 'Unknown policy' });
+      }
 
       const saved = await prisma.productNormalizationDecision.upsert({
         where: { lobNodeId_groupKey: { lobNodeId: lobId, groupKey } },
@@ -113,6 +133,7 @@ export function registerProductDecisionRoutes(router: Router): void {
           status,
           comment: comment ?? null,
           decidedBy: req.user.email,
+          targetId: targetId ?? null,
         },
         // An omitted comment keeps the existing note; an empty string clears it.
         update: {
@@ -120,9 +141,38 @@ export function registerProductDecisionRoutes(router: Router): void {
           component,
           decidedBy: req.user.email,
           ...(comment !== undefined ? { comment: comment || null } : {}),
+          ...(targetId !== undefined ? { targetId } : {}),
         },
         select: { groupKey: true, component: true, status: true, comment: true, updatedAt: true },
       });
+
+      // Shadow the decision into the shared impact-assessment audit trail. Never
+      // let an audit-write failure fail the sign-off itself — the decision is
+      // the authoritative record; this is the cross-lens log alongside it.
+      const map = DECISION_TO_CHANGE[status];
+      if (map) {
+        try {
+          await prisma.impactAssessment.create({
+            data: {
+              tenantId: req.tenantId,
+              companyId: company.id,
+              subjectKind: 'product-element',
+              subjectRef: { kind: 'product-element', lobId, component },
+              subjectName: component,
+              changeType: map.changeType,
+              status: 'APPROVED',
+              recommendation: map.recommendation,
+              intent: comment ?? null,
+              createdBy: req.user.id,
+              decidedBy: req.user.id,
+              decidedAt: new Date(),
+            },
+          });
+        } catch (auditErr) {
+          logger.warn({ err: auditErr, lobId, component }, 'product decision audit-write failed');
+        }
+      }
+
       res.json({
         groupKey: saved.groupKey,
         component: saved.component,

@@ -5,6 +5,7 @@ import PageHeader from '../../components/PageHeader';
 import DeliverableCard from './DeliverableCard';
 import type { TaskValidation } from '../../components/TaskValidationControl';
 import { Card, Chip, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
+import SubjectImpact from '../workspace-map/impact/SubjectImpact';
 import type { ProfileTask, RoleProfilePayload } from './types';
 
 // Role profile — /roles/:id. Everything on this page is a roll-up from the
@@ -152,6 +153,19 @@ export default function RoleProfile() {
         }
         dense
       />
+
+      {/* Change-impact assessment for this role — Intent → staged report → saved
+          packet, with the role's own assessment history (Change Impact v2). */}
+      {id && (
+        <SubjectImpact
+          className="mb-4 space-y-2"
+          subject={{ kind: 'role', roleId: id }}
+          subjectKind="role"
+          subjectId={id}
+          label={data.name}
+          changeType="ELIMINATE_ROLE"
+        />
+      )}
 
       {/* Family/level chips + org links */}
       <div className="flex items-center gap-2 flex-wrap mb-3">

@@ -8,10 +8,18 @@ import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { registerAssessRoutes } from './assess.js';
 import { registerSummaryRoutes } from './summary.js';
+import { registerAnalyzeRoutes } from './analyze.js';
+import { registerAssessmentRoutes } from './assessments.js';
+import { registerCatalogRoutes } from './catalog.js';
 
 const router = Router();
 router.use(requireAuth);
+registerCatalogRoutes(router);
 registerAssessRoutes(router);
 registerSummaryRoutes(router);
+registerAnalyzeRoutes(router);
+// Persisted decision packets (POST/GET/PATCH) — the only impact routes that
+// write; the assess/summary/analyze reads above stay pure.
+registerAssessmentRoutes(router);
 
 export default router;

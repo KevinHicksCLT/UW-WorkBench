@@ -497,3 +497,52 @@ resolvers over hand-walked graphs; batch queries (`{ in: ids }`), never per-row 
 scope every query, 404 on cross-tenant; pino, never `console.log`; compose from `components/ui/`;
 `Sheet.tsx` for flat lists; `useDialogs` for modals; lazy pages; files < 500 lines; mirrored
 `tests/` tree; all gates green before merge.
+
+---
+
+## Status — 2026-08-11
+
+Post-build audit of the four workstreams (recorded here rather than rewriting the plan body
+above, which stays as the historical contract). Where the shipped code diverges from the plan,
+the divergence is deliberate and noted.
+
+### Per-workstream status
+
+- **Agent 1 — schema, seeds, ontology exporter: DONE.** `ProductModel*` family +
+  `NormalizationEntry` + `WorkspaceVocabulary` migrated; ABC Insurance product seed
+  (`backend/src/seed/productModel.ts`: 4 `LegacyProductModel`s — PolicyPro — Commercial Package
+  (East), QuoteMaster — Personal Auto, Mainframe Annuity Master, London Market Binder — plus
+  canonical models and component findings) and the SKOS taxonomy exporter are in.
+- **Agent 2 — API routes: DONE; tests being added.** `backend/src/routes/product-models/`
+  feature module (`models.ts`, `workspaces.ts`, `findings.ts`, `canonical.ts`, `helpers.ts`)
+  serves the §6.2 DTOs, including `GET /product-models`.
+- **Agent 3 — board: rebuilt as `frontend/src/pages/workspace-map/`** (not an extension of
+  `pages/greenfield-migration/` as §4 assumed — that directory no longer exists; see path
+  corrections below). The **Products lens deliberately runs on the real product spine**
+  (`ProductLevelType`/`ProductNode` — LOB version comparison), not on the
+  `LegacyProductModel`-column skeleton §4 sketched. This is an **accepted divergence from §4**:
+  the spine data is richer and already normalized, so the lens compares versions off it while
+  the legacy-model columns remain the rationalization entry point.
+- **Agent 4 — master list, wiring, docs (this branch, `pmw2/agent4-master-list`).** §D-1's
+  master list shipped as a **fifth view of the existing `/product-models` hierarchy shell** —
+  `?view=legacy` ("Legacy models" pill in `ProductModelHierarchy.tsx`) — rather than replacing
+  the product-spine viewer (TOC/Map/List/Framework), which is a deliberate, recent build that
+  stays. New files: `frontend/src/pages/product-models/LegacyModels.tsx` (Sheet: name / source
+  system / segment / geography / disposition / workspaces / findings; `?focus=<id>` deep link),
+  `LegacyModelDrawer.tsx` (DrawerShell detail; workspace chips link to
+  `/portfolio?domain=product-models`), `legacyModelList.ts` (pure helpers, unit-tested under
+  `frontend/tests/pages/product-models/`). E2E: `e2e/product-model-workspace.spec.ts` gained a
+  legacy-models test (seeded rows render; row click opens the drawer). **No `App.tsx` change
+  was needed** — the view loads through the already-lazy `ProductModelHierarchy` route.
+
+### Path corrections (stale references in the plan body above)
+
+| Plan body says | Now |
+|---|---|
+| `frontend/src/pages/greenfield-migration/**` (§0, §1.1 ownership table, §4) | `frontend/src/pages/workspace-map/**` |
+| `frontend/tests/**/greenfield-migration/**` | `frontend/tests/pages/workspace-map/**` |
+| §D-1 `ProductModels.tsx` / `ProductModelDrawer.tsx` as a standalone page | `LegacyModels.tsx` / `LegacyModelDrawer.tsx` as `/product-models?view=legacy` |
+
+Verification note: unit gates (typecheck / lint / vitest) run per branch; the Playwright specs
+are written but need both dev servers + a seeded Neon branch, so they execute at integration,
+not in cloud sessions.

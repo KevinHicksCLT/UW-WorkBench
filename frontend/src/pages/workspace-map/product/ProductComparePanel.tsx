@@ -5,7 +5,7 @@ import type { Comparison, ElementGroup, MatchStatus, VersionColumn } from './spi
 // off the product spine. One column per picked version (L4), one row per model
 // component (L5 axis: Product Taxonomy … Lifecycle Behavior); the cells are
 // the versions' real elements, colored by how they match across the picked
-// versions: Common (every version) · Varies (some) · Unique (one).
+// versions: Common (every version) · Similar (most, configured differently) · Unique (1–2).
 
 interface Props {
   title: string;

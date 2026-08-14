@@ -13,6 +13,9 @@ import { useWorkToc, WorkGroupPicker } from './workToc';
 import WorkGroupDrill from './WorkGroupDrill';
 import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../../lib/automatable';
 import { StatusPill } from '../../components/ui';
+import ImpactPanel from '../workspace-map/impact/ImpactPanel';
+import { useImpactGate } from '../workspace-map/impact/useImpactGate';
+import AssessmentHistory, { reopenAssessment } from '../workspace-map/impact/AssessmentHistory';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -37,30 +40,21 @@ type Deliverable = {
   processes: string[];
   level3: string | null;
   level4: string | null;
-  test: string | null;
 };
+// Slim list row — the /work Tasks grain carries only what the list, TOC and
+// drill actually render (description etc. come from /work/task/:id on click).
 type Task = {
   id: string;
   title: string;
-  description: string | null;
   owner: string | null;
   contributors: string[];
-  status: string;
-  dueDate: string | null;
-  source: string;
   deliverableId: string | null;
   deliverableTitle: string | null;
-  roles: string[];
-  processes: string[];
-  level3: string | null;
   level4: string | null;
   division: string | null;
-  department: string | null;
-  roleName: string | null;
   valueStreamName: string | null;
   agentScore: number | null;
   agentRationale: string | null;
-  test: string | null;
   testPattern: string | null;
   standards: string[];
   regulations: string[];
@@ -255,7 +249,19 @@ function DeliverableStats({ detail }: { detail: DeliverableDetail }) {
   );
 }
 
-function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: string) => void }) {
+function DetailBody({
+  detail,
+  onOpenTask,
+  onAssess,
+  onOpenAssessment,
+  assessmentRefresh,
+}: {
+  detail: Detail;
+  onOpenTask?: (id: string) => void;
+  onAssess?: () => void;
+  onOpenAssessment?: (id: string) => void;
+  assessmentRefresh?: number;
+}) {
   // When every task shares one owner, name it once in the list header instead
   // of repeating the same chip on all rows.
   const commonOwner =
@@ -291,9 +297,29 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
             </StatusPill>
           )}
         </div>
+        {/* Change-impact assessment — the deliverable's own producers, consumers,
+            information components and governance impact (Change Impact v2). */}
+        {detail.kind === 'deliverable' && onAssess && (
+          <button
+            type="button"
+            onClick={onAssess}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#2f6fb2]/40 bg-[#2f6fb2]/5 px-2.5 py-1.5 text-xs font-semibold text-[#2f6fb2] transition-colors duration-150 hover:bg-[#2f6fb2]/10"
+          >
+            Assess change impact
+          </button>
+        )}
       </div>
 
       {detail.kind === 'deliverable' && <DeliverableStats detail={detail} />}
+
+      {detail.kind === 'deliverable' && (
+        <AssessmentHistory
+          subjectKind="deliverable"
+          subjectId={detail.id}
+          refreshToken={assessmentRefresh}
+          onOpen={onOpenAssessment}
+        />
+      )}
 
       {/* Agent-automatability assessment (tasks only) */}
       {detail.kind === 'task' && (
@@ -375,62 +401,50 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
         </div>
       )}
 
-      {/* Work Library plan — checklist + testing keys (✓ defined / ✗ missing) */}
+      {/* Work Library plan — checklist + testing keys combined into one Actions
+          list (✓ defined / ✗ missing); item-specific steps only, generic
+          pattern keys are not surfaced. */}
       {detail.kind === 'task' &&
         detail.plan &&
-        (detail.plan.checklist.length > 0 || detail.plan.testing.length > 0) && (
-          <>
-            {(['Checklist', 'Testing'] as const).map((label) => {
-              const rows = label === 'Checklist' ? detail.plan!.checklist : detail.plan!.testing;
-              if (!rows.length) return null;
-              // Generic pattern keys vs task-specific steps as two labeled groups.
-              const groups = [
-                { name: 'Generic steps · pattern', rows: rows.filter((r) => r.generic) },
-                { name: 'Specific steps · this task', rows: rows.filter((r) => !r.generic) },
-              ].filter((g) => g.rows.length > 0);
-              return (
-                <Field key={label} label={label}>
-                  {groups.map((g) => (
-                    <div key={g.name} className="mt-1 first:mt-0">
-                      <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#8a94a0] mb-0.5">
-                        {g.name}
-                      </div>
-                      <ul className="space-y-1">
-                        {g.rows.map((r, i) => (
-                          <li key={i} className="text-sm flex gap-1.5 items-start">
-                            <span
-                              className={
-                                (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
-                              }
-                            >
-                              {r.defined ? '✓' : '✗'}
-                            </span>
-                            {r.defined ? (
-                              <span>
-                                <span className="text-[#8a94a0]">{r.key}: </span>
-                                <span className="text-[#171717]">
-                                  <ProcedureValue value={r.value ?? ''} />
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="text-[#6b7785]">{r.key}</span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+        (() => {
+          const rows = [...detail.plan.checklist, ...detail.plan.testing].filter((r) => !r.generic);
+          if (!rows.length) return null;
+          return (
+            <>
+              <Field label="Actions">
+                <ul className="space-y-1">
+                  {rows.map((r, i) => (
+                    <li key={i} className="text-sm flex gap-1.5 items-start">
+                      <span
+                        className={
+                          (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
+                        }
+                      >
+                        {r.defined ? '✓' : '✗'}
+                      </span>
+                      {r.defined ? (
+                        <span>
+                          <span className="text-[#8a94a0]">{r.key}: </span>
+                          <span className="text-[#171717]">
+                            <ProcedureValue value={r.value ?? ''} />
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[#6b7785]">{r.key}</span>
+                      )}
+                    </li>
                   ))}
-                </Field>
-              );
-            })}
-            <Link
-              to={`/work-library?type=task&id=${detail.id}`}
-              className="text-sm font-medium text-[#2563eb] hover:underline"
-            >
-              Edit plan in Work library ↗
-            </Link>
-          </>
-        )}
+                </ul>
+              </Field>
+              <Link
+                to={`/work-library?type=task&id=${detail.id}`}
+                className="text-sm font-medium text-[#2563eb] hover:underline"
+              >
+                Edit plan in Work library ↗
+              </Link>
+            </>
+          );
+        })()}
       {/* Linked work — each task row drills into the task detail. */}
       {detail.kind === 'deliverable' ? (
         <div>
@@ -499,21 +513,48 @@ function DetailBody({ detail, onOpenTask }: { detail: Detail; onOpenTask?: (id: 
 
 const DASH = '—';
 
+// Lazy per-tab data: each tab fetches only its own grain (`kind=`), and the
+// result is kept for the SPA session so tab flips and back-navigation render
+// instantly instead of re-pulling ~30k rows. The page is read-only, so a
+// session-stale cache is acceptable; a hard refresh refetches.
+const workCache = new Map<string, WorkData>();
+
 export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
+  const gate = useImpactGate();
+  // Bump when the impact panel closes so a freshly-saved packet shows in the
+  // deliverable's assessment history without a manual reload.
+  const [assessRefresh, setAssessRefresh] = useState(0);
+  const panelWasOpen = useRef(false);
+  useEffect(() => {
+    const open = !!gate.state;
+    if (panelWasOpen.current && !open) setAssessRefresh((n) => n + 1);
+    panelWasOpen.current = open;
+  }, [gate.state]);
   useEffect(() => {
     if (companyLoading) return;
+    const cacheKey = `${companyId ?? ''}:${tab}`;
+    const cached = workCache.get(cacheKey);
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    // fetch all rows (tasks exceed the old 5k default; splits push the total higher).
+    // fetch all rows of the ACTIVE grain only (tasks exceed the old 5k default;
+    // splits push the total higher).
     api
-      .get<WorkData>(withCompany('/work?take=30000', companyId))
-      .then(setData)
+      .get<WorkData>(withCompany(`/work?take=30000&kind=${tab}`, companyId))
+      .then((d) => {
+        workCache.set(cacheKey, d);
+        setData(d);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [companyId, companyLoading]);
+  }, [companyId, companyLoading, tab]);
 
   // Open a row's drill-down in the sidebar by fetching its detail. The open
   // target persists per tab (lib/viewState), so drilling out of the sidebar
@@ -804,9 +845,29 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
           title={detail.kind === 'deliverable' ? 'Deliverable' : 'Task'}
           onClose={closeDrill}
         >
-          <DetailBody detail={detail} onOpenTask={(id) => openDrill('task', id)} />
+          <DetailBody
+            detail={detail}
+            assessmentRefresh={assessRefresh}
+            onOpenTask={(id) => openDrill('task', id)}
+            onOpenAssessment={(id) => reopenAssessment(gate, id)}
+            onAssess={
+              detail.kind === 'deliverable'
+                ? () =>
+                    gate.run(
+                      {
+                        changeType: 'CONVERT_TO_STRUCTURED_DATA',
+                        label: detail.title,
+                        subject: { kind: 'deliverable', deliverableIds: [detail.id] },
+                        pickable: true,
+                      },
+                      () => {},
+                    )
+                : undefined
+            }
+          />
         </Sidebar>
       )}
+      <ImpactPanel gate={gate} />
     </div>
   );
 }

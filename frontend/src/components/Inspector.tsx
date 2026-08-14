@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { DOMAIN_HEX } from '../viz/model';
 import { SkeletonLoader } from './ui';
-import { TABS, TAB_LABELS, tabCount, type Payload, type Tab } from './inspector/types';
+import { TABS, TAB_LABELS, type Payload, type Tab } from './inspector/types';
 import { OverviewTab, GovernancePanel } from './inspector/OverviewTab';
 import { WorkTab } from './inspector/WorkTab';
 import { TasksTab, RolesTab, AppsTab, DeliverablesTab } from './inspector/entityTabs';
@@ -36,6 +36,7 @@ export default function Inspector({
   onRetarget,
   accent,
   startCollapsed,
+  initialTab,
 }: {
   nodeId: string;
   onClose?: () => void;
@@ -44,6 +45,8 @@ export default function Inspector({
   accent?: string;
   // Map opens collapsed (rail) so the canvas isn't covered; List opens expanded.
   startCollapsed?: boolean;
+  // Tab to land on when the target changes (e.g. an L6 map click -> Work).
+  initialTab?: Tab;
 }) {
   const navigate = useNavigate();
   const [data, setData] = useState<Payload | null>(null);
@@ -78,8 +81,10 @@ export default function Inspector({
 
   useEffect(() => load(), [load]);
   useEffect(() => {
-    setTab('Overview');
+    setTab(initialTab ?? 'Overview');
     setEdit(false);
+    // An explicitly-targeted node (not startCollapsed) opens the panel.
+    if (!startCollapsed) setCollapsed(false);
   }, [nodeId]);
 
   const showToast = (msg: string, sub: string, undo?: () => void) => {
@@ -282,7 +287,6 @@ export default function Inspector({
       {data && !loading && (
         <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 border-b border-[#eaeaea] overflow-x-auto">
           {visibleTabs.map((t) => {
-            const n = tabCount(data, t);
             const active = tab === t;
             return (
               <button
@@ -296,15 +300,6 @@ export default function Inspector({
                 }
               >
                 {TAB_LABELS[t]}
-                {n != null && (
-                  <span
-                    className={
-                      'ml-1 tabular-nums ' + (active ? 'text-[#1d4ed8]' : 'text-[#a3a3a3]')
-                    }
-                  >
-                    ({n})
-                  </span>
-                )}
               </button>
             );
           })}

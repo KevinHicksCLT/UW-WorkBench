@@ -3,7 +3,7 @@ import { api } from '../../lib/api';
 import { Sheet, type SheetCol } from '../Sheet';
 import { Button, Chip, DrawerShell, ErrorMessage, StatusPill } from '../ui';
 import UserDetail from './UserDetail';
-import { geographyLabel, userTypeLabel, type AdminUser } from './types';
+import { firstNameOf, geographyLabel, lastNameOf, userTypeLabel, type AdminUser } from './types';
 
 // UsersAdmin — the User Admin → Users section: the canonical Sheet over
 // GET /users, with a slide-over detail (UserDetail) for create/edit.
@@ -33,7 +33,20 @@ export default function UsersAdmin() {
   }, []);
 
   const cols: SheetCol<AdminUser>[] = [
-    { key: 'name', label: 'Name', width: 'minmax(0,1.1fr)', value: (u) => u.name, hideable: false },
+    {
+      key: 'firstName',
+      label: 'First name',
+      width: 'minmax(0,0.8fr)',
+      value: (u) => firstNameOf(u),
+      hideable: false,
+    },
+    {
+      key: 'lastName',
+      label: 'Last name',
+      width: 'minmax(0,0.8fr)',
+      value: (u) => lastNameOf(u),
+      hideable: false,
+    },
     { key: 'email', label: 'Email', width: 'minmax(0,1.3fr)', value: (u) => u.email, dim: true },
     { key: 'type', label: 'User type', width: '170px', value: (u) => userTypeLabel(u.role) },
     {
@@ -107,7 +120,15 @@ export default function UsersAdmin() {
         loading={loading}
         emptyText="No users match the current filters."
         onRowClick={(u) => setDrawer({ mode: 'edit', user: u })}
-        leading={<Button onClick={() => setDrawer({ mode: 'create' })}>Add user</Button>}
+        leading={
+          <Button
+            variant="secondary"
+            className="text-xs"
+            onClick={() => setDrawer({ mode: 'create' })}
+          >
+            Add user
+          </Button>
+        }
       />
 
       {drawer && (
