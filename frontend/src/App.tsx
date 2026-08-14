@@ -35,6 +35,7 @@ const PortfolioInitiative = lazy(() => import('./pages/portfolio-initiative/Port
 const PortfolioRaid = lazy(() => import('./pages/portfolio-raid/PortfolioRaid'));
 const UwWorkbench = lazy(() => import('./pages/uw-workbench/UwWorkbench'));
 const RatePricing = lazy(() => import('./pages/rate-price/RatePricing'));
+const MajescoBilling = lazy(() => import('./pages/billing/MajescoBilling'));
 const Work = lazy(() => import('./pages/work/Work'));
 const Automatable = lazy(() => import('./pages/automatable/Automatable'));
 const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
@@ -272,6 +273,17 @@ export default function App() {
                     element={
                       <G k="rate-price">
                         <RatePricing />
+                      </G>
+                    }
+                  />
+                  {/* Majesco Billing — billing application tab (MAJESCO-BILL):
+            catalog registration profile + screen → process map over the two
+            commercial-billing L3 subtrees. */}
+                  <Route
+                    path="/billing"
+                    element={
+                      <G k="majesco-billing">
+                        <MajescoBilling />
                       </G>
                     }
                   />

@@ -2989,6 +2989,404 @@ model RegulatorySource {
   @@index([jurisdictionId])
 }
 
+// ─── FORMS RATIONALIZATION (FORMS-RATION) ───────────────────────────────
+// Policy forms as a normalized layer of the machine-readable enterprise.
+// Two planes share one trust model: the CLAUSE plane (what forms SAY —
+// segmentation → clustering → findings → dispositions → preferred wordings)
+// and the FIELD plane (what forms ASK — dictionary → extraction → mappings).
+// Invariants (module spec FORMS-RATION v0.3.0): every AI output is a
+// FormFinding with citations + confidence; confidence < 0.70 routes to
+// needs-human and is never bulk-cleared; dispositions advance only through
+// append-only FormDispositionEvent rows.
+
+// A proprietary policy form — the library's system of record (FORMS-HLR-001).
+model PolicyForm {
+  id           String   @id @default(cuid())
+  tenantId     String
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  formNumber   String // e.g. "CG 20 10"
+  title        String
+  lob          String? // line of business token: General Liability | Property | Auto | Workers Comp | Umbrella | Professional
+  states       Json? // applicable state postal codes, e.g. ["NY","CA"]; null = countrywide
+  editionDate  String? // edition, e.g. "04 13"
+  filingStatus String   @default("Draft") // Draft | Filed | Approved | Withdrawn
+  provenance   String   @default("client") // client | iso-flagged — ISO-flagged content is excluded from grounding (ADR-005, NFR-004)
+  ownerRoleId  String?
+  ownerRole    Role?    @relation("PolicyFormOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  versions     PolicyFormVersion[]
+  dispositions FormDisposition[]   @relation("DispositionForm")
+  mergeTargets FormDisposition[]   @relation("DispositionTargetForm")
+  applications FormApplication[]
+  processLinks FormProcessNode[]
+  productLinks FormProductNode[]
+
+  @@unique([companyId, formNumber])
+  @@index([companyId])
+  @@index([ownerRoleId])
+}
+
+// An immutable ingested revision of a form; clauses/fields hang off versions
+// so re-ingest never mutates history (FORMS-HLR-001/002).
+model PolicyFormVersion {
+  id            String     @id @default(cuid())
+  tenantId      String
+  companyId     String
+  formId        String
+  form          PolicyForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  versionNo     Int
+  status        String     @default("ready") // ingesting | ready | quarantined — mean segConfidence < 0.7 quarantines (LLD 2.1)
+  sourceUri     String?
+  sourceText    String // canonical extracted text; clause offsets index into this
+  segConfidence Float      @default(1)
+  createdAt     DateTime   @default(now())
+  createdById   String? // User id (nullable: connector/agent ingest)
+
+  clauses           FormClause[]
+  fields            FormField[]
+  workingSetMembers FormWorkingSetMember[]
+  findings          FormFinding[]
+
+  @@unique([formId, versionNo])
+  @@index([companyId])
+}
+
+// One segmented clause with character offsets back into sourceText — the
+// citation grain for every finding (FORMS-LLR-001/002).
+model FormClause {
+  id            String            @id @default(cuid())
+  tenantId      String
+  companyId     String
+  formVersionId String
+  formVersion   PolicyFormVersion @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
+  ordinal       Int
+  level         Int               @default(1)
+  heading       String?
+  text          String
+  charStart     Int
+  charEnd       Int
+  textHash      String // sha256(normalized text) — hash-equal short-circuits similarity (LLD 2.2)
+  segConfidence Float             @default(1)
+
+  clusterMembers   ClauseClusterMember[]
+  representativeOf ClauseCluster[]       @relation("ClusterRepresentative")
+  preferredSources PreferredWording[]    @relation("PreferredWordingSource")
+
+  @@unique([formVersionId, ordinal])
+  @@index([companyId])
+  @@index([textHash])
+}
+
+// A named rationalization scope of form versions. Default UX mode derives
+// from member count (7 or fewer = reading, 8+ = portfolio — FORMS-HLR-008);
+// modeOverride stores an explicit user choice, never the computed default.
+model FormWorkingSet {
+  id               String    @id @default(cuid())
+  tenantId         String
+  companyId        String
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  modeOverride     String? // reading | portfolio | null = derive from size
+  clusterThreshold Float     @default(0.55) // lexical-similarity theta for this set's cluster runs
+  clusterStatus    String    @default("none") // none | running | done | failed
+  clusteredAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  members  FormWorkingSetMember[]
+  clusters ClauseCluster[]
+  findings FormFinding[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model FormWorkingSetMember {
+  id            String            @id @default(cuid())
+  companyId     String
+  workingSetId  String
+  workingSet    FormWorkingSet    @relation(fields: [workingSetId], references: [id], onDelete: Cascade)
+  formVersionId String
+  formVersion   PolicyFormVersion @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([workingSetId, formVersionId])
+  @@index([workingSetId])
+  @@index([formVersionId])
+  @@index([companyId, workingSetId])
+}
+
+// A group of equivalent/similar clauses across the working set — the primary
+// analysis primitive (ADR-001, FORMS-HLR-007). Rebuilt per cluster run.
+model ClauseCluster {
+  id                     String         @id @default(cuid())
+  tenantId               String
+  companyId              String
+  workingSetId           String
+  workingSet             FormWorkingSet @relation(fields: [workingSetId], references: [id], onDelete: Cascade)
+  label                  String
+  representativeClauseId String?
+  representativeClause   FormClause?    @relation("ClusterRepresentative", fields: [representativeClauseId], references: [id], onDelete: SetNull)
+  divergenceScore        Float          @default(0) // 1 - min pairwise similarity within the cluster
+  createdAt              DateTime       @default(now())
+
+  members          ClauseClusterMember[]
+  findings         FormFinding[]
+  dispositions     FormDisposition[]     @relation("DispositionCluster")
+  preferredWording PreferredWording?
+
+  @@index([workingSetId])
+  @@index([companyId])
+  @@index([representativeClauseId])
+}
+
+model ClauseClusterMember {
+  id         String        @id @default(cuid())
+  companyId  String
+  clusterId  String
+  cluster    ClauseCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  clauseId   String
+  clause     FormClause    @relation(fields: [clauseId], references: [id], onDelete: Cascade)
+  similarity Float // similarity to the cluster representative (medoid)
+  outlier    Boolean       @default(false)
+
+  @@unique([clusterId, clauseId])
+  @@index([clusterId])
+  @@index([clauseId])
+}
+
+// The ONLY AI output type (ADR-004): a claim with citations, confidence and a
+// trace. confidence < 0.70 = status needs-human, excluded from bulk actions
+// (FORMS-LLR-011/012).
+model FormFinding {
+  id            String             @id @default(cuid())
+  tenantId      String
+  companyId     String
+  workingSetId  String?
+  workingSet    FormWorkingSet?    @relation(fields: [workingSetId], references: [id], onDelete: Cascade)
+  clusterId     String?
+  cluster       ClauseCluster?     @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  formVersionId String?
+  formVersion   PolicyFormVersion? @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
+  subjectKind   String // cluster | clausePair | form | fieldMapping
+  claim         String
+  citations     Json // [{ formVersionId, clauseId, charStart, charEnd, quote }] — cited source text never truncated (SM-003)
+  confidence    Float // 0..1
+  status        String             @default("new") // new | needs-human | accepted | rejected | superseded
+  agentSkill    String             @default("lexical-cluster-v1")
+  traceRef      String?
+  decidedById   String? // User id of the reviewer who accepted/rejected
+  decidedAt     DateTime?
+  createdAt     DateTime           @default(now())
+
+  @@index([companyId])
+  @@index([workingSetId])
+  @@index([clusterId])
+  @@index([companyId, status])
+}
+
+// A Keep / Merge-into / Retire / Redraft decision on a form or cluster.
+// `status` is a derived cache of the latest FormDispositionEvent — the event
+// log is the source of truth (FORMS-LLR-007).
+model FormDisposition {
+  id           String         @id @default(cuid())
+  tenantId     String
+  companyId    String
+  subjectKind  String // form | cluster
+  formId       String?
+  form         PolicyForm?    @relation("DispositionForm", fields: [formId], references: [id], onDelete: Cascade)
+  clusterId    String?
+  cluster      ClauseCluster? @relation("DispositionCluster", fields: [clusterId], references: [id], onDelete: Cascade)
+  type         String // keep | merge | retire | redraft
+  targetFormId String? // merge target
+  targetForm   PolicyForm?    @relation("DispositionTargetForm", fields: [targetFormId], references: [id], onDelete: SetNull)
+  ownerRoleId  String?
+  ownerRole    Role?          @relation("FormDispositionOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  rationale    String?
+  status       String         @default("proposed") // proposed | approved | rejected | executed (cache of latest event)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  events FormDispositionEvent[]
+
+  @@index([companyId])
+  @@index([formId])
+  @@index([clusterId])
+  @@index([ownerRoleId])
+}
+
+// Append-only decision history — never updated, never deleted (NFR-003).
+model FormDispositionEvent {
+  id            String          @id @default(cuid())
+  companyId     String
+  dispositionId String
+  disposition   FormDisposition @relation(fields: [dispositionId], references: [id], onDelete: Cascade)
+  event         String // proposed | approved | rejected | executed
+  actorKind     String          @default("user") // user | agent
+  actorId       String? // User id, or agent skill slug for actorKind=agent
+  note          String?
+  at            DateTime        @default(now())
+
+  @@index([dispositionId])
+  @@index([companyId])
+}
+
+// The one surviving standard clause per resolved cluster (FORMS-HLR-011).
+model PreferredWording {
+  id             String        @id @default(cuid())
+  tenantId       String
+  companyId      String
+  clusterId      String        @unique
+  cluster        ClauseCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  sourceClauseId String?
+  sourceClause   FormClause?   @relation("PreferredWordingSource", fields: [sourceClauseId], references: [id], onDelete: SetNull)
+  clauseText     String
+  status         String        @default("active") // active | superseded
+  approvedById   String? // User id
+  createdAt      DateTime      @default(now())
+
+  @@index([companyId])
+  @@index([sourceClauseId])
+}
+
+// ─── FORMS FIELD PLANE (QFD-informed, ACORD-aware — ADR-006) ────────────
+
+// Canonical field dictionary entry: key grammar `role.entity.attribute`
+// (instance counters live on FormField occurrences). stability=do-not-map
+// keys are excluded from mapping suggestions (INV-F1); composition parts make
+// a calculated field get-only (INV-F2); acordRef defers semantics to ACORD,
+// never forks them (INV-F4). (FORMS-HLR-018)
+model FieldDefinition {
+  id                String   @id @default(cuid())
+  tenantId          String
+  companyId         String
+  company           Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  key               String // e.g. "insured.tax.fein"
+  dataSetType       String // Insured | Policy | Producer | Carrier | Coverage | Location | Vehicle | Loss | Payment | Identification | Signature | Nav | UserDefined
+  dataType          String   @default("string") // string | number | date | boolean | choice | signature
+  acordRef          String? // ACORD data-dictionary element id where one exists
+  scope             String   @default("tenant") // global | tenant | form
+  stability         String   @default("stable") // stable | do-not-map
+  compositionParts  Json? // ordered FieldDefinition keys; non-null = calculated (get-only)
+  compositionFormat String? // punctuation-explicit, e.g. "{FName} {MName} {LName}, {Suffix}"
+  version           Int      @default(1)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  mappings FieldMapping[]
+
+  @@unique([companyId, key])
+  @@index([companyId, dataSetType])
+}
+
+// A field occurrence extracted from a fielded form version (FORMS-LLR-016).
+model FormField {
+  id            String            @id @default(cuid())
+  tenantId      String
+  companyId     String
+  formVersionId String
+  formVersion   PolicyFormVersion @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
+  sourceName    String // as found in AcroForm/XFA (engine prefixes normalized on ingest)
+  label         String?
+  page          Int               @default(1)
+  widgetType    String            @default("text") // text | checkbox | radio | choice | signature | date
+  options       Json? // [{ label, exportValue }] — export-value semantics preserved (FORMS-HLR-021)
+  selectMode    String? // single | multi (FORMS-LLR-019)
+  required      Boolean           @default(false)
+  formatRule    String?
+  instance      Int               @default(1)
+
+  mappings FieldMapping[]
+
+  @@unique([formVersionId, sourceName, instance])
+  @@index([companyId])
+  @@index([formVersionId])
+}
+
+// Suggested/confirmed link between an extracted field and a dictionary entry,
+// with per-signal scores persisted for audit (FORMS-LLR-017, INV-F3).
+model FieldMapping {
+  id                String          @id @default(cuid())
+  tenantId          String
+  companyId         String
+  formFieldId       String
+  formField         FormField       @relation(fields: [formFieldId], references: [id], onDelete: Cascade)
+  fieldDefinitionId String
+  fieldDefinition   FieldDefinition @relation(fields: [fieldDefinitionId], references: [id], onDelete: Cascade)
+  confidence        Float // 0.4*nameSim + 0.45*labelSim + 0.15*optionOverlap (LLD 7.2)
+  nameSim           Float
+  labelSim          Float
+  optionOverlap     Float
+  status            String          @default("suggested") // suggested | needs-human | confirmed | rejected
+  reviewerId        String? // User id (INV-F3)
+  decidedAt         DateTime?
+  createdAt         DateTime        @default(now())
+
+  @@unique([formFieldId, fieldDefinitionId])
+  @@index([formFieldId])
+  @@index([fieldDefinitionId])
+  @@index([companyId, status])
+}
+
+// ─── FORMS SIX-DIMENSION JUNCTIONS (ontology bridge) ────────────────────
+
+// PolicyForm to Application: implementedBy (renders/consumes the form) or
+// feedsApplication (prefill/consumption contract) — FORMS-HLR-016.
+model FormApplication {
+  id            String      @id @default(cuid())
+  companyId     String
+  formId        String
+  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  role_         String      @default("implementedBy") // implementedBy | feedsApplication
+
+  @@unique([formId, applicationId, role_])
+  @@index([formId])
+  @@index([applicationId])
+  @@index([companyId, formId])
+}
+
+// PolicyForm to ProcessNode: servesValueStream (L2) or impactsTask (L5) —
+// the change-impact hop ("retiring this form touches these tasks").
+model FormProcessNode {
+  id            String      @id @default(cuid())
+  companyId     String
+  formId        String
+  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  role_         String      @default("servesValueStream") // servesValueStream | impactsTask
+
+  @@unique([formId, processNodeId, role_])
+  @@index([formId])
+  @@index([processNodeId])
+  @@index([companyId, formId])
+}
+
+// PolicyForm to ProductNode (product spine L4 version node): the form set a
+// product version attaches. THE single source of truth for every form the
+// workspace Products grid and the Product Model tabs render — those surfaces
+// resolve forms through this junction; ProductNode.attributes carries no form
+// content (no free-text form lists anywhere else).
+model FormProductNode {
+  id            String      @id @default(cuid())
+  companyId     String
+  formId        String
+  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  productNodeId String
+  productNode   ProductNode @relation(fields: [productNodeId], references: [id], onDelete: Cascade)
+  role_         String      @default("baseForm") // baseForm | declarations | endorsement | stateAmendatory
+
+  @@unique([formId, productNodeId, role_])
+  @@index([formId])
+  @@index([productNodeId])
+  @@index([companyId, formId])
+}
+
 // ─── UW WORKBENCH (submission → clearance → triage → desk → quote → bind) ─
 // AI-native underwriting workbench (UW-WORK module). 19 tenant-scoped entities
 // in five planes (submission / signal / decision / commercial / governance),
@@ -3547,277 +3945,6 @@ model RpModelRun {
 }
 
 model RpTestBatch {
-// ─── FORMS RATIONALIZATION (FORMS-RATION) ───────────────────────────────
-// Policy forms as a normalized layer of the machine-readable enterprise.
-// Two planes share one trust model: the CLAUSE plane (what forms SAY —
-// segmentation → clustering → findings → dispositions → preferred wordings)
-// and the FIELD plane (what forms ASK — dictionary → extraction → mappings).
-// Invariants (module spec FORMS-RATION v0.3.0): every AI output is a
-// FormFinding with citations + confidence; confidence < 0.70 routes to
-// needs-human and is never bulk-cleared; dispositions advance only through
-// append-only FormDispositionEvent rows.
-
-// A proprietary policy form — the library's system of record (FORMS-HLR-001).
-model PolicyForm {
-  id           String   @id @default(cuid())
-  tenantId     String
-  companyId    String
-  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  formNumber   String // e.g. "CG 20 10"
-  title        String
-  lob          String? // line of business token: General Liability | Property | Auto | Workers Comp | Umbrella | Professional
-  states       Json? // applicable state postal codes, e.g. ["NY","CA"]; null = countrywide
-  editionDate  String? // edition, e.g. "04 13"
-  filingStatus String   @default("Draft") // Draft | Filed | Approved | Withdrawn
-  provenance   String   @default("client") // client | iso-flagged — ISO-flagged content is excluded from grounding (ADR-005, NFR-004)
-  ownerRoleId  String?
-  ownerRole    Role?    @relation("PolicyFormOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  versions     PolicyFormVersion[]
-  dispositions FormDisposition[]   @relation("DispositionForm")
-  mergeTargets FormDisposition[]   @relation("DispositionTargetForm")
-  applications FormApplication[]
-  processLinks FormProcessNode[]
-  productLinks FormProductNode[]
-
-  @@unique([companyId, formNumber])
-  @@index([companyId])
-  @@index([ownerRoleId])
-}
-
-// An immutable ingested revision of a form; clauses/fields hang off versions
-// so re-ingest never mutates history (FORMS-HLR-001/002).
-model PolicyFormVersion {
-  id            String     @id @default(cuid())
-  tenantId      String
-  companyId     String
-  formId        String
-  form          PolicyForm @relation(fields: [formId], references: [id], onDelete: Cascade)
-  versionNo     Int
-  status        String     @default("ready") // ingesting | ready | quarantined — mean segConfidence < 0.7 quarantines (LLD 2.1)
-  sourceUri     String?
-  sourceText    String // canonical extracted text; clause offsets index into this
-  segConfidence Float      @default(1)
-  createdAt     DateTime   @default(now())
-  createdById   String? // User id (nullable: connector/agent ingest)
-
-  clauses           FormClause[]
-  fields            FormField[]
-  workingSetMembers FormWorkingSetMember[]
-  findings          FormFinding[]
-
-  @@unique([formId, versionNo])
-  @@index([companyId])
-}
-
-// One segmented clause with character offsets back into sourceText — the
-// citation grain for every finding (FORMS-LLR-001/002).
-model FormClause {
-  id            String            @id @default(cuid())
-  tenantId      String
-  companyId     String
-  formVersionId String
-  formVersion   PolicyFormVersion @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
-  ordinal       Int
-  level         Int               @default(1)
-  heading       String?
-  text          String
-  charStart     Int
-  charEnd       Int
-  textHash      String // sha256(normalized text) — hash-equal short-circuits similarity (LLD 2.2)
-  segConfidence Float             @default(1)
-
-  clusterMembers   ClauseClusterMember[]
-  representativeOf ClauseCluster[]       @relation("ClusterRepresentative")
-  preferredSources PreferredWording[]    @relation("PreferredWordingSource")
-
-  @@unique([formVersionId, ordinal])
-  @@index([companyId])
-  @@index([textHash])
-}
-
-// A named rationalization scope of form versions. Default UX mode derives
-// from member count (7 or fewer = reading, 8+ = portfolio — FORMS-HLR-008);
-// modeOverride stores an explicit user choice, never the computed default.
-model FormWorkingSet {
-  id               String    @id @default(cuid())
-  tenantId         String
-  companyId        String
-  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name             String
-  description      String?
-  modeOverride     String? // reading | portfolio | null = derive from size
-  clusterThreshold Float     @default(0.55) // lexical-similarity theta for this set's cluster runs
-  clusterStatus    String    @default("none") // none | running | done | failed
-  clusteredAt      DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  members  FormWorkingSetMember[]
-  clusters ClauseCluster[]
-  findings FormFinding[]
-
-  @@unique([companyId, name])
-  @@index([companyId])
-}
-
-model FormWorkingSetMember {
-  id            String            @id @default(cuid())
-  companyId     String
-  workingSetId  String
-  workingSet    FormWorkingSet    @relation(fields: [workingSetId], references: [id], onDelete: Cascade)
-  formVersionId String
-  formVersion   PolicyFormVersion @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
-
-  @@unique([workingSetId, formVersionId])
-  @@index([workingSetId])
-  @@index([formVersionId])
-  @@index([companyId, workingSetId])
-}
-
-// A group of equivalent/similar clauses across the working set — the primary
-// analysis primitive (ADR-001, FORMS-HLR-007). Rebuilt per cluster run.
-model ClauseCluster {
-  id                     String         @id @default(cuid())
-  tenantId               String
-  companyId              String
-  workingSetId           String
-  workingSet             FormWorkingSet @relation(fields: [workingSetId], references: [id], onDelete: Cascade)
-  label                  String
-  representativeClauseId String?
-  representativeClause   FormClause?    @relation("ClusterRepresentative", fields: [representativeClauseId], references: [id], onDelete: SetNull)
-  divergenceScore        Float          @default(0) // 1 - min pairwise similarity within the cluster
-  createdAt              DateTime       @default(now())
-
-  members          ClauseClusterMember[]
-  findings         FormFinding[]
-  dispositions     FormDisposition[]     @relation("DispositionCluster")
-  preferredWording PreferredWording?
-
-  @@index([workingSetId])
-  @@index([companyId])
-  @@index([representativeClauseId])
-}
-
-model ClauseClusterMember {
-  id         String        @id @default(cuid())
-  companyId  String
-  clusterId  String
-  cluster    ClauseCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
-  clauseId   String
-  clause     FormClause    @relation(fields: [clauseId], references: [id], onDelete: Cascade)
-  similarity Float // similarity to the cluster representative (medoid)
-  outlier    Boolean       @default(false)
-
-  @@unique([clusterId, clauseId])
-  @@index([clusterId])
-  @@index([clauseId])
-}
-
-// The ONLY AI output type (ADR-004): a claim with citations, confidence and a
-// trace. confidence < 0.70 = status needs-human, excluded from bulk actions
-// (FORMS-LLR-011/012).
-model FormFinding {
-  id            String             @id @default(cuid())
-  tenantId      String
-  companyId     String
-  workingSetId  String?
-  workingSet    FormWorkingSet?    @relation(fields: [workingSetId], references: [id], onDelete: Cascade)
-  clusterId     String?
-  cluster       ClauseCluster?     @relation(fields: [clusterId], references: [id], onDelete: Cascade)
-  formVersionId String?
-  formVersion   PolicyFormVersion? @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
-  subjectKind   String // cluster | clausePair | form | fieldMapping
-  claim         String
-  citations     Json // [{ formVersionId, clauseId, charStart, charEnd, quote }] — cited source text never truncated (SM-003)
-  confidence    Float // 0..1
-  status        String             @default("new") // new | needs-human | accepted | rejected | superseded
-  agentSkill    String             @default("lexical-cluster-v1")
-  traceRef      String?
-  decidedById   String? // User id of the reviewer who accepted/rejected
-  decidedAt     DateTime?
-  createdAt     DateTime           @default(now())
-
-  @@index([companyId])
-  @@index([workingSetId])
-  @@index([clusterId])
-  @@index([companyId, status])
-}
-
-// A Keep / Merge-into / Retire / Redraft decision on a form or cluster.
-// `status` is a derived cache of the latest FormDispositionEvent — the event
-// log is the source of truth (FORMS-LLR-007).
-model FormDisposition {
-  id           String         @id @default(cuid())
-  tenantId     String
-  companyId    String
-  subjectKind  String // form | cluster
-  formId       String?
-  form         PolicyForm?    @relation("DispositionForm", fields: [formId], references: [id], onDelete: Cascade)
-  clusterId    String?
-  cluster      ClauseCluster? @relation("DispositionCluster", fields: [clusterId], references: [id], onDelete: Cascade)
-  type         String // keep | merge | retire | redraft
-  targetFormId String? // merge target
-  targetForm   PolicyForm?    @relation("DispositionTargetForm", fields: [targetFormId], references: [id], onDelete: SetNull)
-  ownerRoleId  String?
-  ownerRole    Role?          @relation("FormDispositionOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
-  rationale    String?
-  status       String         @default("proposed") // proposed | approved | rejected | executed (cache of latest event)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  events FormDispositionEvent[]
-
-  @@index([companyId])
-  @@index([formId])
-  @@index([clusterId])
-  @@index([ownerRoleId])
-}
-
-// Append-only decision history — never updated, never deleted (NFR-003).
-model FormDispositionEvent {
-  id            String          @id @default(cuid())
-  companyId     String
-  dispositionId String
-  disposition   FormDisposition @relation(fields: [dispositionId], references: [id], onDelete: Cascade)
-  event         String // proposed | approved | rejected | executed
-  actorKind     String          @default("user") // user | agent
-  actorId       String? // User id, or agent skill slug for actorKind=agent
-  note          String?
-  at            DateTime        @default(now())
-
-  @@index([dispositionId])
-  @@index([companyId])
-}
-
-// The one surviving standard clause per resolved cluster (FORMS-HLR-011).
-model PreferredWording {
-  id             String        @id @default(cuid())
-  tenantId       String
-  companyId      String
-  clusterId      String        @unique
-  cluster        ClauseCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
-  sourceClauseId String?
-  sourceClause   FormClause?   @relation("PreferredWordingSource", fields: [sourceClauseId], references: [id], onDelete: SetNull)
-  clauseText     String
-  status         String        @default("active") // active | superseded
-  approvedById   String? // User id
-  createdAt      DateTime      @default(now())
-
-  @@index([companyId])
-  @@index([sourceClauseId])
-}
-
-// ─── FORMS FIELD PLANE (QFD-informed, ACORD-aware — ADR-006) ────────────
-
-// Canonical field dictionary entry: key grammar `role.entity.attribute`
-// (instance counters live on FormField occurrences). stability=do-not-map
-// keys are excluded from mapping suggestions (INV-F1); composition parts make
-// a calculated field get-only (INV-F2); acordRef defers semantics to ACORD,
-// never forks them (INV-F4). (FORMS-HLR-018)
-model FieldDefinition {
   id                String   @id @default(cuid())
   tenantId          String
   companyId         String
@@ -4053,125 +4180,4 @@ model RpWaveMember {
   @@unique([waveId, legacyRaterId])
   @@index([waveId])
   @@index([legacyRaterId])
-  key               String // e.g. "insured.tax.fein"
-  dataSetType       String // Insured | Policy | Producer | Carrier | Coverage | Location | Vehicle | Loss | Payment | Identification | Signature | Nav | UserDefined
-  dataType          String   @default("string") // string | number | date | boolean | choice | signature
-  acordRef          String? // ACORD data-dictionary element id where one exists
-  scope             String   @default("tenant") // global | tenant | form
-  stability         String   @default("stable") // stable | do-not-map
-  compositionParts  Json? // ordered FieldDefinition keys; non-null = calculated (get-only)
-  compositionFormat String? // punctuation-explicit, e.g. "{FName} {MName} {LName}, {Suffix}"
-  version           Int      @default(1)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  mappings FieldMapping[]
-
-  @@unique([companyId, key])
-  @@index([companyId, dataSetType])
-}
-
-// A field occurrence extracted from a fielded form version (FORMS-LLR-016).
-model FormField {
-  id            String            @id @default(cuid())
-  tenantId      String
-  companyId     String
-  formVersionId String
-  formVersion   PolicyFormVersion @relation(fields: [formVersionId], references: [id], onDelete: Cascade)
-  sourceName    String // as found in AcroForm/XFA (engine prefixes normalized on ingest)
-  label         String?
-  page          Int               @default(1)
-  widgetType    String            @default("text") // text | checkbox | radio | choice | signature | date
-  options       Json? // [{ label, exportValue }] — export-value semantics preserved (FORMS-HLR-021)
-  selectMode    String? // single | multi (FORMS-LLR-019)
-  required      Boolean           @default(false)
-  formatRule    String?
-  instance      Int               @default(1)
-
-  mappings FieldMapping[]
-
-  @@unique([formVersionId, sourceName, instance])
-  @@index([companyId])
-  @@index([formVersionId])
-}
-
-// Suggested/confirmed link between an extracted field and a dictionary entry,
-// with per-signal scores persisted for audit (FORMS-LLR-017, INV-F3).
-model FieldMapping {
-  id                String          @id @default(cuid())
-  tenantId          String
-  companyId         String
-  formFieldId       String
-  formField         FormField       @relation(fields: [formFieldId], references: [id], onDelete: Cascade)
-  fieldDefinitionId String
-  fieldDefinition   FieldDefinition @relation(fields: [fieldDefinitionId], references: [id], onDelete: Cascade)
-  confidence        Float // 0.4*nameSim + 0.45*labelSim + 0.15*optionOverlap (LLD 7.2)
-  nameSim           Float
-  labelSim          Float
-  optionOverlap     Float
-  status            String          @default("suggested") // suggested | needs-human | confirmed | rejected
-  reviewerId        String? // User id (INV-F3)
-  decidedAt         DateTime?
-  createdAt         DateTime        @default(now())
-
-  @@unique([formFieldId, fieldDefinitionId])
-  @@index([formFieldId])
-  @@index([fieldDefinitionId])
-  @@index([companyId, status])
-}
-
-// ─── FORMS SIX-DIMENSION JUNCTIONS (ontology bridge) ────────────────────
-
-// PolicyForm to Application: implementedBy (renders/consumes the form) or
-// feedsApplication (prefill/consumption contract) — FORMS-HLR-016.
-model FormApplication {
-  id            String      @id @default(cuid())
-  companyId     String
-  formId        String
-  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
-  applicationId String
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  role_         String      @default("implementedBy") // implementedBy | feedsApplication
-
-  @@unique([formId, applicationId, role_])
-  @@index([formId])
-  @@index([applicationId])
-  @@index([companyId, formId])
-}
-
-// PolicyForm to ProcessNode: servesValueStream (L2) or impactsTask (L5) —
-// the change-impact hop ("retiring this form touches these tasks").
-model FormProcessNode {
-  id            String      @id @default(cuid())
-  companyId     String
-  formId        String
-  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
-  processNodeId String
-  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
-  role_         String      @default("servesValueStream") // servesValueStream | impactsTask
-
-  @@unique([formId, processNodeId, role_])
-  @@index([formId])
-  @@index([processNodeId])
-  @@index([companyId, formId])
-}
-
-// PolicyForm to ProductNode (product spine L4 version node): the form set a
-// product version attaches. THE single source of truth for every form the
-// workspace Products grid and the Product Model tabs render — those surfaces
-// resolve forms through this junction; ProductNode.attributes carries no form
-// content (no free-text form lists anywhere else).
-model FormProductNode {
-  id            String      @id @default(cuid())
-  companyId     String
-  formId        String
-  form          PolicyForm  @relation(fields: [formId], references: [id], onDelete: Cascade)
-  productNodeId String
-  productNode   ProductNode @relation(fields: [productNodeId], references: [id], onDelete: Cascade)
-  role_         String      @default("baseForm") // baseForm | declarations | endorsement | stateAmendatory
-
-  @@unique([formId, productNodeId, role_])
-  @@index([formId])
-  @@index([productNodeId])
-  @@index([companyId, formId])
 }
