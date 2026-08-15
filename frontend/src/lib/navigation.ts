@@ -53,6 +53,9 @@ const GROUP_SPECS: readonly GroupSpec[] = [
     label: 'Workspace',
     children: [{ key: 'workspace', label: 'Maps' }, { key: 'work-library' }],
   },
+  { id: 'uw-workbench', label: 'UW Workbench', children: [{ key: 'uw-workbench' }] },
+  { id: 'rate-price', label: 'Rate & Price', children: [{ key: 'rate-price' }] },
+  { id: 'majesco-billing', label: 'Billing', children: [{ key: 'majesco-billing' }] },
   {
     id: 'admin',
     label: 'Admin',
